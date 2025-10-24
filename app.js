@@ -11,7 +11,8 @@ import {
     query, 
     where, 
     onSnapshot,
-    getDocs
+    getDocs,
+    documentId // <--- ¡¡¡IMPORTANTE: ESTA ES LA CORRECCIÓN!!!
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // -----------------------------------------------------------------
@@ -61,7 +62,7 @@ const cajaDateFrom = document.getElementById('caja-date-from');
 const cajaDateTo = document.getElementById('caja-date-to');
 const cajaFilterBtn = document.getElementById('caja-filter-btn');
 
-// Estadísticas (¡NUEVO!)
+// Estadísticas
 const statsList = document.getElementById('stats-list');
 const statsDateFrom = document.getElementById('stats-date-from');
 const statsDateTo = document.getElementById('stats-date-to');
@@ -153,7 +154,7 @@ function setupEventListeners() {
 
     // Filtros
     cajaFilterBtn.onclick = loadCajaData;
-    statsFilterBtn.onclick = loadStatsData; // ¡NUEVO!
+    statsFilterBtn.onclick = loadStatsData; 
 
     // Sugerencias de Cliente
     teamNameInput.oninput = handleTeamNameInput;
@@ -189,7 +190,6 @@ function showView(viewName) {
 // --- LÓGICA DE FIREBASE (RESERVAS) ---
 
 async function loadBookingsForMonth() {
-    // ... (sin cambios) ...
     if (!db || !userId) return;
     showMessage("Cargando reservas...");
     if (currentBookingsUnsubscribe) currentBookingsUnsubscribe();
@@ -206,7 +206,6 @@ async function loadBookingsForMonth() {
 }
 
 async function handleSaveBooking(event) {
-    // ... (sin cambios) ...
     event.preventDefault();
     showMessage("Guardando...");
     const bookingId = document.getElementById('booking-id').value;
@@ -230,7 +229,7 @@ async function handleSaveBooking(event) {
         } else {
             await addDoc(collection(db, bookingsCollectionPath), bookingData);
         }
-        await saveCustomer(teamName);
+        await saveCustomer(teamName); 
         closeModals();
         hideMessage();
     } catch (error) {
@@ -240,7 +239,6 @@ async function handleSaveBooking(event) {
 }
 
 async function handleDeleteBooking(bookingId) {
-    // ... (sin cambios) ...
     if (!window.confirm("¿Estás seguro de que quieres eliminar esta reserva?")) return;
     showMessage("Eliminando...");
     try {
@@ -256,11 +254,10 @@ async function handleDeleteBooking(bookingId) {
 // --- LÓGICA DE FIREBASE (CLIENTES) ---
 
 async function saveCustomer(name) {
-    // ... (sin cambios) ...
     if (!name) return;
     try {
         const customerId = name.trim().toLowerCase();
-        if (!customerId) return;
+        if (!customerId) return; // No guardar si el nombre está vacío
         const docRef = doc(db, customersCollectionPath, customerId);
         await setDoc(docRef, { 
             name: name.trim(),
@@ -271,8 +268,11 @@ async function saveCustomer(name) {
     }
 }
 
+/**
+ * (ESTA ES LA LÓGICA CORREGIDA)
+ * Busca clientes mientras el usuario tipea en el formulario.
+ */
 async function handleTeamNameInput() {
-    // ... (sin cambios) ...
     const queryText = teamNameInput.value.trim().toLowerCase();
     if (queryText.length < 2) {
         teamNameSuggestions.style.display = 'none';
@@ -280,21 +280,25 @@ async function handleTeamNameInput() {
     }
     try {
         const customersRef = collection(db, customersCollectionPath);
-        // Esta query es más simple y efectiva para "empieza con"
+        
+        // --- ¡¡¡ESTA ES LA CONSULTA CORREGIDA!!! ---
+        // Consultamos por el ID del documento (documentId()), que es el nombre normalizado.
         const q = query(customersRef, 
-            where(doc(db, customersCollectionPath, queryText).id, ">=", queryText),
-            where(doc(db, customersCollectionPath, queryText).id, "<=", queryText + '\uf8ff')
+            where(documentId(), ">=", queryText),
+            where(documentId(), "<=", queryText + '\uf8ff')
         );
+        // --- FIN DE LA CORRECCIÓN ---
+
         const snapshot = await getDocs(q);
         const suggestions = snapshot.docs.map(doc => doc.data().name);
         renderSuggestions(suggestions);
     } catch (error) {
         console.error("Error al buscar clientes:", error);
+        // Si esto falla, revisa las REGLAS DE FIRESTORE
     }
 }
 
 function renderSuggestions(suggestions) {
-    // ... (sin cambios) ...
     teamNameSuggestions.innerHTML = '';
     if (suggestions.length === 0) {
         teamNameSuggestions.style.display = 'none';
@@ -311,14 +315,12 @@ function renderSuggestions(suggestions) {
 }
 
 function selectSuggestion(name) {
-    // ... (sin cambios) ...
     teamNameInput.value = name;
     teamNameSuggestions.style.display = 'none';
 }
 
 
 // --- LÓGICA DEL CALENDARIO ---
-// ... (sin cambios en renderCalendar, createDayCell, handleDayClick) ...
 function renderCalendar() {
     calendarGrid.innerHTML = '';
     const year = currentMonthDate.getFullYear();
@@ -370,7 +372,6 @@ function handleDayClick(dateStr) {
 
 
 // --- LÓGICA DE MODALES (RESERVAS) ---
-// ... (sin cambios significativos) ...
 function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     bookingForm.reset();
@@ -419,7 +420,6 @@ function showOptionsModal(dateStr, bookingsOnDay) {
     optionsModal.classList.add('is-open');
 }
 function showViewModal(booking) {
-    // ... (sin cambios) ...
     closeModals();
     const detailsEl = document.getElementById('view-booking-details');
     const totalCancha = (booking.costPerHour || 0) * (booking.hoursCount || 0);
@@ -455,91 +455,66 @@ function nextMonth() {
 }
 
 
-// --- LÓGICA DE VISTA DE CAJA (MEJORADA) ---
-
+// --- LÓGICA DE VISTA DE CAJA ---
 async function loadCajaData() {
     if (!db) return;
     showMessage("Cargando datos de caja...");
-    
     try {
         let q = query(collection(db, bookingsCollectionPath));
         const from = cajaDateFrom.value;
         const to = cajaDateTo.value;
-        
         if (from) q = query(q, where("day", ">=", from));
         if (to) q = query(q, where("day", "<=", to));
-        
-        // ¡RECUERDA! Esta consulta requiere un índice compuesto en 'day'
-        // Firestore te dará un enlace en la consola si falta.
-        
         const snapshot = await getDocs(q);
-        
         let grandTotal = 0;
         const dailyTotals = {};
-
         snapshot.docs.forEach(doc => {
-            const booking = { id: doc.id, ...doc.data() }; // Guardamos la reserva completa
-            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + 
-                          (booking.rentGrill ? (booking.grillCost || 0) : 0);
-            
+            const booking = { id: doc.id, ...doc.data() };
+            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + (booking.rentGrill ? (booking.grillCost || 0) : 0);
             grandTotal += total;
             const day = booking.day;
             const paymentMethod = booking.paymentMethod || 'efectivo';
-
             if (!dailyTotals[day]) {
                 dailyTotals[day] = { total: 0, efectivo: 0, transferencia: 0, mercadopago: 0, bookings: [] };
             }
-            
             dailyTotals[day].total += total;
             if (dailyTotals[day][paymentMethod] !== undefined) {
                 dailyTotals[day][paymentMethod] += total;
             }
-            dailyTotals[day].bookings.push(booking); // ¡NUEVO! Guardamos la reserva
+            dailyTotals[day].bookings.push(booking);
         });
-
         cajaTotal.textContent = `$${grandTotal.toLocaleString('es-AR')}`;
         renderCajaList(dailyTotals);
         hideMessage();
-
     } catch (error) {
         console.error("Error al cargar datos de caja:", error);
         showMessage(`Error: ${error.message}. ¿Creaste el índice en Firestore?`, true);
     }
 }
-
 function renderCajaList(dailyTotals) {
     cajaDailyList.innerHTML = '';
-    const sortedDays = Object.keys(dailyTotals).sort((a, b) => b.localeCompare(a)); // Más recientes primero
-    
+    const sortedDays = Object.keys(dailyTotals).sort((a, b) => b.localeCompare(a));
     if (sortedDays.length === 0) {
         cajaDailyList.innerHTML = '<p class="text-gray-500 text-center">No hay reservas en el rango.</p>';
         return;
     }
-
     sortedDays.forEach(day => {
         const data = dailyTotals[day];
         const [year, month, dayNum] = day.split('-');
         const displayDate = `${dayNum}/${month}/${year}`;
-        
         const item = document.createElement('div');
         item.className = 'caja-day-item';
         item.innerHTML = `
             <span class="font-medium text-gray-800">${displayDate}</span>
             <strong class="text-lg text-emerald-600">$${data.total.toLocaleString('es-AR')}</strong>
         `;
-        // Pasamos el objeto 'data' completo, que incluye el array 'bookings'
         item.onclick = () => showCajaDetail(displayDate, data);
         cajaDailyList.appendChild(item);
     });
 }
-
-/**
- * Muestra el modal de detalle de caja (MEJORADO)
- */
 function showCajaDetail(displayDate, data) {
     cajaDetailModal.classList.add('is-open');
-    
-    // Resumen de Pagos
+    document.getElementById('caja-detail-title').textContent = `Detalle: ${displayDate}`;
     const summaryEl = document.getElementById('caja-detail-summary');
     summaryEl.innerHTML = `
         <p class="flex justify-between"><span>Efectivo:</span> <strong>$${data.efectivo.toLocaleString('es-AR')}</strong></p>
@@ -548,16 +523,13 @@ function showCajaDetail(displayDate, data) {
         <hr class="my-2">
         <p class="flex justify-between text-lg font-bold"><span>Total Día:</span> <strong>$${data.total.toLocaleString('es-AR')}</strong></p>
     `;
-    
-    // ¡NUEVO! Lista de Reservas
     const listEl = document.getElementById('caja-detail-booking-list');
     listEl.innerHTML = '';
     if (data.bookings.length === 0) {
         listEl.innerHTML = '<p class="text-gray-500">No hay detalles de reservas.</p>';
     } else {
         data.bookings.forEach(booking => {
-            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + 
-                          (booking.rentGrill ? (booking.grillCost || 0) : 0);
+            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + (booking.rentGrill ? (booking.grillCost || 0) : 0);
             const item = document.createElement('div');
             item.className = 'caja-booking-item';
             item.innerHTML = `
@@ -570,71 +542,49 @@ function showCajaDetail(displayDate, data) {
 }
 
 
-// --- LÓGICA DE VISTA DE ESTADÍSTICAS (¡NUEVA!) ---
-
+// --- LÓGICA DE VISTA DE ESTADÍSTICAS ---
 async function loadStatsData() {
     if (!db) return;
     showMessage("Calculando estadísticas...");
-
     try {
         let q = query(collection(db, bookingsCollectionPath));
         const from = statsDateFrom.value;
         const to = statsDateTo.value;
-        
         if (from) q = query(q, where("day", ">=", from));
         if (to) q = query(q, where("day", "<=", to));
-
-        // Esta consulta usa el mismo índice 'day' que la vista de Caja
         const snapshot = await getDocs(q);
-
-        const stats = {}; // Objeto para acumular estadísticas
-
+        const stats = {};
         snapshot.docs.forEach(doc => {
             const booking = doc.data();
-            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + 
-                          (booking.rentGrill ? (booking.grillCost || 0) : 0);
-            
-            // Normalizamos el nombre para agrupar (ej. "Martin" y "martin" son el mismo)
+            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + (booking.rentGrill ? (booking.grillCost || 0) : 0);
             const normalizedName = booking.teamName.trim().toLowerCase();
-            
-            if (!stats[normalizedName]) {
-                // Si es la primera vez que vemos este nombre, lo inicializamos
-                // Guardamos el nombre original (con mayúsculas) para mostrarlo
-                stats[normalizedName] = { 
-                    name: booking.teamName.trim(), 
-                    count: 0, 
-                    totalSpent: 0 
-                };
+            if (normalizedName) { // Evita contar nombres vacíos
+                if (!stats[normalizedName]) {
+                    stats[normalizedName] = { 
+                        name: booking.teamName.trim(), 
+                        count: 0, 
+                        totalSpent: 0 
+                    };
+                }
+                stats[normalizedName].count++;
+                stats[normalizedName].totalSpent += total;
             }
-            
-            // Acumulamos los datos
-            stats[normalizedName].count++;
-            stats[normalizedName].totalSpent += total;
         });
-
         renderStatsList(stats);
         hideMessage();
-
     } catch (error) {
         console.error("Error al cargar estadísticas:", error);
         showMessage(`Error: ${error.message}.`, true);
     }
 }
-
 function renderStatsList(stats) {
     statsList.innerHTML = '';
-    
-    // Convertimos el objeto de stats en un array
     const statsArray = Object.values(stats);
-    
-    // Ordenamos el array por cantidad de reservas (descendente)
     statsArray.sort((a, b) => b.count - a.count);
-
     if (statsArray.length === 0) {
         statsList.innerHTML = '<p class="text-gray-500 text-center">No hay reservas en el rango.</p>';
         return;
     }
-
     statsArray.forEach(client => {
         const item = document.createElement('div');
         item.className = 'stats-item';
@@ -661,3 +611,4 @@ function showMessage(msg, isError = false) {
 function hideMessage() {
     messageOverlay.classList.remove('is-open');
 }
+
