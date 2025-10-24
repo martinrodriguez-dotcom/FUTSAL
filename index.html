@@ -11,35 +11,50 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#059669">
 </head>
-<body class="bg-gray-50 font-sans antialiased">
+<body class="bg-gray-100 font-sans antialiased">
 
-    <!-- Contenedor principal de la App (Calendario) -->
-    <div id="calendar-view" class="container mx-auto max-w-4xl p-4">
+    <!-- ============================================= -->
+    <!-- HEADER Y MENÚ (AHORA PERSISTENTES) -->
+    <!-- ============================================= -->
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-md p-4 flex justify-between items-center z-50">
+        <button id="menu-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <svg class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <h1 class="text-xl font-bold text-emerald-700">Reservas Futsal</h1>
+        <!-- Spacer para centrar el título (truco) -->
+        <div class="w-8"></div> 
+    </header>
+
+    <!-- Menú Desplegable -->
+    <nav id="main-menu" class="main-menu-hidden">
+        <a href="#" class="menu-item" data-view="calendar">Calendario</a>
+        <a href="#" class="menu-item" data-view="caja">Gestión de Caja</a>
+        <a href="#" class="menu-item" data-view="stats">Estadísticas</a>
+    </nav>
+    <!-- Fondo oscuro para el menú -->
+    <div id="menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleMenu()"></div>
+
+
+    <!-- ============================================= -->
+    <!-- VISTA 1: CALENDARIO -->
+    <!-- ============================================= -->
+    <div id="calendar-view" class="view-container container mx-auto max-w-4xl p-4 pt-24">
         
-        <header class="flex justify-between items-center text-center my-6 relative">
-            <!-- Botón de Menú Hamburguesa -->
-            <button id="menu-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors z-50">
-                <svg class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
-            
-            <div class="flex-1">
-                <h1 class="text-4xl font-bold text-emerald-700">Reservas Futsal</h1>
-                <p class="text-lg text-gray-600">Gestiona los turnos de tu cancha</p>
-            </div>
-            
-            <div class="w-10"></div> <!-- Spacer -->
-        </header>
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-emerald-700">Reservas</h1>
+            <p class="text-lg text-gray-600">Gestiona los turnos de tu cancha</p>
+        </div>
 
         <!-- Cabecera del Calendario -->
         <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-4">
-            <button id="prev-month-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            <button id="prev-month-btn" class="p-2 rounded-lg hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             </button>
             <h2 id="current-month-year" class="text-2xl font-semibold text-emerald-600"></h2>
-            <button id="next-month-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            <button id="next-month-btn" class="p-2 rounded-lg hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
             </button>
         </div>
 
@@ -50,89 +65,121 @@
 
         <!-- Grilla del Calendario -->
         <div id="calendar-grid" class="grid grid-cols-7 gap-2">
-            <!-- Los días se generarán con JavaScript aquí -->
+            <!-- JS -->
         </div>
     </div>
 
     <!-- ============================================= -->
-    <!-- VISTA DE GESTIÓN DE CAJA (PÁGINA SUPERPUESTA) -->
+    <!-- VISTA 2: GESTIÓN DE CAJA -->
     <!-- ============================================= -->
-    <div id="caja-view" class="fixed inset-0 bg-gray-100 p-4 z-40 overflow-y-auto" style="display: none;">
-        <div class="max-w-4xl mx-auto pt-20"> <!-- pt-20 para dejar espacio al header -->
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Caja</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-lg shadow">
-                <div>
-                    <label for="date-from" class="block text-sm font-medium text-gray-700 mb-1">Desde:</label>
-                    <input type="date" id="date-from" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div>
-                    <label for="date-to" class="block text-sm font-medium text-gray-700 mb-1">Hasta:</label>
-                    <input type="date" id="date-to" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <button id="filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-md h-11">Filtrar</button>
+    <div id="caja-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
+        
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Caja</h2>
+        
+        <!-- Filtro de Rango de Fechas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-lg shadow">
+            <div>
+                <label for="caja-date-from" class="block text-sm font-medium text-gray-700 mb-1">Desde:</label>
+                <input type="date" id="caja-date-from" class="w-full px-3 py-2 border rounded-lg">
             </div>
-            
-            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h3 class="text-xl font-semibold text-gray-700">Total en Rango:</h3>
-                <p id="caja-total" class="text-4xl font-bold text-emerald-600">$0</p>
+            <div>
+                <label for="caja-date-to" class="block text-sm font-medium text-gray-700 mb-1">Hasta:</label>
+                <input type="date" id="caja-date-to" class="w-full px-3 py-2 border rounded-lg">
             </div>
-            
-            <h3 class="text-2xl font-semibold text-gray-800 mb-3">Detalle por Día</h3>
-            <div id="caja-daily-list" class="space-y-2">
-                <!-- Los items del día se generan con JS aquí -->
+            <button id="caja-filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg h-11">Filtrar</button>
+        </div>
+        
+        <!-- Totales -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h3 class="text-xl font-semibold text-gray-700">Total en Rango:</h3>
+            <p id="caja-total" class="text-4xl font-bold text-emerald-600">$0</p>
+        </div>
+        
+        <!-- Lista de Días -->
+        <h3 class="text-2xl font-semibold text-gray-800 mb-3">Detalle por Día</h3>
+        <div id="caja-daily-list" class="space-y-2">
+            <!-- JS -->
+        </div>
+    </div>
+    
+    <!-- ============================================= -->
+    <!-- VISTA 3: ESTADÍSTICAS (¡NUEVA!) -->
+    <!-- ============================================= -->
+    <div id="stats-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
+        
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Estadísticas de Clientes</h2>
+        
+        <!-- Filtro de Rango de Fechas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-lg shadow">
+            <div>
+                <label for="stats-date-from" class="block text-sm font-medium text-gray-700 mb-1">Desde:</label>
+                <input type="date" id="stats-date-from" class="w-full px-3 py-2 border rounded-lg">
             </div>
+            <div>
+                <label for="stats-date-to" class="block text-sm font-medium text-gray-700 mb-1">Hasta:</label>
+                <input type="date" id="stats-date-to" class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <button id="stats-filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg h-11">Filtrar</button>
+        </div>
+        
+        <!-- Ranking de Clientes -->
+        <h3 class="text-2xl font-semibold text-gray-800 mb-3">Ranking de Reservas</h3>
+        <div id="stats-list" class="space-y-2">
+            <!-- JS generará el ranking aquí -->
         </div>
     </div>
 
 
     <!-- ============================================= -->
-    <!-- MODALES -->
+    <!-- MODALES (COMPARTIDOS POR TODAS LAS VISTAS) -->
     <!-- ============================================= -->
 
-    <!-- Modal 1: Formulario de Reserva (Crear/Editar) -->
-    <div id="booking-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+    <!-- Modal 1: Formulario de Reserva -->
+    <div id="booking-modal" class="modal">
         <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
             <h3 id="booking-modal-title" class="text-2xl font-bold text-gray-800 mb-4">Reservar Turno</h3>
             <form id="booking-form">
                 <input type="hidden" id="booking-id">
                 <input type="hidden" id="booking-date">
 
+                <!-- Campo Nombre con Sugerencias -->
                 <div class="mb-4 relative">
                     <label for="teamName" class="block text-sm font-medium text-gray-700 mb-1">Nombre (Equipo/Persona)</label>
-                    <input type="text" id="teamName" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required autocomplete="off">
+                    <input type="text" id="teamName" class="w-full px-3 py-2 border rounded-lg" required autocomplete="off">
                     <div id="teamName-suggestions" class="absolute z-10 w-full"></div>
                 </div>
 
+                <!-- ... otros campos ... -->
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label for="peopleCount" class="block text-sm font-medium text-gray-700 mb-1">Personas</label>
-                        <input type="number" id="peopleCount" min="1" value="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" required>
+                        <label for="peopleCount" class="block text-sm">Personas</label>
+                        <input type="number" id="peopleCount" min="1" value="10" class="w-full px-3 py-2 border rounded-lg" required>
                     </div>
                     <div>
-                        <label for="hoursCount" class="block text-sm font-medium text-gray-700 mb-1">Horas</label>
-                        <input type="number" id="hoursCount" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" required>
+                        <label for="hoursCount" class="block text-sm">Horas</label>
+                        <input type="number" id="hoursCount" min="1" value="1" class="w-full px-3 py-2 border rounded-lg" required>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label for="costPerHour" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora</label>
-                        <input type="number" id="costPerHour" min="0" value="5000" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                        <label for="costPerHour" class="block text-sm">Costo x Hora</label>
+                        <input type="number" id="costPerHour" min="0" value="5000" class="w-full px-3 py-2 border rounded-lg">
                     </div>
                     <div>
-                        <label for="grillCost" class="block text-sm font-medium text-gray-700 mb-1">Costo Parrilla</label>
-                        <input type="number" id="grillCost" min="0" value="2000" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                        <label for="grillCost" class="block text-sm">Costo Parrilla</label>
+                        <input type="number" id="grillCost" min="0" value="2000" class="w-full px-3 py-2 border rounded-lg">
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="flex items-center">
-                        <input type="checkbox" id="rentGrill" class="h-5 w-5 text-emerald-600 rounded border-gray-300">
-                        <span class="ml-2 text-sm text-gray-700">¿Alquila parrilla?</span>
+                        <input type="checkbox" id="rentGrill" class="h-5 w-5 text-emerald-600 rounded">
+                        <span class="ml-2 text-sm">¿Alquila parrilla?</span>
                     </label>
                 </div>
                 
+                <!-- Método de Pago -->
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
+                    <label class="block text-sm font-medium mb-2">Método de Pago</label>
                     <div class="flex flex-wrap justify-around gap-2">
                         <label class="flex items-center px-3 py-1 border rounded-lg">
                             <input type="radio" name="paymentMethod" value="efectivo" class="h-4 w-4 text-emerald-600" checked>
@@ -150,61 +197,64 @@
                 </div>
                 
                 <div class="flex justify-end gap-3">
-                    <button type="button" id="cancel-booking-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 shadow-md">Guardar Reserva</button>
+                    <button type="button" id="cancel-booking-btn" class="px-4 py-2 bg-gray-200 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal 2: Opciones del Día (Ver/Editar/Eliminar) -->
-    <!-- ¡ESTO ES LO QUE FALTABA! -->
-    <div id="options-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+    <!-- Modal 2: Opciones del Día -->
+    <div id="options-modal" class="modal">
         <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">Reservas del Día</h3>
-            <div id="daily-bookings-list" class="space-y-3 mb-4 max-h-60 overflow-y-auto">
-                <!-- Lista de reservas del día -->
-            </div>
+            <h3 class="text-2xl font-bold mb-4">Reservas del Día</h3>
+            <div id="daily-bookings-list" class="space-y-3 mb-4 max-h-60 overflow-y-auto"></div>
             <div class="flex justify-between gap-3">
-                <button type="button" id="close-options-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors w-1/2">Cerrar</button>
-                <button type="button" id="add-new-booking-btn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-md w-1/2">Nueva Reserva</button>
+                <button type="button" id="close-options-btn" class="px-4 py-2 bg-gray-200 rounded-lg w-1/2">Cerrar</button>
+                <button type="button" id="add-new-booking-btn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg w-1/2">Nueva Reserva</button>
             </div>
         </div>
     </div>
 
     <!-- Modal 3: Ver Detalles de Reserva -->
-    <!-- ¡ESTO TAMBIÉN FALTABA! -->
-    <div id="view-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+    <div id="view-modal" class="modal">
         <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">Detalle de la Reserva</h3>
-            <div id="view-booking-details" class="space-y-2 text-gray-700">
-                <!-- Detalles se inyectarán aquí -->
-            </div>
+            <h3 class="text-2xl font-bold mb-4">Detalle de la Reserva</h3>
+            <div id="view-booking-details" class="space-y-2"></div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" id="close-view-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">Cerrar</button>
+                <button type="button" id="close-view-btn" class="px-4 py-2 bg-gray-200 rounded-lg">Cerrar</button>
             </div>
         </div>
     </div>
 
-    <!-- NUEVO: Modal 4: Detalle de Caja por Día -->
-    <div id="caja-detail-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm">
+    <!-- Modal 4: Detalle de Caja por Día (MEJORADO) -->
+    <div id="caja-detail-modal" class="modal">
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
             <h3 id="caja-detail-title" class="text-2xl font-bold text-gray-800 mb-4">Detalle del Día</h3>
-            <div id="caja-detail-content" class="space-y-2 text-gray-700">
+            
+            <!-- Resumen de Pagos -->
+            <h4 class="text-lg font-semibold text-gray-700 mb-2">Resumen de Pagos</h4>
+            <div id="caja-detail-summary" class="space-y-2 text-gray-700 mb-4">
                 <!-- JS llenará esto -->
             </div>
+            
+            <!-- Lista de Reservas -->
+            <h4 class="text-lg font-semibold text-gray-700 mb-2">Reservas</h4>
+            <div id="caja-detail-booking-list" class="space-y-2 text-sm max-h-40 overflow-y-auto">
+                <!-- JS llenará esto -->
+            </div>
+            
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" id="close-caja-detail-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Cerrar</button>
+                <button type="button" id="close-caja-detail-btn" class="px-4 py-2 bg-gray-200 rounded-lg">Cerrar</button>
             </div>
         </div>
     </div>
     
     <!-- Mensaje de Carga/Error -->
-    <div id="message-overlay" class="modal fixed inset-0 bg-white bg-opacity-80 items-center justify-center p-4 text-center">
+    <div id="message-overlay" class="modal">
         <p id="message-text" class="text-xl font-semibold text-gray-700">Cargando...</p>
     </div>
 
     <script type="module" src="app.js"></script>
 </body>
 </html>
-
