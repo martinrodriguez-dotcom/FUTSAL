@@ -1,0 +1,32 @@
+/* Estilo para los días que no pertenecen al mes actual */
+.other-month-day {
+    background-color: #f3f4f6; /* bg-gray-100 */
+    color: #d1d5db; /* text-gray-300 */
+}
+
+/* Estilo para el contador de reservas */
+.booking-count {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background-color: #10B981; /* bg-emerald-500 */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px; /* rounded-full */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Ocultar modales por defecto */
+.modal {
+    display: none;
+}
+
+.modal.is-open {
+    display: flex;
+}
