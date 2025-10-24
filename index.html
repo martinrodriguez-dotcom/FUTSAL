@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas Futsal</title>
+    
+    <!-- Enlace al CSS (Tailwind y estilos propios) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Configuración PWA (Manifest) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#059669">
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+
+    <!-- Contenedor principal de la App -->
+    <div class="container mx-auto max-w-4xl p-4">
+        
+        <header class="text-center my-6">
+            <h1 class="text-4xl font-bold text-emerald-700">Reservas Futsal</h1>
+            <p class="text-lg text-gray-600">Gestiona los turnos de tu cancha</p>
+        </header>
+
+        <!-- Cabecera del Calendario (Mes y Navegación) -->
+        <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-4">
+            <button id="prev-month-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <h2 id="current-month-year" class="text-2xl font-semibold text-emerald-600"></h2>
+            <button id="next-month-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </div>
+
+        <!-- Grilla de Días de la Semana -->
+        <div class="grid grid-cols-7 gap-2 text-center font-medium text-gray-500 mb-2">
+            <div>Dom</div>
+            <div>Lun</div>
+            <div>Mar</div>
+            <div>Mié</div>
+            <div>Jue</div>
+            <div>Vie</div>
+            <div>Sáb</div>
+        </div>
+
+        <!-- Grilla del Calendario -->
+        <div id="calendar-grid" class="grid grid-cols-7 gap-2">
+            <!-- Los días se generarán con JavaScript aquí -->
+        </div>
+
+    </div>
+
+    <!-- MODALES -->
+
+    <!-- Modal 1: Formulario de Reserva (Crear/Editar) -->
+    <div id="booking-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+            <h3 id="booking-modal-title" class="text-2xl font-bold text-gray-800 mb-4">Reservar Turno</h3>
+            <form id="booking-form">
+                <input type="hidden" id="booking-id">
+                <input type="hidden" id="booking-date">
+
+                <div class="mb-4">
+                    <label for="teamName" class="block text-sm font-medium text-gray-700 mb-1">Nombre (Equipo/Persona)</label>
+                    <input type="text" id="teamName" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="peopleCount" class="block text-sm font-medium text-gray-700 mb-1">Personas</label>
+                        <input type="number" id="peopleCount" min="1" value="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                    </div>
+                    <div>
+                        <label for="hoursCount" class="block text-sm font-medium text-gray-700 mb-1">Horas</label>
+                        <input type="number" id="hoursCount" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="costPerHour" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora</label>
+                        <input type="number" id="costPerHour" min="0" value="5000" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                    </div>
+                    <div>
+                        <label for="grillCost" class="block text-sm font-medium text-gray-700 mb-1">Costo Parrilla</label>
+                        <input type="number" id="grillCost" min="0" value="2000" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="rentGrill" class="h-5 w-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500">
+                        <span class="ml-2 text-sm text-gray-700">¿Alquila parrilla?</span>
+                    </label>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" id="cancel-booking-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-md">Guardar Reserva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Opciones del Día (Ver/Editar/Eliminar) -->
+    <div id="options-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Reservas del Día</h3>
+            <div id="daily-bookings-list" class="space-y-3 mb-4 max-h-60 overflow-y-auto">
+                <!-- Lista de reservas del día -->
+            </div>
+            <div class="flex justify-between gap-3">
+                <button type="button" id="close-options-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors w-1/2">Cerrar</button>
+                <button type="button" id="add-new-booking-btn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-md w-1/2">Nueva Reserva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Ver Detalles de Reserva -->
+    <div id="view-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Detalle de la Reserva</h3>
+            <div id="view-booking-details" class="space-y-2 text-gray-700">
+                <!-- Detalles se inyectarán aquí -->
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" id="close-view-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">Cerrar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mensaje de Carga/Error -->
+    <div id="message-overlay" class="modal fixed inset-0 bg-white bg-opacity-80 items-center justify-center p-4 text-center">
+        <p id="message-text" class="text-xl font-semibold text-gray-700">Cargando...</p>
+    </div>
+
+    <!-- Carga del script principal (Lógica + Firebase) -->
+    <script type="module" src="app.js"></script>
+    
+</body>
+</html>
