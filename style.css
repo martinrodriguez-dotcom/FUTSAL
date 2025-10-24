@@ -42,7 +42,7 @@
 
 
 /* ============================================= */
-/* NUEVOS ESTILOS (MENÚ Y VISTAS) */
+/* MENÚ Y VISTAS */
 /* ============================================= */
 
 /* Contenedor para las "vistas" (páginas) */
@@ -81,6 +81,10 @@
 .menu-item:hover {
     background-color: #f9fafb; /* bg-gray-50 */
 }
+
+/* ============================================= */
+/* COMPONENTES */
+/* ============================================= */
 
 /* Estilos para lista de Caja */
 .caja-day-item {
