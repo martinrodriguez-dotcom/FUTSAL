@@ -12,7 +12,7 @@ import {
     where, 
     onSnapshot,
     getDocs,
-    documentId // <--- ¡¡¡IMPORTANTE: ESTA ES LA CORRECCIÓN!!!
+    documentId
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // -----------------------------------------------------------------
@@ -31,11 +31,16 @@ const firebaseConfig = {
 const bookingsCollectionPath = "bookings";
 const customersCollectionPath = "customers";
 
+// --- CONSTANTES DE LA APP ---
+const OPERATING_HOURS = [
+    9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+]; // Horarios de 9:00 a 23:00
+
 // --- VARIABLES GLOBALES DE LA APP ---
 let db, auth, userId;
 let currentMonthDate = new Date();
 let currentBookingsUnsubscribe = null;
-let allMonthBookings = [];
+let allMonthBookings = []; // Caché de reservas del mes
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 // --- REFERENCIAS AL DOM ---
@@ -76,10 +81,18 @@ const cajaDetailModal = document.getElementById('caja-detail-modal');
 const messageOverlay = document.getElementById('message-overlay');
 const messageText = document.getElementById('message-text');
 
-// Formulario de Reserva
+// Formulario de Reserva (¡NUEVOS!)
 const bookingForm = document.getElementById('booking-form');
 const teamNameInput = document.getElementById('teamName');
 const teamNameSuggestions = document.getElementById('teamName-suggestions');
+const costPerHourInput = document.getElementById('costPerHour');
+const grillCostInput = document.getElementById('grillCost');
+const rentGrillCheckbox = document.getElementById('rentGrill');
+const grillHoursSection = document.getElementById('grill-hours-section');
+const courtHoursList = document.getElementById('court-hours-list');
+const grillHoursList = document.getElementById('grill-hours-list');
+const bookingTotal = document.getElementById('booking-total');
+
 
 // --- INICIALIZACIÓN ---
 
@@ -132,7 +145,7 @@ function setupEventListeners() {
             e.preventDefault();
             const viewName = e.target.dataset.view;
             showView(viewName);
-            toggleMenu(); // Cierra el menú
+            toggleMenu();
         };
     });
     
@@ -149,7 +162,7 @@ function setupEventListeners() {
     document.getElementById('add-new-booking-btn').onclick = () => {
         const dateStr = optionsModal.dataset.date;
         closeModals();
-        showBookingModal(dateStr);
+        showBookingModal(dateStr); // <-- ¡Esta función ahora es async!
     };
 
     // Filtros
@@ -160,6 +173,14 @@ function setupEventListeners() {
     teamNameInput.oninput = handleTeamNameInput;
     teamNameInput.onblur = () => { setTimeout(() => { teamNameSuggestions.style.display = 'none'; }, 200); };
     teamNameInput.onfocus = handleTeamNameInput;
+    
+    // ¡NUEVO! Listeners del formulario de reserva para calcular total
+    rentGrillCheckbox.onchange = () => {
+        grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
+        updateTotalPrice();
+    };
+    costPerHourInput.oninput = updateTotalPrice;
+    grillCostInput.oninput = updateTotalPrice;
 }
 
 // --- LÓGICA DE NAVEGACIÓN ---
@@ -170,16 +191,12 @@ function toggleMenu() {
 }
 
 function showView(viewName) {
-    // Oculta todas las vistas
     for (const key in views) {
         views[key].classList.add('is-hidden');
     }
-    // Muestra la vista seleccionada
     if (views[viewName]) {
         views[viewName].classList.remove('is-hidden');
     }
-    
-    // Carga los datos de la vista si es necesario
     if (viewName === 'caja') {
         loadCajaData();
     } else if (viewName === 'stats') {
@@ -195,7 +212,10 @@ async function loadBookingsForMonth() {
     if (currentBookingsUnsubscribe) currentBookingsUnsubscribe();
     const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
     const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
+    
+    // onSnapshot escucha en tiempo real
     currentBookingsUnsubscribe = onSnapshot(q, (snapshot) => {
+        // Actualizamos el caché local de reservas CADA VEZ que hay un cambio
         allMonthBookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderCalendar();
         hideMessage();
@@ -205,33 +225,56 @@ async function loadBookingsForMonth() {
     });
 }
 
+/**
+ * (¡¡ACTUALIZADO!!)
+ * Guarda la reserva. Ahora guarda arrays de horarios.
+ */
 async function handleSaveBooking(event) {
     event.preventDefault();
     showMessage("Guardando...");
+
     const bookingId = document.getElementById('booking-id').value;
     const dateStr = document.getElementById('booking-date').value;
     const teamName = document.getElementById('teamName').value.trim();
+
+    // ¡NUEVO! Obtenemos los arrays de horarios seleccionados
+    const selectedCourtHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected'))
+                                    .map(el => parseInt(el.dataset.hour, 10));
+    
+    const selectedGrillHours = Array.from(grillHoursList.querySelectorAll('.time-slot.selected'))
+                                    .map(el => parseInt(el.dataset.hour, 10));
+
+    if (selectedCourtHours.length === 0) {
+        showMessage("Debes seleccionar al menos un horario de cancha.", true);
+        return;
+    }
+
     const bookingData = {
         teamName: teamName,
         peopleCount: parseInt(document.getElementById('peopleCount').value, 10),
-        hoursCount: parseInt(document.getElementById('hoursCount').value, 10),
-        costPerHour: parseFloat(document.getElementById('costPerHour').value),
-        rentGrill: document.getElementById('rentGrill').checked,
-        grillCost: parseFloat(document.getElementById('grillCost').value),
+        costPerHour: parseFloat(costPerHourInput.value),
+        rentGrill: rentGrillCheckbox.checked,
+        grillCost: parseFloat(grillCostInput.value),
         day: dateStr,
         monthYear: dateStr.substring(0, 7),
         userId: userId,
-        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value
+        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+        
+        // ¡NUEVO! Guardamos los arrays
+        courtHours: selectedCourtHours,
+        grillHours: rentGrillCheckbox.checked ? selectedGrillHours : []
     };
+
     try {
         if (bookingId) {
             await setDoc(doc(db, bookingsCollectionPath, bookingId), bookingData, { merge: true });
         } else {
             await addDoc(collection(db, bookingsCollectionPath), bookingData);
         }
+        
         await saveCustomer(teamName); 
         closeModals();
-        hideMessage();
+        hideMessage(); // onSnapshot actualizará el calendario automáticamente
     } catch (error) {
         console.error("Error al guardar reserva:", error);
         showMessage(`Error al guardar: ${error.message}`, true);
@@ -244,7 +287,7 @@ async function handleDeleteBooking(bookingId) {
     try {
         await deleteDoc(doc(db, bookingsCollectionPath, bookingId));
         closeModals();
-        hideMessage();
+        hideMessage(); // onSnapshot actualizará el calendario automáticamente
     } catch (error) {
         console.error("Error al eliminar reserva:", error);
         showMessage(`Error al eliminar: ${error.message}`, true);
@@ -257,7 +300,7 @@ async function saveCustomer(name) {
     if (!name) return;
     try {
         const customerId = name.trim().toLowerCase();
-        if (!customerId) return; // No guardar si el nombre está vacío
+        if (!customerId) return; 
         const docRef = doc(db, customersCollectionPath, customerId);
         await setDoc(docRef, { 
             name: name.trim(),
@@ -268,10 +311,6 @@ async function saveCustomer(name) {
     }
 }
 
-/**
- * (ESTA ES LA LÓGICA CORREGIDA)
- * Busca clientes mientras el usuario tipea en el formulario.
- */
 async function handleTeamNameInput() {
     const queryText = teamNameInput.value.trim().toLowerCase();
     if (queryText.length < 2) {
@@ -280,21 +319,15 @@ async function handleTeamNameInput() {
     }
     try {
         const customersRef = collection(db, customersCollectionPath);
-        
-        // --- ¡¡¡ESTA ES LA CONSULTA CORREGIDA!!! ---
-        // Consultamos por el ID del documento (documentId()), que es el nombre normalizado.
         const q = query(customersRef, 
             where(documentId(), ">=", queryText),
             where(documentId(), "<=", queryText + '\uf8ff')
         );
-        // --- FIN DE LA CORRECCIÓN ---
-
         const snapshot = await getDocs(q);
         const suggestions = snapshot.docs.map(doc => doc.data().name);
         renderSuggestions(suggestions);
     } catch (error) {
         console.error("Error al buscar clientes:", error);
-        // Si esto falla, revisa las REGLAS DE FIRESTORE
     }
 }
 
@@ -321,18 +354,23 @@ function selectSuggestion(name) {
 
 
 // --- LÓGICA DEL CALENDARIO ---
+
 function renderCalendar() {
     calendarGrid.innerHTML = '';
     const year = currentMonthDate.getFullYear();
     const month = currentMonthDate.getMonth();
     currentMonthYearEl.textContent = `${monthNames[month]} ${year}`;
+    
     const firstDayOfMonth = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Usamos el caché local (allMonthBookings) que actualiza onSnapshot
     const bookingsCountByDay = {};
     allMonthBookings.forEach(booking => {
         const day = parseInt(booking.day.split('-')[2], 10);
         bookingsCountByDay[day] = (bookingsCountByDay[day] || 0) + 1;
     });
+
     const daysInPrevMonth = new Date(year, month, 0).getDate();
     for (let i = 0; i < firstDayOfMonth; i++) calendarGrid.appendChild(createDayCell(daysInPrevMonth - firstDayOfMonth + 1 + i, false));
     for (let i = 1; i <= daysInMonth; i++) calendarGrid.appendChild(createDayCell(i, true, bookingsCountByDay[i] || 0));
@@ -340,6 +378,7 @@ function renderCalendar() {
     const remainingCells = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
     for (let i = 1; i <= remainingCells; i++) calendarGrid.appendChild(createDayCell(i, false));
 }
+
 function createDayCell(dayNum, isCurrentMonth, bookingCount = 0) {
     const dayCell = document.createElement('div');
     dayCell.className = `relative h-20 md:h-28 border border-gray-200 rounded-lg p-2 shadow-sm transition-all duration-200`;
@@ -361,10 +400,12 @@ function createDayCell(dayNum, isCurrentMonth, bookingCount = 0) {
     }
     return dayCell;
 }
+
 function handleDayClick(dateStr) {
+    // Usamos el caché local 'allMonthBookings'
     const bookingsOnDay = allMonthBookings.filter(b => b.day === dateStr);
     if (bookingsOnDay.length === 0) {
-        showBookingModal(dateStr);
+        showBookingModal(dateStr); // <-- ¡Ahora es async!
     } else {
         showOptionsModal(dateStr, bookingsOnDay);
     }
@@ -372,34 +413,135 @@ function handleDayClick(dateStr) {
 
 
 // --- LÓGICA DE MODALES (RESERVAS) ---
-function showBookingModal(dateStr, bookingToEdit = null) {
+
+/**
+ * (¡¡GRAN ACTUALIZACIÓN!!)
+ * Muestra el formulario de reserva, ahora con grillas de horarios.
+ */
+async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     bookingForm.reset();
+    
+    const bookingIdToEdit = bookingToEdit ? bookingToEdit.id : null;
+    
+    // 1. Encontrar todos los horarios ya ocupados para ESE DÍA
+    // Usamos el caché 'allMonthBookings' que está siempre actualizado
+    const otherBookings = allMonthBookings.filter(
+        b => b.day === dateStr && b.id !== bookingIdToEdit
+    );
+
+    const occupiedCourtHours = new Set();
+    const occupiedGrillHours = new Set();
+
+    otherBookings.forEach(booking => {
+        booking.courtHours?.forEach(hour => occupiedCourtHours.add(hour));
+        booking.grillHours?.forEach(hour => occupiedGrillHours.add(hour));
+    });
+
+    // 2. Llenar datos básicos del formulario
     document.getElementById('booking-date').value = dateStr;
     document.querySelector('input[name="paymentMethod"][value="efectivo"]').checked = true;
+    
+    let selectedCourtHours = [];
+    let selectedGrillHours = [];
+
     if (bookingToEdit) {
+        // Modo Edición
         document.getElementById('booking-modal-title').textContent = "Editar Reserva";
         document.getElementById('booking-id').value = bookingToEdit.id;
         document.getElementById('teamName').value = bookingToEdit.teamName;
         document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
-        document.getElementById('hoursCount').value = bookingToEdit.hoursCount;
-        document.getElementById('costPerHour').value = bookingToEdit.costPerHour;
-        document.getElementById('rentGrill').checked = bookingToEdit.rentGrill;
-        document.getElementById('grillCost').value = bookingToEdit.grillCost;
+        costPerHourInput.value = bookingToEdit.costPerHour;
+        rentGrillCheckbox.checked = bookingToEdit.rentGrill;
+        grillCostInput.value = bookingToEdit.grillCost;
+        
         const paymentMethod = bookingToEdit.paymentMethod || 'efectivo';
         document.querySelector(`input[name="paymentMethod"][value="${paymentMethod}"]`).checked = true;
+        
+        selectedCourtHours = bookingToEdit.courtHours || [];
+        selectedGrillHours = bookingToEdit.grillHours || [];
     } else {
+        // Modo Creación
         document.getElementById('booking-modal-title').textContent = `Reservar Turno (${dateStr})`;
         document.getElementById('booking-id').value = '';
     }
+
+    // 3. Renderizar las grillas de horarios
+    renderTimeSlots(courtHoursList, occupiedCourtHours, selectedCourtHours);
+    renderTimeSlots(grillHoursList, occupiedGrillHours, selectedGrillHours);
+    
+    // 4. Mostrar/ocultar sección parrilla
+    grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
+
+    // 5. Calcular total inicial y mostrar modal
+    updateTotalPrice();
     bookingModal.classList.add('is-open');
 }
+
+/**
+ * ¡NUEVA FUNCIÓN!
+ * Renderiza una grilla de horarios (para cancha o parrilla)
+ */
+function renderTimeSlots(containerEl, occupiedHours, selectedHours) {
+    containerEl.innerHTML = '';
+    
+    OPERATING_HOURS.forEach(hour => {
+        const slot = document.createElement('button');
+        slot.type = "button"; // Evita que haga submit el form
+        slot.className = 'time-slot';
+        slot.textContent = `${hour}:00`;
+        slot.dataset.hour = hour;
+
+        if (occupiedHours.has(hour)) {
+            slot.classList.add('disabled');
+            slot.disabled = true;
+        } else if (selectedHours.includes(hour)) {
+            slot.classList.add('selected');
+        }
+
+        // Agregar evento de clic SOLO si no está deshabilitado
+        if (!slot.disabled) {
+            slot.onclick = (e) => {
+                e.preventDefault();
+                // Alternar selección
+                e.target.classList.toggle('selected');
+                // Recalcular el precio total
+                updateTotalPrice();
+            };
+        }
+        
+        containerEl.appendChild(slot);
+    });
+}
+
+/**
+ * ¡NUEVA FUNCIÓN!
+ * Calcula y muestra el precio total de la reserva en tiempo real.
+ */
+function updateTotalPrice() {
+    const costCancha = parseFloat(costPerHourInput.value) || 0;
+    const costParrilla = parseFloat(grillCostInput.value) || 0;
+    
+    const selectedCourtHours = courtHoursList.querySelectorAll('.time-slot.selected').length;
+    const selectedGrillHours = grillHoursList.querySelectorAll('.time-slot.selected').length;
+    
+    const isGrillRented = rentGrillCheckbox.checked;
+    
+    const totalCancha = selectedCourtHours * costCancha;
+    const totalParrilla = isGrillRented ? (selectedGrillHours * costParrilla) : 0;
+    
+    const totalFinal = totalCancha + totalParrilla;
+    
+    bookingTotal.textContent = `$${totalFinal.toLocaleString('es-AR')}`;
+}
+
 function showOptionsModal(dateStr, bookingsOnDay) {
     closeModals();
     optionsModal.dataset.date = dateStr;
     const listEl = document.getElementById('daily-bookings-list');
     listEl.innerHTML = '';
     if (bookingsOnDay.length === 0) listEl.innerHTML = '<p class="text-gray-500">No hay reservas para este día.</p>';
+    
     bookingsOnDay.forEach(booking => {
         const itemEl = document.createElement('div');
         itemEl.className = 'p-3 bg-gray-50 rounded-lg border flex justify-between items-center';
@@ -412,23 +554,41 @@ function showOptionsModal(dateStr, bookingsOnDay) {
             <button class="btn-delete px-3 py-1 text-xs bg-red-100 text-red-800 rounded-md">Eliminar</button>
         `;
         buttonsEl.querySelector('.btn-view').onclick = () => showViewModal(booking);
-        buttonsEl.querySelector('.btn-edit').onclick = () => showBookingModal(dateStr, booking);
+        buttonsEl.querySelector('.btn-edit').onclick = () => showBookingModal(dateStr, booking); // <-- ¡Ahora es async!
         buttonsEl.querySelector('.btn-delete').onclick = () => handleDeleteBooking(booking.id);
         itemEl.appendChild(buttonsEl);
         listEl.appendChild(itemEl);
     });
     optionsModal.classList.add('is-open');
 }
+
+/**
+ * (¡¡ACTUALIZADO!!)
+ * Muestra el detalle de la reserva con la lista de horarios.
+ */
 function showViewModal(booking) {
     closeModals();
     const detailsEl = document.getElementById('view-booking-details');
-    const totalCancha = (booking.costPerHour || 0) * (booking.hoursCount || 0);
-    const totalParrilla = booking.rentGrill ? (booking.grillCost || 0) : 0;
+    
+    // Recalculamos el total basado en los arrays de horarios
+    const courtHoursCount = booking.courtHours?.length || 0;
+    const grillHoursCount = booking.grillHours?.length || 0;
+    
+    const totalCancha = (booking.costPerHour || 0) * courtHoursCount;
+    const totalParrilla = booking.rentGrill ? ((booking.grillCost || 0) * grillHoursCount) : 0;
     const totalFinal = totalCancha + totalParrilla;
+
+    // Formateamos los arrays de horarios para mostrarlos
+    const courtHoursStr = booking.courtHours?.map(h => `${h}:00`).join(', ') || 'N/A';
+    const grillHoursStr = booking.grillHours?.map(h => `${h}:00`).join(', ') || 'No alquilada';
+
     detailsEl.innerHTML = `
         <p><strong>Equipo:</strong> ${booking.teamName}</p>
         <p><strong>Personas:</strong> ${booking.peopleCount}</p>
         <p><strong>Método Pago:</strong> <span style="text-transform: capitalize;">${booking.paymentMethod || 'N/A'}</span></p>
+        <hr class="my-2">
+        <p><strong>Horas Cancha (${courtHoursCount}):</strong> ${courtHoursStr}</p>
+        <p><strong>Horas Parrilla (${grillHoursCount}):</strong> ${grillHoursStr}</p>
         <hr class="my-2">
         <p><strong>Subtotal Cancha:</strong> $${totalCancha.toLocaleString('es-AR')}</p>
         <p><strong>Subtotal Parrilla:</strong> $${totalParrilla.toLocaleString('es-AR')}</p>
@@ -436,6 +596,7 @@ function showViewModal(booking) {
     `;
     viewModal.classList.add('is-open');
 }
+
 function closeModals() {
     bookingModal.classList.remove('is-open');
     optionsModal.classList.remove('is-open');
@@ -456,6 +617,11 @@ function nextMonth() {
 
 
 // --- LÓGICA DE VISTA DE CAJA ---
+
+/**
+ * (¡¡ACTUALIZADO!!)
+ * Calcula el total basado en la longitud de los arrays de horarios.
+ */
 async function loadCajaData() {
     if (!db) return;
     showMessage("Cargando datos de caja...");
@@ -466,23 +632,32 @@ async function loadCajaData() {
         if (from) q = query(q, where("day", ">=", from));
         if (to) q = query(q, where("day", "<=", to));
         const snapshot = await getDocs(q);
+        
         let grandTotal = 0;
         const dailyTotals = {};
+        
         snapshot.docs.forEach(doc => {
             const booking = { id: doc.id, ...doc.data() };
-            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + (booking.rentGrill ? (booking.grillCost || 0) : 0);
+            
+            // ¡NUEVO CÁLCULO DE TOTAL!
+            const total = (booking.costPerHour || 0) * (booking.courtHours?.length || 0) + 
+                          (booking.rentGrill ? (booking.grillCost || 0) * (booking.grillHours?.length || 0) : 0);
+            
             grandTotal += total;
             const day = booking.day;
             const paymentMethod = booking.paymentMethod || 'efectivo';
+            
             if (!dailyTotals[day]) {
                 dailyTotals[day] = { total: 0, efectivo: 0, transferencia: 0, mercadopago: 0, bookings: [] };
             }
+            
             dailyTotals[day].total += total;
             if (dailyTotals[day][paymentMethod] !== undefined) {
                 dailyTotals[day][paymentMethod] += total;
             }
-            dailyTotals[day].bookings.push(booking);
+            dailyTotals[day].bookings.push(booking); // Guardamos la reserva completa para el modal
         });
+        
         cajaTotal.textContent = `$${grandTotal.toLocaleString('es-AR')}`;
         renderCajaList(dailyTotals);
         hideMessage();
@@ -491,6 +666,7 @@ async function loadCajaData() {
         showMessage(`Error: ${error.message}. ¿Creaste el índice en Firestore?`, true);
     }
 }
+
 function renderCajaList(dailyTotals) {
     cajaDailyList.innerHTML = '';
     const sortedDays = Object.keys(dailyTotals).sort((a, b) => b.localeCompare(a));
@@ -512,9 +688,16 @@ function renderCajaList(dailyTotals) {
         cajaDailyList.appendChild(item);
     });
 }
+
+/**
+ * (¡¡ACTUALIZADO!!)
+ * Muestra el detalle de caja, calculando el total de cada reserva individual.
+ */
 function showCajaDetail(displayDate, data) {
     cajaDetailModal.classList.add('is-open');
     document.getElementById('caja-detail-title').textContent = `Detalle: ${displayDate}`;
+    
+    // Resumen de Pagos
     const summaryEl = document.getElementById('caja-detail-summary');
     summaryEl.innerHTML = `
         <p class="flex justify-between"><span>Efectivo:</span> <strong>$${data.efectivo.toLocaleString('es-AR')}</strong></p>
@@ -523,13 +706,18 @@ function showCajaDetail(displayDate, data) {
         <hr class="my-2">
         <p class="flex justify-between text-lg font-bold"><span>Total Día:</span> <strong>$${data.total.toLocaleString('es-AR')}</strong></p>
     `;
+    
+    // Lista de Reservas
     const listEl = document.getElementById('caja-detail-booking-list');
     listEl.innerHTML = '';
     if (data.bookings.length === 0) {
         listEl.innerHTML = '<p class="text-gray-500">No hay detalles de reservas.</p>';
     } else {
         data.bookings.forEach(booking => {
-            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + (booking.rentGrill ? (booking.grillCost || 0) : 0);
+            // ¡NUEVO CÁLCULO DE TOTAL!
+            const total = (booking.costPerHour || 0) * (booking.courtHours?.length || 0) + 
+                          (booking.rentGrill ? (booking.grillCost || 0) * (booking.grillHours?.length || 0) : 0);
+            
             const item = document.createElement('div');
             item.className = 'caja-booking-item';
             item.innerHTML = `
@@ -543,6 +731,11 @@ function showCajaDetail(displayDate, data) {
 
 
 // --- LÓGICA DE VISTA DE ESTADÍSTICAS ---
+
+/**
+ * (¡¡ACTUALIZADO!!)
+ * Calcula el total gastado basado en la longitud de los arrays de horarios.
+ */
 async function loadStatsData() {
     if (!db) return;
     showMessage("Calculando estadísticas...");
@@ -552,13 +745,19 @@ async function loadStatsData() {
         const to = statsDateTo.value;
         if (from) q = query(q, where("day", ">=", from));
         if (to) q = query(q, where("day", "<=", to));
+        
         const snapshot = await getDocs(q);
         const stats = {};
+        
         snapshot.docs.forEach(doc => {
             const booking = doc.data();
-            const total = (booking.costPerHour || 0) * (booking.hoursCount || 0) + (booking.rentGrill ? (booking.grillCost || 0) : 0);
+            
+            // ¡NUEVO CÁLCULO DE TOTAL!
+            const total = (booking.costPerHour || 0) * (booking.courtHours?.length || 0) + 
+                          (booking.rentGrill ? (booking.grillCost || 0) * (booking.grillHours?.length || 0) : 0);
+            
             const normalizedName = booking.teamName.trim().toLowerCase();
-            if (normalizedName) { // Evita contar nombres vacíos
+            if (normalizedName) { 
                 if (!stats[normalizedName]) {
                     stats[normalizedName] = { 
                         name: booking.teamName.trim(), 
@@ -570,6 +769,7 @@ async function loadStatsData() {
                 stats[normalizedName].totalSpent += total;
             }
         });
+        
         renderStatsList(stats);
         hideMessage();
     } catch (error) {
@@ -577,6 +777,7 @@ async function loadStatsData() {
         showMessage(`Error: ${error.message}.`, true);
     }
 }
+
 function renderStatsList(stats) {
     statsList.innerHTML = '';
     const statsArray = Object.values(stats);
@@ -611,4 +812,3 @@ function showMessage(msg, isError = false) {
 function hideMessage() {
     messageOverlay.classList.remove('is-open');
 }
-
