@@ -1,3 +1,4 @@
+/* ... (estilos anteriores: .other-month-day, .booking-count, .modal) ... */
 /* Estilo para los días que no pertenecen al mes actual */
 .other-month-day {
     background-color: #f3f4f6; /* bg-gray-100 */
@@ -29,4 +30,49 @@
 
 .modal.is-open {
     display: flex;
+}
+
+/* ============================================= */
+/* NUEVOS ESTILOS */
+/* ============================================= */
+
+/* Estilos para la vista de Caja */
+.caja-day-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    background-color: white;
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+    border-radius: 0.5rem; /* rounded-lg */
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+.caja-day-item:hover {
+    background-color: #f9fafb; /* bg-gray-50 */
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Estilos para sugerencias de clientes */
+#teamName-suggestions {
+    display: none; /* Oculto por defecto */
+    max-height: 10rem;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #d1d5db; /* border-gray-300 */
+    border-top: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+}
+.suggestion-item:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+}
+
+/* Controla la visibilidad del calendario */
+#calendar-view.is-hidden {
+    display: none;
 }
