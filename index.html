@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservas Futsal</title>
+    <title>Reservas Futsal - Panza Verde</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     
+    <!-- Enlaces a los íconos de la PWA (estos van en la raíz) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#059669">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
     <!-- ============================================= -->
-    <!-- HEADER Y MENÚ (PERSISTENTES) -->
+    <!-- HEADER Y MENÚ (¡ACTUALIZADO!) -->
     <!-- ============================================= -->
     <header class="fixed top-0 left-0 right-0 bg-white shadow-md p-4 flex justify-between items-center z-50">
         <button id="menu-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
@@ -22,8 +26,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
         </button>
-        <h1 class="text-xl font-bold text-emerald-700">Reservas Futsal</h1>
-        <div class="w-8"></div> 
+        
+        <!-- ¡CAMBIO AQUÍ! Reemplazamos la <img> por este H1 -->
+        <h1 class="text-xl font-bold text-emerald-700">Reservas Futsal - Panza Verde</h1>
+        
+        <div class="w-8"></div> <!-- Spacer -->
     </header>
 
     <!-- Menú Desplegable -->
@@ -132,7 +139,7 @@
     <!-- MODALES (COMPARTIDOS POR TODAS LAS VISTAS) -->
     <!-- ============================================= -->
 
-    <!-- Modal 1: Formulario de Reserva (¡¡REDISEÑADO!!) -->
+    <!-- Modal 1: Formulario de Reserva -->
     <div id="booking-modal" class="modal">
         <!-- Contenedor de modal más ancho -->
         <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg">
@@ -241,7 +248,7 @@
         </div>
     </div>
 
-    <!-- Modal 3: Ver Detalles de Reserva (ACTUALIZADO) -->
+    <!-- Modal 3: Ver Detalles de Reserva -->
     <div id="view-modal" class="modal">
         <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
             <h3 class="text-2xl font-bold mb-4">Detalle de la Reserva</h3>
@@ -276,3 +283,4 @@
     <script type="module" src="app.js"></script>
 </body>
 </html>
+
