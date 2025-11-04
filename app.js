@@ -5,9 +5,9 @@ import {
     onAuthStateChanged, 
     setPersistence, 
     browserLocalPersistence,
-    createUserWithEmailAndPassword, // ¡NUEVO!
-    signInWithEmailAndPassword,     // ¡NUEVO!
-    signOut                         // ¡NUEVO!
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword,     
+    signOut                         
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { 
     getFirestore, 
@@ -50,15 +50,15 @@ const OPERATING_HOURS = [
 
 // --- VARIABLES GLOBALES DE LA APP ---
 let db, auth;
-let userId = null; // ¡NUEVO!
-let userEmail = null; // ¡NUEVO!
+let userId = null; 
+let userEmail = null; 
 let currentMonthDate = new Date();
 let currentBookingsUnsubscribe = null;
 let allMonthBookings = []; 
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 // --- REFERENCIAS AL DOM ---
-// Vistas de Autenticación (¡NUEVO!)
+// Vistas de Autenticación
 const loginView = document.getElementById('login-view');
 const registerView = document.getElementById('register-view');
 const appContainer = document.getElementById('app-container');
@@ -79,27 +79,30 @@ const currentMonthYearEl = document.getElementById('current-month-year');
 const menuBtn = document.getElementById('menu-btn');
 const mainMenu = document.getElementById('main-menu');
 const menuOverlay = document.getElementById('menu-overlay');
-const userEmailDisplay = document.getElementById('user-email-display'); // ¡NUEVO!
-const logoutBtn = document.getElementById('logout-btn'); // ¡NUEVO!
+const userEmailDisplay = document.getElementById('user-email-display'); 
+const logoutBtn = document.getElementById('logout-btn'); 
 
-// Formularios de Autenticación (¡NUEVO!)
+// Formularios de Autenticación
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 
-// ... (Resto de referencias a Caja, Stats, Historial, Modales, etc. ... )
+// Referencias de Caja
 const cajaDailyList = document.getElementById('caja-daily-list');
 const cajaTotal = document.getElementById('caja-total');
 const cajaDateFrom = document.getElementById('caja-date-from');
 const cajaDateTo = document.getElementById('caja-date-to');
 const cajaFilterBtn = document.getElementById('caja-filter-btn');
+// Referencias de Estadísticas
 const statsList = document.getElementById('stats-list');
 const statsDateFrom = document.getElementById('stats-date-from');
 const statsDateTo = document.getElementById('stats-date-to');
 const statsFilterBtn = document.getElementById('stats-filter-btn');
+// Referencias de Historial
 const historialList = document.getElementById('historial-list');
 const historialDateFrom = document.getElementById('historial-date-from');
 const historialDateTo = document.getElementById('historial-date-to');
 const historialFilterBtn = document.getElementById('historial-filter-btn');
+// Referencias de Modales
 const typeModal = document.getElementById('type-modal'); 
 const bookingModal = document.getElementById('booking-modal');
 const eventModal = document.getElementById('event-modal'); 
@@ -109,6 +112,7 @@ const cajaDetailModal = document.getElementById('caja-detail-modal');
 const deleteReasonModal = document.getElementById('delete-reason-modal'); 
 const messageOverlay = document.getElementById('message-overlay');
 const messageText = document.getElementById('message-text');
+// Referencias de Formulario Cancha
 const bookingForm = document.getElementById('booking-form');
 const teamNameInput = document.getElementById('teamName');
 const teamNameSuggestions = document.getElementById('teamName-suggestions');
@@ -119,6 +123,7 @@ const grillHoursSection = document.getElementById('grill-hours-section');
 const courtHoursList = document.getElementById('court-hours-list');
 const grillHoursList = document.getElementById('grill-hours-list');
 const bookingTotal = document.getElementById('booking-total');
+// Referencias de Formulario Evento
 const eventForm = document.getElementById('event-form');
 const eventBookingIdInput = document.getElementById('event-booking-id'); 
 const eventDateInput = document.getElementById('event-date'); 
@@ -128,6 +133,7 @@ const contactPhoneInput = document.getElementById('contactPhone');
 const eventCostPerHourInput = document.getElementById('eventCostPerHour');
 const eventHoursList = document.getElementById('event-hours-list');
 const eventTotal = document.getElementById('event-total');
+// Referencias de Formulario Eliminar
 const deleteReasonForm = document.getElementById('delete-reason-form');
 const deleteReasonText = document.getElementById('delete-reason-text');
 const deleteBookingIdInput = document.getElementById('delete-booking-id');
@@ -137,7 +143,6 @@ const deleteBookingIdInput = document.getElementById('delete-booking-id');
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Cargado. Iniciando App...");
-    // No mostramos "Iniciando conexión" aquí, esperamos a Firebase
     setupEventListeners();
     registerServiceWorker();
     firebaseInit();
@@ -151,50 +156,30 @@ function registerServiceWorker() {
     }
 }
 
-/**
- * (¡ACTUALIZADO!)
- * Inicializa Firebase y el "gatekeeper" de autenticación.
- */
 async function firebaseInit() {
     try {
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
-        
-        // Mantener al usuario logueado
         await setPersistence(auth, browserLocalPersistence); 
 
-        // ¡EL CAMBIO MÁS IMPORTANTE!
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // --- Usuario SÍ está logueado ---
                 console.log("Usuario autenticado:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
-
-                // Mostrar la app y ocultar el login
                 appContainer.classList.remove('is-hidden');
                 loginView.classList.add('is-hidden');
                 registerView.classList.add('is-hidden');
-                
-                // Actualizar la UI con el email
                 userEmailDisplay.textContent = userEmail;
-                
-                // Cargar los datos de la app
                 await loadBookingsForMonth(); 
-                
             } else {
-                // --- Usuario NO está logueado ---
                 console.log("Sin usuario, mostrando login.");
                 userId = null;
                 userEmail = null;
-                
-                // Ocultar la app y mostrar el login
                 appContainer.classList.add('is-hidden');
                 loginView.classList.remove('is-hidden');
                 registerView.classList.add('is-hidden');
-                
-                // Limpiar datos (si el listener de snapshot está activo, detenerlo)
                 if (currentBookingsUnsubscribe) {
                     currentBookingsUnsubscribe();
                     currentBookingsUnsubscribe = null;
@@ -212,7 +197,7 @@ function setupEventListeners() {
     // Navegación
     menuBtn.onclick = toggleMenu;
     menuOverlay.onclick = toggleMenu;
-    logoutBtn.onclick = handleLogout; // ¡NUEVO!
+    logoutBtn.onclick = handleLogout; 
     
     document.querySelectorAll('.menu-item').forEach(item => {
         item.onclick = (e) => {
@@ -223,7 +208,7 @@ function setupEventListeners() {
         };
     });
     
-    // Formularios de Autenticación (¡NUEVO!)
+    // Formularios de Autenticación
     loginForm.onsubmit = handleLogin;
     registerForm.onsubmit = handleRegister;
     document.getElementById('show-register').onclick = (e) => {
@@ -310,7 +295,7 @@ function showView(viewName) {
     }
 }
 
-// --- LÓGICA DE AUTENTICACIÓN (¡NUEVA!) ---
+// --- LÓGICA DE AUTENTICACIÓN ---
 
 async function handleLogin(e) {
     e.preventDefault();
@@ -320,7 +305,6 @@ async function handleLogin(e) {
     
     try {
         await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged se encargará del resto (ocultar login, mostrar app)
         hideMessage();
     } catch (error) {
         console.error("Error de login:", error.code, error.message);
@@ -337,7 +321,6 @@ async function handleRegister(e) {
     
     try {
         await createUserWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged se encargará del resto
         hideMessage();
     } catch (error) {
         console.error("Error de registro:", error.code, error.message);
@@ -349,7 +332,6 @@ async function handleRegister(e) {
 async function handleLogout() {
     try {
         await signOut(auth);
-        // onAuthStateChanged se encargará de mostrar el login
         console.log("Usuario cerró sesión");
     } catch (error) {
         console.error("Error al cerrar sesión:", error);
@@ -366,8 +348,8 @@ async function logBookingEvent(action, bookingData, reason = null) {
             action: action, 
             type: bookingData.type || 'unknown', 
             timestamp: Timestamp.now(), 
-            loggedByUserId: userId, // ID del usuario
-            loggedByEmail: userEmail // Email del usuario
+            loggedByUserId: userId, 
+            loggedByEmail: userEmail 
         };
         delete logData.id; 
         
@@ -387,11 +369,8 @@ async function logBookingEvent(action, bookingData, reason = null) {
 // --- LÓGICA DE FIREBASE (RESERVAS) ---
 
 async function loadBookingsForMonth() {
-    if (!db || !userId) return; // No cargar si no hay usuario
-    
+    if (!db || !userId) return; 
     showMessage("Cargando reservas...");
-    
-    // Si ya hay un listener, lo detenemos antes de crear uno nuevo
     if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
     
     const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
@@ -403,19 +382,14 @@ async function loadBookingsForMonth() {
         hideMessage();
     }, (error) => {
         console.error("Error al obtener reservas (onSnapshot):", error);
-        // Comprobamos si el error es de permisos (usuario deslogueado)
         if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
              console.warn("Permiso denegado. Probablemente el usuario cerró sesión.");
-             // onAuthStateChanged se encargará de limpiar la UI
         } else {
              showMessage(`Error al cargar datos: ${error.message}`, true);
         }
     });
 }
 
-/**
- * Guarda una reserva de CANCHA (Crear o Editar).
- */
 async function handleSaveBooking(event) {
     event.preventDefault();
     const saveButton = bookingForm.querySelector('button[type="submit"]');
@@ -441,6 +415,7 @@ async function handleSaveBooking(event) {
     const bookingDataBase = {
         type: 'court', 
         teamName: teamName,
+        courtId: document.querySelector('input[name="courtSelection"]:checked').value, // ¡NUEVO!
         peopleCount: parseInt(document.getElementById('peopleCount').value, 10),
         costPerHour: parseFloat(costPerHourInput.value),
         rentGrill: rentGrillCheckbox.checked,
@@ -485,9 +460,6 @@ async function handleSaveBooking(event) {
     }
 }
 
-/**
- * Guarda una reserva de EVENTO (Crear o Editar).
- */
 async function handleSaveEvent(event) {
     event.preventDefault();
     const saveButton = eventForm.querySelector('button[type="submit"]');
@@ -522,7 +494,8 @@ async function handleSaveEvent(event) {
         peopleCount: 0,
         rentGrill: false,
         grillCost: 0,
-        grillHours: []
+        grillHours: [],
+        courtId: null // No aplica a eventos
     };
 
     try {
@@ -557,10 +530,6 @@ async function handleSaveEvent(event) {
     }
 }
 
-/**
- * (¡CORREGIDO!)
- * Solo abre el modal de razón de eliminación.
- */
 function handleDeleteBooking(bookingId) {
     closeModals(); 
     deleteBookingIdInput.value = bookingId; 
@@ -756,31 +725,26 @@ function handleDayClick(dateStr) {
 
 // --- LÓGICA DE MODALES (RESERVAS) ---
 
+/**
+ * (¡ACTUALIZADO!)
+ * Muestra el formulario de reserva, cargando la disponibilidad de la cancha seleccionada.
+ */
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     bookingForm.reset();
     
     const bookingIdToEdit = bookingToEdit ? bookingToEdit.id : null;
-    
-    const otherBookings = allMonthBookings.filter(
-        b => b.day === dateStr && b.id !== bookingIdToEdit && b.type === 'court'
-    );
-
-    const occupiedCourtHours = new Set();
-    const occupiedGrillHours = new Set();
-
-    otherBookings.forEach(booking => {
-        booking.courtHours?.forEach(hour => occupiedCourtHours.add(hour));
-        booking.grillHours?.forEach(hour => occupiedGrillHours.add(hour));
-    });
+    bookingForm.dataset.editingId = bookingIdToEdit || ''; // Guardar ID para los listeners de radio
 
     document.getElementById('booking-date').value = dateStr;
     document.querySelector('input[name="paymentMethod"][value="efectivo"]').checked = true;
     
     let selectedCourtHours = [];
     let selectedGrillHours = [];
+    let initialCourtId = 'cancha1';
 
     if (bookingToEdit) {
+        // Modo Edición
         document.getElementById('booking-modal-title').textContent = "Editar Reserva (Cancha)";
         document.getElementById('booking-id').value = bookingToEdit.id;
         document.getElementById('teamName').value = bookingToEdit.teamName;
@@ -788,11 +752,16 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
         costPerHourInput.value = bookingToEdit.costPerHour;
         rentGrillCheckbox.checked = bookingToEdit.rentGrill;
         grillCostInput.value = bookingToEdit.grillCost;
+        
+        initialCourtId = bookingToEdit.courtId || 'cancha1'; // Cargar la cancha guardada
+        
         const paymentMethod = bookingToEdit.paymentMethod || 'efectivo';
         document.querySelector(`input[name="paymentMethod"][value="${paymentMethod}"]`).checked = true;
+        
         selectedCourtHours = bookingToEdit.courtHours || [];
         selectedGrillHours = bookingToEdit.grillHours || [];
     } else {
+        // Modo Creación
         document.getElementById('booking-modal-title').textContent = `Reservar Cancha (${dateStr})`;
         document.getElementById('booking-id').value = '';
         costPerHourInput.value = "5000";
@@ -800,9 +769,33 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
         rentGrillCheckbox.checked = false;
     }
 
+    // Seleccionar el radio button de la cancha (por defecto 'cancha1' o la guardada)
+    document.querySelector(`input[name="courtSelection"][value="${initialCourtId}"]`).checked = true;
+
+    // --- Cargar disponibilidad ---
+    
+    // 1. Cargar slots de Cancha (basado en la cancha seleccionada)
+    const occupiedCourtHours = new Set();
+    allMonthBookings.filter(
+        b => b.day === dateStr &&
+             b.id !== bookingIdToEdit &&
+             b.type === 'court' &&
+             b.courtId === initialCourtId // Filtra por la cancha seleccionada
+    ).forEach(booking => booking.courtHours.forEach(hour => occupiedCourtHours.add(hour)));
+    
     renderTimeSlots(courtHoursList, occupiedCourtHours, selectedCourtHours);
+
+    // 2. Cargar slots de Parrilla (es un recurso único, se basa en *todas* las reservas)
+    const occupiedGrillHours = new Set();
+    allMonthBookings.filter(
+        b => b.day === dateStr && b.id !== bookingIdToEdit && b.rentGrill
+    ).forEach(booking => booking.grillHours.forEach(hour => occupiedGrillHours.add(hour)));
+
     renderTimeSlots(grillHoursList, occupiedGrillHours, selectedGrillHours);
+    
+    // 3. Mostrar/Ocultar parrilla
     grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
+
     updateTotalPrice();
     bookingModal.classList.add('is-open');
 }
@@ -811,6 +804,7 @@ function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     eventForm.reset();
     
+    // Si hay un evento para editar, es este. Si no, el día está vacío.
     const occupiedHours = new Set(); 
     let selectedHours = [];
     
@@ -903,7 +897,10 @@ function showOptionsModal(dateStr, courtBookings) {
     courtBookings.forEach(booking => {
         const itemEl = document.createElement('div');
         itemEl.className = 'p-3 bg-gray-50 rounded-lg border flex justify-between items-center';
-        itemEl.innerHTML = `<span class="font-medium">${booking.teamName}</span>`;
+        // ¡ACTUALIZADO! Muestra la cancha
+        const courtName = booking.courtId === 'cancha2' ? ' (Cancha 2)' : ' (Cancha 1)';
+        itemEl.innerHTML = `<span class="font-medium">${booking.teamName}${courtName}</span>`;
+        
         const buttonsEl = document.createElement('div');
         buttonsEl.className = 'flex gap-2';
         buttonsEl.innerHTML = `
@@ -969,6 +966,8 @@ function showViewModal(booking) {
             <p class="text-lg font-bold mt-2"><strong>Total Pagado:</strong> $${totalFinal.toLocaleString('es-AR')}</p>
         `;
     } else {
+        // ¡ACTUALIZADO! Muestra la cancha
+        const courtName = booking.courtId === 'cancha2' ? 'Cancha 2' : 'Cancha 1';
         const grillHoursStr = booking.rentGrill ? (booking.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : 'No alquilada';
         const courtHoursCount = booking.courtHours?.length || 0;
         const grillHoursCount = booking.grillHours?.length || 0;
@@ -977,6 +976,7 @@ function showViewModal(booking) {
         
         detailsEl.innerHTML = `
             <p><strong>Equipo:</strong> ${booking.teamName}</p>
+            <p><strong>Cancha:</strong> ${courtName}</p>
             <p><strong>Personas:</strong> ${booking.peopleCount}</p>
             <p><strong>Método Pago:</strong> <span style="text-transform: capitalize;">${booking.paymentMethod || 'N/A'}</span></p>
             <hr class="my-2">
@@ -1095,7 +1095,14 @@ function showCajaDetail(displayDate, data) {
             const total = booking.totalPrice || 0;
             const item = document.createElement('div');
             item.className = 'caja-booking-item';
-            const displayName = booking.type === 'event' ? `(EVENTO) ${booking.teamName}` : booking.teamName;
+            // ¡ACTUALIZADO! Muestra la cancha
+            let displayName = '';
+            if (booking.type === 'event') {
+                displayName = `(EVENTO) ${booking.teamName}`;
+            } else {
+                const courtName = booking.courtId === 'cancha2' ? ' (C2)' : ' (C1)';
+                displayName = `${booking.teamName}${courtName}`;
+            }
             item.innerHTML = `
                 <span>${displayName}</span>
                 <span class="font-medium text-gray-600">$${total.toLocaleString('es-AR')} (${booking.paymentMethod})</span>
@@ -1227,6 +1234,8 @@ function renderHistorialList(logEntries) {
             default: statusText = entry.action;
         }
         
+        // ¡ACTUALIZADO! Muestra la cancha
+        const courtName = entry.type === 'court' ? ` (${entry.courtId || 'C1'})` : '';
         const courtHoursStr = entry.courtHours?.map(h => `${h}:00`).join(', ') || '-';
         const grillHoursStr = (entry.type === 'court' && entry.rentGrill) ? (entry.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : '';
         const total = entry.totalPrice || 0;
@@ -1234,18 +1243,17 @@ function renderHistorialList(logEntries) {
         item.innerHTML = `
             <div class="flex justify-between items-start mb-2">
                 <div>
-                    <strong class="text-lg">${entry.teamName}</strong>
+                    <strong class="text-lg">${entry.teamName}${courtName}</strong>
                     <div class="text-sm text-gray-500">Día: ${entry.day}</div>
                 </div>
                 <span class="status ${statusClass}">${statusText}</span>
             </div>
             <div class="text-sm text-gray-700 space-y-1">
-                <p><strong>Horas:</strong> ${courtHoursStr}</p>
+                <p><strong>Horas${entry.type === 'event' ? ' Evento' : ''}:</strong> ${courtHoursStr}</p>
                 ${grillHoursStr ? `<p><strong>Horas Parrilla:</strong> ${grillHoursStr}</p>` : ''}
                 ${entry.type === 'event' ? `<p><strong>Contacto:</strong> ${entry.contactPerson || ''} (${entry.contactPhone || ''})</p>` : ''}
                  <p><strong>Total:</strong> $${total.toLocaleString('es-AR')} (${entry.paymentMethod})</p>
                  <p class="text-xs text-gray-400">Registrado: ${formattedTimestamp}</p>
-                 <!-- ¡NUEVO! Mostrar quién lo hizo -->
                  <p class="text-xs text-gray-500">Por: ${entry.loggedByEmail || 'Sistema'}</p> 
             </div>
             ${entry.action === 'deleted' && entry.reason ? `<div class="reason">Motivo: ${entry.reason}</div>` : ''}
