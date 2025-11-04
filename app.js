@@ -13,13 +13,13 @@ import {
     onSnapshot,
     getDocs,
     documentId,
-    Timestamp, // ¡NUEVO! Para guardar fechas/horas precisas
-    orderBy, // ¡NUEVO! Para ordenar el historial
-    getDoc // ¡NUEVO! Necesario para obtener un solo documento (en handleDelete)
+    Timestamp, 
+    orderBy, 
+    getDoc 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // -----------------------------------------------------------------
-// 1. CONFIGURACIÓN DE FIREBASE (¡TU CONFIGURACIÓN!)
+// 1. CONFIGURACIÓN DE FIREBASE
 // -----------------------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyC2dY3i0LqcfmUx4Qx91Cgs66-a-dXSLbk",
@@ -31,9 +31,9 @@ const firebaseConfig = {
 };
 
 // --- RUTAS DE COLECCIONES ---
-const bookingsCollectionPath = "bookings";
+const bookingsCollectionPath = "bookings"; // Unica colección para Canchas Y Eventos
 const customersCollectionPath = "customers";
-const logCollectionPath = "booking_log"; // ¡NUEVA COLECCIÓN!
+const logCollectionPath = "booking_log"; 
 
 // --- CONSTANTES DE LA APP ---
 const OPERATING_HOURS = [
@@ -53,7 +53,7 @@ const views = {
     calendar: document.getElementById('calendar-view'),
     caja: document.getElementById('caja-view'),
     stats: document.getElementById('stats-view'),
-    historial: document.getElementById('historial-view') // ¡NUEVO!
+    historial: document.getElementById('historial-view') 
 };
 
 // Calendario
@@ -78,22 +78,24 @@ const statsDateFrom = document.getElementById('stats-date-from');
 const statsDateTo = document.getElementById('stats-date-to');
 const statsFilterBtn = document.getElementById('stats-filter-btn');
 
-// Historial (¡NUEVO!)
+// Historial
 const historialList = document.getElementById('historial-list');
 const historialDateFrom = document.getElementById('historial-date-from');
 const historialDateTo = document.getElementById('historial-date-to');
 const historialFilterBtn = document.getElementById('historial-filter-btn');
 
 // Modales
+const typeModal = document.getElementById('type-modal'); // ¡NUEVO!
 const bookingModal = document.getElementById('booking-modal');
+const eventModal = document.getElementById('event-modal'); // ¡NUEVO!
 const optionsModal = document.getElementById('options-modal');
 const viewModal = document.getElementById('view-modal');
 const cajaDetailModal = document.getElementById('caja-detail-modal');
-const deleteReasonModal = document.getElementById('delete-reason-modal'); // ¡NUEVO!
+const deleteReasonModal = document.getElementById('delete-reason-modal'); 
 const messageOverlay = document.getElementById('message-overlay');
 const messageText = document.getElementById('message-text');
 
-// Formulario de Reserva
+// Formulario de Reserva (Cancha)
 const bookingForm = document.getElementById('booking-form');
 const teamNameInput = document.getElementById('teamName');
 const teamNameSuggestions = document.getElementById('teamName-suggestions');
@@ -105,7 +107,17 @@ const courtHoursList = document.getElementById('court-hours-list');
 const grillHoursList = document.getElementById('grill-hours-list');
 const bookingTotal = document.getElementById('booking-total');
 
-// Formulario de Razón de Eliminación (¡NUEVO!)
+// Formulario de Reserva (Evento) (¡NUEVO!)
+const eventForm = document.getElementById('event-form');
+const eventDateInput = document.getElementById('event-date');
+const eventNameInput = document.getElementById('eventName');
+const contactPersonInput = document.getElementById('contactPerson');
+const contactPhoneInput = document.getElementById('contactPhone');
+const eventCostPerHourInput = document.getElementById('eventCostPerHour');
+const eventHoursList = document.getElementById('event-hours-list');
+const eventTotal = document.getElementById('event-total');
+
+// Formulario de Razón de Eliminación
 const deleteReasonForm = document.getElementById('delete-reason-form');
 const deleteReasonText = document.getElementById('delete-reason-text');
 const deleteBookingIdInput = document.getElementById('delete-booking-id');
@@ -172,27 +184,44 @@ function setupEventListeners() {
     
     // Formularios y Modales
     bookingForm.onsubmit = handleSaveBooking;
+    eventForm.onsubmit = handleSaveEvent; // ¡NUEVO!
     document.getElementById('cancel-booking-btn').onclick = closeModals;
+    document.getElementById('cancel-event-btn').onclick = closeModals; // ¡NUEVO!
     document.getElementById('close-options-btn').onclick = closeModals;
     document.getElementById('close-view-btn').onclick = closeModals;
     document.getElementById('close-caja-detail-btn').onclick = closeModals;
     document.getElementById('add-new-booking-btn').onclick = () => {
+        // Este botón (en Opciones de Día) AHORA SOLO AGREGA CANCHAS
         const dateStr = optionsModal.dataset.date;
         closeModals();
         showBookingModal(dateStr); 
     };
 
+    // Modal de Selección de Tipo (¡NUEVO!)
+    document.getElementById('type-btn-court').onclick = () => {
+        const dateStr = typeModal.dataset.date;
+        closeModals();
+        showBookingModal(dateStr);
+    };
+    document.getElementById('type-btn-event').onclick = () => {
+        const dateStr = typeModal.dataset.date;
+        closeModals();
+        showEventModal(dateStr);
+    };
+    document.getElementById('type-btn-cancel').onclick = closeModals;
+
+
     // Filtros
     cajaFilterBtn.onclick = loadCajaData;
     statsFilterBtn.onclick = loadStatsData; 
-    historialFilterBtn.onclick = loadHistorialData; // ¡NUEVO!
+    historialFilterBtn.onclick = loadHistorialData; 
 
-    // Sugerencias de Cliente
+    // Sugerencias de Cliente (Formulario Cancha)
     teamNameInput.oninput = handleTeamNameInput;
     teamNameInput.onblur = () => { setTimeout(() => { teamNameSuggestions.style.display = 'none'; }, 200); };
     teamNameInput.onfocus = handleTeamNameInput;
     
-    // Formulario de Reserva (Cálculo Total)
+    // Cálculo Total (Formulario Cancha)
     rentGrillCheckbox.onchange = () => {
         grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
         updateTotalPrice();
@@ -200,12 +229,15 @@ function setupEventListeners() {
     costPerHourInput.oninput = updateTotalPrice;
     grillCostInput.oninput = updateTotalPrice;
     
-    // Formulario Razón de Eliminación (¡NUEVO!)
+    // Cálculo Total (Formulario Evento) (¡NUEVO!)
+    eventCostPerHourInput.oninput = updateEventTotalPrice;
+
+    // Formulario Razón de Eliminación
     deleteReasonForm.onsubmit = handleConfirmDelete;
     document.getElementById('cancel-delete-btn').onclick = closeModals;
 
      // Cierre de modales genérico
-    [bookingModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal].forEach(modal => {
+    [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal].forEach(modal => {
         if(modal) { 
             modal.onclick = (e) => {
                 if (e.target === modal) closeModals();
@@ -227,11 +259,9 @@ function showView(viewName) {
     }
     if (views[viewName]) {
         views[viewName].classList.remove('is-hidden');
-        
-        // Carga de datos específicos de la vista
         if (viewName === 'caja') loadCajaData();
         else if (viewName === 'stats') loadStatsData();
-        else if (viewName === 'historial') loadHistorialData(); // ¡NUEVO!
+        else if (viewName === 'historial') loadHistorialData();
     } else {
         console.warn(`Vista "${viewName}" no encontrada.`);
     }
@@ -239,20 +269,16 @@ function showView(viewName) {
 
 // --- LÓGICA DE FIREBASE (LOGGING) ---
 
-/**
- * Registra un evento (creación, actualización, eliminación) en el historial.
- */
 async function logBookingEvent(action, bookingData, reason = null) {
     try {
+        // Aseguramos que 'type' esté presente
         const logData = {
             ...bookingData, 
             action: action, 
+            type: bookingData.type || 'unknown', // 'court' o 'event'
             timestamp: Timestamp.now(), 
-            loggedByUserId: userId // Renombramos para claridad
+            loggedByUserId: userId 
         };
-        
-        // Quitamos el ID original de la reserva del log, no es necesario aquí.
-        // El log tendrá su propio ID único.
         delete logData.id; 
         
         if (action === 'deleted' && reason) {
@@ -260,7 +286,7 @@ async function logBookingEvent(action, bookingData, reason = null) {
         }
 
         await addDoc(collection(db, logCollectionPath), logData);
-        console.log(`Evento '${action}' registrado para ${bookingData.teamName} el ${bookingData.day}`);
+        console.log(`Evento '${action}' (${logData.type}) registrado.`);
         
     } catch (error) {
         console.error("Error al registrar evento en historial:", error);
@@ -288,11 +314,11 @@ async function loadBookingsForMonth() {
 }
 
 /**
- * Guarda la reserva y registra el evento en el historial.
+ * Guarda una reserva de CANCHA.
  */
 async function handleSaveBooking(event) {
     event.preventDefault();
-    showMessage("Guardando...");
+    showMessage("Guardando Cancha...");
 
     const bookingId = document.getElementById('booking-id').value;
     const dateStr = document.getElementById('booking-date').value;
@@ -309,8 +335,9 @@ async function handleSaveBooking(event) {
         return;
     }
 
-    // Construimos el objeto base sin ID
+    // ¡ACTUALIZADO! Se añade 'type' y 'totalPrice'
     const bookingDataBase = {
+        type: 'court', // ¡IMPORTANTE!
         teamName: teamName,
         peopleCount: parseInt(document.getElementById('peopleCount').value, 10),
         costPerHour: parseFloat(costPerHourInput.value),
@@ -320,73 +347,112 @@ async function handleSaveBooking(event) {
         monthYear: dateStr.substring(0, 7),
         paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
         courtHours: selectedCourtHours,
-        grillHours: rentGrillCheckbox.checked ? selectedGrillHours : []
+        grillHours: rentGrillCheckbox.checked ? selectedGrillHours : [],
+        totalPrice: updateTotalPrice() // ¡IMPORTANTE! Se guarda el total
     };
 
     try {
         let action = '';
-        let finalBookingDataForLog; // Variable para asegurar que tenemos el ID correcto
+        let finalBookingDataForLog; 
 
         if (bookingId) {
-            // Actualización
             await setDoc(doc(db, bookingsCollectionPath, bookingId), bookingDataBase, { merge: true });
             action = 'updated';
-            finalBookingDataForLog = { id: bookingId, ...bookingDataBase }; // Usamos el ID existente
-            console.log("Reserva actualizada:", bookingId);
+            finalBookingDataForLog = { id: bookingId, ...bookingDataBase }; 
+            console.log("Reserva (cancha) actualizada:", bookingId);
         } else {
-            // Creación
             const docRef = await addDoc(collection(db, bookingsCollectionPath), bookingDataBase);
             action = 'created';
-            finalBookingDataForLog = { id: docRef.id, ...bookingDataBase }; // Usamos el nuevo ID
-            console.log("Reserva creada:", docRef.id);
+            finalBookingDataForLog = { id: docRef.id, ...bookingDataBase }; 
+            console.log("Reserva (cancha) creada:", docRef.id);
         }
         
-        // Registrar evento en el historial CON el ID correcto
         await logBookingEvent(action, finalBookingDataForLog);
-        
         await saveCustomer(teamName); 
         closeModals();
         hideMessage(); 
     } catch (error) {
-        console.error("Error al guardar reserva:", error);
+        console.error("Error al guardar reserva (cancha):", error);
         showMessage(`Error al guardar: ${error.message}`, true);
     }
 }
 
 /**
- * Muestra el modal para pedir la razón de eliminación.
+ * ¡NUEVA FUNCIÓN!
+ * Guarda una reserva de EVENTO.
  */
-function handleDeleteBooking(bookingId) {
-    // Primero, busca la reserva actual para mostrarla mientras se pide la razón (opcional pero útil)
-    const bookingToDelete = allMonthBookings.find(b => b.id === bookingId);
-    if (!bookingToDelete) {
-        console.error("No se encontró la reserva a eliminar en el caché local.");
-        showMessage("Error: No se encontró la reserva.", true);
+async function handleSaveEvent(event) {
+    event.preventDefault();
+    showMessage("Guardando Evento...");
+
+    const bookingId = document.getElementById('event-booking-id').value; // (Para futuras ediciones)
+    const dateStr = document.getElementById('event-date').value;
+
+    const selectedEventHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected'))
+                                    .map(el => parseInt(el.dataset.hour, 10));
+    
+    if (selectedEventHours.length === 0) {
+        showMessage("Debes seleccionar al menos un horario para el evento.", true);
+        setTimeout(hideMessage, 2000); 
         return;
     }
 
-    closeModals(); 
-    deleteBookingIdInput.value = bookingId; 
-    deleteReasonText.value = ''; 
-    // Puedes añadir info de la reserva al modal si quieres:
-    // document.getElementById('delete-modal-info').textContent = `Eliminando reserva de ${bookingToDelete.teamName} el ${bookingToDelete.day}`;
-    deleteReasonModal.classList.add('is-open'); 
+    // ¡NUEVO! Objeto de datos para EVENTO
+    const eventDataBase = {
+        type: 'event', // ¡IMPORTANTE!
+        teamName: eventNameInput.value.trim(), // Usamos 'teamName' para consistencia
+        contactPerson: contactPersonInput.value.trim(),
+        contactPhone: contactPhoneInput.value.trim(),
+        costPerHour: parseFloat(eventCostPerHourInput.value), // Costo del evento
+        day: dateStr,
+        monthYear: dateStr.substring(0, 7),
+        paymentMethod: document.querySelector('input[name="eventPaymentMethod"]:checked').value,
+        courtHours: selectedEventHours, // Guardamos horas de evento en 'courtHours'
+        totalPrice: updateEventTotalPrice(), // ¡IMPORTANTE! Se guarda el total
+        
+        // Campos de cancha que no aplican (para consistencia)
+        peopleCount: 0,
+        rentGrill: false,
+        grillCost: 0,
+        grillHours: []
+    };
+
+    try {
+        let action = '';
+        let finalBookingDataForLog; 
+
+        if (bookingId) {
+            await setDoc(doc(db, bookingsCollectionPath, bookingId), eventDataBase, { merge: true });
+            action = 'updated';
+            finalBookingDataForLog = { id: bookingId, ...eventDataBase };
+            console.log("Reserva (evento) actualizada:", bookingId);
+        } else {
+            const docRef = await addDoc(collection(db, bookingsCollectionPath), eventDataBase);
+            action = 'created';
+            finalBookingDataForLog = { id: docRef.id, ...eventDataBase };
+            console.log("Reserva (evento) creada:", docRef.id);
+        }
+        
+        await logBookingEvent(action, finalBookingDataForLog);
+        // Guardamos el nombre del evento como un "cliente"
+        await saveCustomer(eventDataBase.teamName); 
+        
+        closeModals();
+        hideMessage(); 
+    } catch (error) {
+        console.error("Error al guardar reserva (evento):", error);
+        showMessage(`Error al guardar: ${error.message}`, true);
+    }
 }
 
-/**
- * Confirma la eliminación, registra en el log y borra la reserva.
- */
+
 async function handleConfirmDelete(event) {
     event.preventDefault();
     const bookingId = deleteBookingIdInput.value;
     const reason = deleteReasonText.value.trim();
 
-    if (!bookingId) {
-        console.error("handleConfirmDelete: No se encontró bookingId.");
-        return;
-    }
+    if (!bookingId) return;
     if (!reason) {
-        // Mostramos un mensaje DENTRO del modal de eliminación
         alert("Por favor, ingresa un motivo para eliminar."); 
         return;
     }
@@ -394,37 +460,27 @@ async function handleConfirmDelete(event) {
     showMessage("Eliminando...");
 
     try {
-        // 1. Obtener los datos de la reserva ANTES de eliminarla
-        // Usamos getDoc para asegurar que tenemos los datos más recientes
         const bookingRef = doc(db, bookingsCollectionPath, bookingId);
-        const bookingSnapshot = await getDoc(bookingRef); // Usar getDoc
+        const bookingSnapshot = await getDoc(bookingRef); 
         
         let bookingDataToLog = null;
-        if (bookingSnapshot.exists()) { // Verificar si el documento existe
+        if (bookingSnapshot.exists()) { 
              bookingDataToLog = { id: bookingSnapshot.id, ...bookingSnapshot.data() };
         } else {
-            // Si no existe (quizás ya se borró), intentamos buscar en el caché local como fallback
             bookingDataToLog = allMonthBookings.find(b => b.id === bookingId);
-            if (!bookingDataToLog) {
-                throw new Error("No se encontró la reserva para registrar en el historial.");
-            }
-             console.warn("Reserva no encontrada en DB para log, usando caché local.");
+            if (!bookingDataToLog) throw new Error("No se encontró la reserva para registrar.");
         }
 
-        // 2. Registrar el evento de eliminación PRIMERO (más seguro)
         await logBookingEvent('deleted', bookingDataToLog, reason);
-
-        // 3. Eliminar la reserva de la colección principal DESPUÉS
         await deleteDoc(bookingRef);
         console.log("Reserva eliminada:", bookingId);
 
         closeModals();
-        hideMessage(); // onSnapshot actualizará el calendario automáticamente
+        hideMessage(); 
 
     } catch (error) {
         console.error("Error al confirmar eliminación:", error);
         showMessage(`Error al eliminar: ${error.message}`, true);
-        // Asegúrate de cerrar el modal incluso si hay error
         closeModals(); 
     }
 }
@@ -489,6 +545,11 @@ function selectSuggestion(name) {
 
 
 // --- LÓGICA DEL CALENDARIO ---
+
+/**
+ * (¡ACTUALIZADO!)
+ * Renderiza el calendario, mostrando contadores verdes (cancha) o naranjas (evento).
+ */
 function renderCalendar() {
     calendarGrid.innerHTML = '';
     const year = currentMonthDate.getFullYear();
@@ -498,59 +559,119 @@ function renderCalendar() {
     const firstDayOfMonth = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    const bookingsCountByDay = {};
+    // ¡NUEVO! Clasifica las reservas por día y tipo
+    const bookingsByDay = {};
     allMonthBookings.forEach(booking => {
         const day = parseInt(booking.day.split('-')[2], 10);
-        bookingsCountByDay[day] = (bookingsCountByDay[day] || 0) + 1;
+        if (!bookingsByDay[day]) {
+            bookingsByDay[day] = { court: 0, event: 0 };
+        }
+        
+        if (booking.type === 'event') {
+            bookingsByDay[day].event++;
+        } else {
+            bookingsByDay[day].court++;
+        }
     });
 
     const daysInPrevMonth = new Date(year, month, 0).getDate();
     for (let i = 0; i < firstDayOfMonth; i++) calendarGrid.appendChild(createDayCell(daysInPrevMonth - firstDayOfMonth + 1 + i, false));
-    for (let i = 1; i <= daysInMonth; i++) calendarGrid.appendChild(createDayCell(i, true, bookingsCountByDay[i] || 0));
+    
+    // Renderiza los días del mes actual
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dayData = bookingsByDay[i] || { court: 0, event: 0 };
+        calendarGrid.appendChild(createDayCell(i, true, dayData.court, dayData.event));
+    }
+    
     const totalCells = firstDayOfMonth + daysInMonth;
     const remainingCells = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
     for (let i = 1; i <= remainingCells; i++) calendarGrid.appendChild(createDayCell(i, false));
 }
-function createDayCell(dayNum, isCurrentMonth, bookingCount = 0) {
+
+/**
+ * (¡ACTUALIZADO!)
+ * Crea la celda del día, aplicando estilos de evento (naranja) si es necesario.
+ */
+function createDayCell(dayNum, isCurrentMonth, courtCount = 0, eventCount = 0) {
     const dayCell = document.createElement('div');
     dayCell.className = `relative h-20 md:h-28 border border-gray-200 rounded-lg p-2 shadow-sm transition-all duration-200`;
+    
     if (isCurrentMonth) {
         const dateStr = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-        dayCell.classList.add('bg-white', 'cursor-pointer', 'hover:bg-emerald-50');
         dayCell.dataset.date = dateStr;
         dayCell.onclick = () => handleDayClick(dateStr);
-        dayCell.innerHTML = `<span class="text-sm font-medium text-gray-700">${dayNum}</span>`;
-        if (bookingCount > 0) {
+
+        if (eventCount > 0) {
+            // Día bloqueado por EVENTO
+            dayCell.classList.add('day-cell-locked');
+            dayCell.innerHTML = `<span class="text-sm font-medium text-amber-800">${dayNum}</span>`;
             const countBadge = document.createElement('span');
-            countBadge.textContent = bookingCount > 9 ? '9+' : bookingCount;
-            countBadge.className = 'booking-count';
+            countBadge.textContent = eventCount;
+            countBadge.className = 'booking-count event'; // Estilo naranja
             dayCell.appendChild(countBadge);
+        } else if (courtCount > 0) {
+            // Día con CANCHAS
+            dayCell.classList.add('bg-white', 'cursor-pointer', 'hover:bg-emerald-50');
+            dayCell.innerHTML = `<span class="text-sm font-medium text-gray-700">${dayNum}</span>`;
+            const countBadge = document.createElement('span');
+            countBadge.textContent = courtCount;
+            countBadge.className = 'booking-count'; // Estilo verde
+            dayCell.appendChild(countBadge);
+        } else {
+            // Día VACÍO
+            dayCell.classList.add('bg-white', 'cursor-pointer', 'hover:bg-emerald-50');
+            dayCell.innerHTML = `<span class="text-sm font-medium text-gray-700">${dayNum}</span>`;
         }
     } else {
+        // Día de otro mes
         dayCell.classList.add('other-month-day');
         dayCell.innerHTML = `<span class="text-sm">${dayNum}</span>`;
     }
     return dayCell;
 }
+
+/**
+ * (¡ACTUALIZADO!)
+ * Lógica principal de clic: decide qué modal mostrar (Tipo, Opciones, o ninguno).
+ */
 function handleDayClick(dateStr) {
+    // 1. Obtener todas las reservas para este día desde el caché
     const bookingsOnDay = allMonthBookings.filter(b => b.day === dateStr);
-    if (bookingsOnDay.length === 0) {
-        showBookingModal(dateStr); 
+    
+    // 2. Verificar si hay un evento
+    const hasEvent = bookingsOnDay.some(b => b.type === 'event');
+    
+    // 3. Obtener solo las reservas de cancha
+    const courtBookings = bookingsOnDay.filter(b => b.type === 'court');
+
+    // LÓGICA DE BLOQUEO
+    if (hasEvent) {
+        // A. Día BLOQUEADO por un evento. No hacer nada, solo mostrar mensaje.
+        showMessage("Día completo reservado para un evento.", true);
+        setTimeout(hideMessage, 2000);
+        return; 
+    } else if (courtBookings.length > 0) {
+        // B. Día con CANCHAS (pero sin evento). Mostrar opciones de cancha.
+        showOptionsModal(dateStr, courtBookings);
     } else {
-        showOptionsModal(dateStr, bookingsOnDay);
+        // C. Día VACÍO. Mostrar modal de selección de tipo.
+        typeModal.dataset.date = dateStr; // Guardamos la fecha en el modal
+        typeModal.classList.add('is-open');
     }
 }
 
 
 // --- LÓGICA DE MODALES (RESERVAS) ---
+
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     bookingForm.reset();
     
     const bookingIdToEdit = bookingToEdit ? bookingToEdit.id : null;
     
+    // Solo necesitamos verificar otras reservas de CANCHA (ya que si hay evento, este modal no se abre)
     const otherBookings = allMonthBookings.filter(
-        b => b.day === dateStr && b.id !== bookingIdToEdit
+        b => b.day === dateStr && b.id !== bookingIdToEdit && b.type === 'court'
     );
 
     const occupiedCourtHours = new Set();
@@ -568,7 +689,7 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
     let selectedGrillHours = [];
 
     if (bookingToEdit) {
-        document.getElementById('booking-modal-title').textContent = "Editar Reserva";
+        document.getElementById('booking-modal-title').textContent = "Editar Reserva (Cancha)";
         document.getElementById('booking-id').value = bookingToEdit.id;
         document.getElementById('teamName').value = bookingToEdit.teamName;
         document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
@@ -580,7 +701,7 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
         selectedCourtHours = bookingToEdit.courtHours || [];
         selectedGrillHours = bookingToEdit.grillHours || [];
     } else {
-        document.getElementById('booking-modal-title').textContent = `Reservar Turno (${dateStr})`;
+        document.getElementById('booking-modal-title').textContent = `Reservar Cancha (${dateStr})`;
         document.getElementById('booking-id').value = '';
         costPerHourInput.value = "5000";
         grillCostInput.value = "2000";
@@ -593,6 +714,37 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
     updateTotalPrice();
     bookingModal.classList.add('is-open');
 }
+
+/**
+ * ¡NUEVA FUNCIÓN!
+ * Muestra el formulario de reserva para EVENTOS.
+ */
+function showEventModal(dateStr, eventToEdit = null) {
+    closeModals();
+    eventForm.reset();
+    
+    // Si estamos aquí, el día está VACÍO. No necesitamos chequear horarios ocupados.
+    const occupiedHours = new Set();
+    let selectedHours = [];
+    
+    document.getElementById('event-date').value = dateStr;
+    document.querySelector('input[name="eventPaymentMethod"][value="efectivo"]').checked = true;
+    
+    if (eventToEdit) {
+        // (Lógica para editar un evento, por ahora solo creamos)
+        // ...
+    } else {
+        document.getElementById('event-modal-title').textContent = `Reservar Evento (${dateStr})`;
+        document.getElementById('event-booking-id').value = '';
+        eventCostPerHourInput.value = "10000";
+    }
+
+    // Renderiza la grilla de horarios (todos disponibles)
+    renderTimeSlots(eventHoursList, occupiedHours, selectedHours);
+    updateEventTotalPrice();
+    eventModal.classList.add('is-open');
+}
+
 
 function renderTimeSlots(containerEl, occupiedHours, selectedHours) {
     containerEl.innerHTML = '';
@@ -612,13 +764,22 @@ function renderTimeSlots(containerEl, occupiedHours, selectedHours) {
             slot.onclick = (e) => {
                 e.preventDefault();
                 e.target.classList.toggle('selected');
-                updateTotalPrice();
+                // Recalcula el total del modal que esté abierto
+                if (bookingModal.classList.contains('is-open')) {
+                    updateTotalPrice();
+                } else if (eventModal.classList.contains('is-open')) {
+                    updateEventTotalPrice();
+                }
             };
         }
         containerEl.appendChild(slot);
     });
 }
 
+/**
+ * Calcula y muestra el precio total (CANCHA).
+ * Devuelve el valor numérico.
+ */
 function updateTotalPrice() {
     const costCancha = parseFloat(costPerHourInput.value) || 0;
     const costParrilla = parseFloat(grillCostInput.value) || 0;
@@ -629,16 +790,37 @@ function updateTotalPrice() {
     const totalParrilla = isGrillRented ? (selectedGrillHours * costParrilla) : 0;
     const totalFinal = totalCancha + totalParrilla;
     bookingTotal.textContent = `$${totalFinal.toLocaleString('es-AR')}`;
+    return totalFinal; // Devuelve el valor
 }
 
+/**
+ * ¡NUEVA FUNCIÓN!
+ * Calcula y muestra el precio total (EVENTO).
+ * Devuelve el valor numérico.
+ */
+function updateEventTotalPrice() {
+    const costEvento = parseFloat(eventCostPerHourInput.value) || 0;
+    const selectedEventHours = eventHoursList.querySelectorAll('.time-slot.selected').length;
+    const totalFinal = selectedEventHours * costEvento;
+    eventTotal.textContent = `$${totalFinal.toLocaleString('es-AR')}`;
+    return totalFinal; // Devuelve el valor
+}
+
+
 function showOptionsModal(dateStr, bookingsOnDay) {
+    // Esta función ahora SOLO muestra reservas de CANCHA
     closeModals();
     optionsModal.dataset.date = dateStr;
     const listEl = document.getElementById('daily-bookings-list');
     listEl.innerHTML = '';
-    if (bookingsOnDay.length === 0) listEl.innerHTML = '<p class="text-gray-500">No hay reservas para este día.</p>';
     
-    bookingsOnDay.forEach(booking => {
+    const courtBookings = bookingsOnDay.filter(b => b.type === 'court');
+    
+    if (courtBookings.length === 0) {
+        listEl.innerHTML = '<p class="text-gray-500">No hay reservas de cancha para este día.</p>';
+    }
+    
+    courtBookings.forEach(booking => {
         const itemEl = document.createElement('div');
         itemEl.className = 'p-3 bg-gray-50 rounded-lg border flex justify-between items-center';
         itemEl.innerHTML = `<span class="font-medium">${booking.teamName}</span>`;
@@ -655,37 +837,45 @@ function showOptionsModal(dateStr, bookingsOnDay) {
         itemEl.appendChild(buttonsEl);
         listEl.appendChild(itemEl);
     });
+    
+    // El botón "Nueva Reserva" solo agrega canchas
+    document.getElementById('add-new-booking-btn').style.display = 'block';
+    
     optionsModal.classList.add('is-open');
 }
 
+/**
+ * (ACTUALIZADO)
+ * Muestra el detalle de la reserva. Ahora usa el 'totalPrice' guardado.
+ */
 function showViewModal(booking) {
     closeModals();
     const detailsEl = document.getElementById('view-booking-details');
-    const courtHoursCount = booking.courtHours?.length || 0;
-    const grillHoursCount = booking.grillHours?.length || 0;
-    const totalCancha = (booking.costPerHour || 0) * courtHoursCount;
-    const totalParrilla = booking.rentGrill ? ((booking.grillCost || 0) * grillHoursCount) : 0;
-    const totalFinal = totalCancha + totalParrilla;
+    
+    // Usamos el totalPrice guardado, es más confiable
+    const totalFinal = booking.totalPrice || 0;
+    
+    // Formateamos los arrays de horarios para mostrarlos
     const courtHoursStr = booking.courtHours?.map(h => `${h}:00`).join(', ') || 'N/A';
-    const grillHoursStr = booking.grillHours?.map(h => `${h}:00`).join(', ') || 'No alquilada';
+    const grillHoursStr = booking.rentGrill ? (booking.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : 'No alquilada';
 
     detailsEl.innerHTML = `
         <p><strong>Equipo:</strong> ${booking.teamName}</p>
         <p><strong>Personas:</strong> ${booking.peopleCount}</p>
         <p><strong>Método Pago:</strong> <span style="text-transform: capitalize;">${booking.paymentMethod || 'N/A'}</span></p>
         <hr class="my-2">
-        <p><strong>Horas Cancha (${courtHoursCount}):</strong> ${courtHoursStr}</p>
-        <p><strong>Horas Parrilla (${grillHoursCount}):</strong> ${grillHoursStr}</p>
+        <p><strong>Horas Cancha:</strong> ${courtHoursStr}</p>
+        <p><strong>Horas Parrilla:</strong> ${grillHoursStr}</p>
         <hr class="my-2">
-        <p><strong>Subtotal Cancha:</strong> $${totalCancha.toLocaleString('es-AR')}</p>
-        <p><strong>Subtotal Parrilla:</strong> $${totalParrilla.toLocaleString('es-AR')}</p>
         <p class="text-lg font-bold mt-2"><strong>Total Pagado:</strong> $${totalFinal.toLocaleString('es-AR')}</p>
     `;
     viewModal.classList.add('is-open');
 }
 
 function closeModals() {
+    typeModal.classList.remove('is-open'); // ¡NUEVO!
     bookingModal.classList.remove('is-open');
+    eventModal.classList.remove('is-open'); // ¡NUEVO!
     optionsModal.classList.remove('is-open');
     viewModal.classList.remove('is-open');
     cajaDetailModal.classList.remove('is-open');
@@ -705,6 +895,10 @@ function nextMonth() {
 
 
 // --- LÓGICA DE VISTA DE CAJA ---
+/**
+ * (ACTUALIZADO)
+ * Ahora suma el 'totalPrice' guardado.
+ */
 async function loadCajaData() {
     if (!db) return;
     showMessage("Cargando datos de caja...");
@@ -721,14 +915,18 @@ async function loadCajaData() {
         
         snapshot.docs.forEach(doc => {
             const booking = { id: doc.id, ...doc.data() };
-            const total = (booking.costPerHour || 0) * (booking.courtHours?.length || 0) + 
-                          (booking.rentGrill ? (booking.grillCost || 0) * (booking.grillHours?.length || 0) : 0);
+            
+            // ¡NUEVO CÁLCULO DE TOTAL! Usamos el precio guardado
+            const total = booking.totalPrice || 0; 
+            
             grandTotal += total;
             const day = booking.day;
             const paymentMethod = booking.paymentMethod || 'efectivo';
+            
             if (!dailyTotals[day]) {
                 dailyTotals[day] = { total: 0, efectivo: 0, transferencia: 0, mercadopago: 0, bookings: [] };
             }
+            
             dailyTotals[day].total += total;
             if (dailyTotals[day][paymentMethod] !== undefined) {
                 dailyTotals[day][paymentMethod] += total;
@@ -767,9 +965,14 @@ function renderCajaList(dailyTotals) {
     });
 }
 
+/**
+ * (ACTUALIZADO)
+ * Muestra el detalle de caja, usando el 'totalPrice' guardado.
+ */
 function showCajaDetail(displayDate, data) {
     cajaDetailModal.classList.add('is-open');
     document.getElementById('caja-detail-title').textContent = `Detalle: ${displayDate}`;
+    
     const summaryEl = document.getElementById('caja-detail-summary');
     summaryEl.innerHTML = `
         <p class="flex justify-between"><span>Efectivo:</span> <strong>$${data.efectivo.toLocaleString('es-AR')}</strong></p>
@@ -778,18 +981,20 @@ function showCajaDetail(displayDate, data) {
         <hr class="my-2">
         <p class="flex justify-between text-lg font-bold"><span>Total Día:</span> <strong>$${data.total.toLocaleString('es-AR')}</strong></p>
     `;
+    
     const listEl = document.getElementById('caja-detail-booking-list');
     listEl.innerHTML = '';
     if (data.bookings.length === 0) {
         listEl.innerHTML = '<p class="text-gray-500">No hay detalles de reservas.</p>';
     } else {
         data.bookings.forEach(booking => {
-            const total = (booking.costPerHour || 0) * (booking.courtHours?.length || 0) + 
-                          (booking.rentGrill ? (booking.grillCost || 0) * (booking.grillHours?.length || 0) : 0);
+            const total = booking.totalPrice || 0;
             const item = document.createElement('div');
             item.className = 'caja-booking-item';
+            // ¡NUEVO! Distingue entre cancha y evento
+            const displayName = booking.type === 'event' ? `(EVENTO) ${booking.teamName}` : booking.teamName;
             item.innerHTML = `
-                <span>${booking.teamName}</span>
+                <span>${displayName}</span>
                 <span class="font-medium text-gray-600">$${total.toLocaleString('es-AR')} (${booking.paymentMethod})</span>
             `;
             listEl.appendChild(item);
@@ -799,6 +1004,10 @@ function showCajaDetail(displayDate, data) {
 
 
 // --- LÓGICA DE VISTA DE ESTADÍSTICAS ---
+/**
+ * (ACTUALIZADO)
+ * Suma el 'totalPrice' guardado.
+ */
 async function loadStatsData() {
     if (!db) return;
     showMessage("Calculando estadísticas...");
@@ -808,12 +1017,14 @@ async function loadStatsData() {
         const to = statsDateTo.value;
         if (from) q = query(q, where("day", ">=", from));
         if (to) q = query(q, where("day", "<=", to));
+        
         const snapshot = await getDocs(q);
         const stats = {};
+        
         snapshot.docs.forEach(doc => {
             const booking = doc.data();
-            const total = (booking.costPerHour || 0) * (booking.courtHours?.length || 0) + 
-                          (booking.rentGrill ? (booking.grillCost || 0) * (booking.grillHours?.length || 0) : 0);
+            const total = booking.totalPrice || 0;
+            
             const normalizedName = booking.teamName.trim().toLowerCase();
             if (normalizedName) { 
                 if (!stats[normalizedName]) {
@@ -827,6 +1038,7 @@ async function loadStatsData() {
                 stats[normalizedName].totalSpent += total;
             }
         });
+        
         renderStatsList(stats);
         hideMessage();
     } catch (error) {
@@ -834,6 +1046,7 @@ async function loadStatsData() {
         showMessage(`Error: ${error.message}.`, true);
     }
 }
+
 function renderStatsList(stats) {
     statsList.innerHTML = '';
     const statsArray = Object.values(stats);
@@ -885,6 +1098,10 @@ async function loadHistorialData() {
     }
 }
 
+/**
+ * (ACTUALIZADO)
+ * Renderiza la lista del historial, mostrando si es 'court' o 'event'.
+ */
 function renderHistorialList(logEntries) {
     historialList.innerHTML = '';
     if (logEntries.length === 0) {
@@ -899,15 +1116,27 @@ function renderHistorialList(logEntries) {
             day: '2-digit', month: '2-digit', year: 'numeric', 
             hour: '2-digit', minute: '2-digit' 
         });
+        
         let statusClass = '', statusText = '';
         switch(entry.action) {
-            case 'created': statusClass = 'created'; statusText = 'Reserva Creada'; break;
-            case 'updated': statusClass = 'updated'; statusText = 'Reserva Actualizada'; break;
-            case 'deleted': statusClass = 'deleted'; statusText = 'Reserva Eliminada'; break;
+            case 'created': 
+                statusClass = entry.type === 'event' ? 'event-created' : 'created'; 
+                statusText = entry.type === 'event' ? 'Evento Creado' : 'Reserva Creada';
+                break;
+            case 'updated': 
+                statusClass = 'updated'; 
+                statusText = entry.type === 'event' ? 'Evento Actualizado' : 'Reserva Actualizada';
+                break;
+            case 'deleted': 
+                statusClass = 'deleted'; 
+                statusText = entry.type === 'event' ? 'Evento Eliminado' : 'Reserva Eliminada';
+                break;
             default: statusText = entry.action;
         }
+        
         const courtHoursStr = entry.courtHours?.map(h => `${h}:00`).join(', ') || '-';
-        const grillHoursStr = entry.grillHours?.map(h => `${h}:00`).join(', ') || '-';
+        const grillHoursStr = (entry.type === 'court' && entry.rentGrill) ? (entry.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : '';
+
         item.innerHTML = `
             <div class="flex justify-between items-start mb-2">
                 <div>
@@ -917,9 +1146,10 @@ function renderHistorialList(logEntries) {
                 <span class="status ${statusClass}">${statusText}</span>
             </div>
             <div class="text-sm text-gray-700 space-y-1">
-                <p><strong>Horas Cancha:</strong> ${courtHoursStr}</p>
-                <p><strong>Horas Parrilla:</strong> ${grillHoursStr}</p>
-                 <p><strong>Método Pago:</strong> <span style="text-transform: capitalize;">${entry.paymentMethod || 'N/A'}</span></p>
+                <p><strong>Horas:</strong> ${courtHoursStr}</p>
+                ${grillHoursStr ? `<p><strong>Horas Parrilla:</strong> ${grillHoursStr}</p>` : ''}
+                ${entry.type === 'event' ? `<p><strong>Contacto:</strong> ${entry.contactPerson || ''} (${entry.contactPhone || ''})</p>` : ''}
+                 <p><strong>Total:</strong> $${(entry.totalPrice || 0).toLocaleString('es-AR')} (${entry.paymentMethod})</p>
                  <p class="text-xs text-gray-400">Registrado: ${formattedTimestamp}</p>
             </div>
             ${entry.action === 'deleted' && entry.reason ? `<div class="reason">Motivo: ${entry.reason}</div>` : ''}
