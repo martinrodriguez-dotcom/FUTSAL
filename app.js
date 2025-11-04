@@ -109,8 +109,8 @@ const bookingTotal = document.getElementById('booking-total');
 
 // Formulario de Reserva (Evento)
 const eventForm = document.getElementById('event-form');
-const eventBookingIdInput = document.getElementById('event-booking-id'); // Input Oculto
-const eventDateInput = document.getElementById('event-date'); // Input Oculto
+const eventBookingIdInput = document.getElementById('event-booking-id'); 
+const eventDateInput = document.getElementById('event-date'); 
 const eventNameInput = document.getElementById('eventName');
 const contactPersonInput = document.getElementById('contactPerson');
 const contactPhoneInput = document.getElementById('contactPhone');
@@ -313,10 +313,16 @@ async function loadBookingsForMonth() {
 }
 
 /**
- * Guarda una reserva de CANCHA (Crear o Editar).
+ * (¡ACTUALIZADO!)
+ * Guarda una reserva de CANCHA, con feedback de guardado.
  */
 async function handleSaveBooking(event) {
     event.preventDefault();
+    
+    // ¡NUEVO! Deshabilitar botón para evitar doble clic
+    const saveButton = bookingForm.querySelector('button[type="submit"]');
+    saveButton.disabled = true;
+    saveButton.textContent = "Guardando...";
     showMessage("Guardando Cancha...");
 
     const bookingId = document.getElementById('booking-id').value;
@@ -331,6 +337,8 @@ async function handleSaveBooking(event) {
     if (selectedCourtHours.length === 0) {
         showMessage("Debes seleccionar al menos un horario de cancha.", true);
         setTimeout(hideMessage, 2000); 
+        saveButton.disabled = false; // Reactivar botón
+        saveButton.textContent = "Guardar";
         return;
     }
 
@@ -367,22 +375,36 @@ async function handleSaveBooking(event) {
         
         await logBookingEvent(action, finalBookingDataForLog);
         await saveCustomer(teamName); 
-        closeModals();
-        hideMessage(); 
+        
+        // ¡NUEVO! Feedback de éxito
+        showMessage("¡Reserva Guardada!", false);
+        closeModals(); 
+        setTimeout(hideMessage, 1500); // Mostrar éxito por 1.5s
+
     } catch (error) {
         console.error("Error al guardar reserva (cancha):", error);
         showMessage(`Error al guardar: ${error.message}`, true);
+    } finally {
+        // ¡NUEVO! Reactivar botón siempre
+        saveButton.disabled = false;
+        saveButton.textContent = "Guardar";
     }
 }
 
 /**
- * Guarda una reserva de EVENTO (Crear o Editar).
+ * (¡ACTUALIZADO!)
+ * Guarda una reserva de EVENTO, con feedback de guardado.
  */
 async function handleSaveEvent(event) {
     event.preventDefault();
+    
+    // ¡NUEVO! Deshabilitar botón
+    const saveButton = eventForm.querySelector('button[type="submit"]');
+    saveButton.disabled = true;
+    saveButton.textContent = "Guardando...";
     showMessage("Guardando Evento...");
 
-    const bookingId = eventBookingIdInput.value; // ID para editar
+    const bookingId = eventBookingIdInput.value; 
     const dateStr = eventDateInput.value;
 
     const selectedEventHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected'))
@@ -391,6 +413,8 @@ async function handleSaveEvent(event) {
     if (selectedEventHours.length === 0) {
         showMessage("Debes seleccionar al menos un horario para el evento.", true);
         setTimeout(hideMessage, 2000); 
+        saveButton.disabled = false; // Reactivar
+        saveButton.textContent = "Guardar Evento";
         return;
     }
 
@@ -430,12 +454,33 @@ async function handleSaveEvent(event) {
         await logBookingEvent(action, finalBookingDataForLog);
         await saveCustomer(eventDataBase.teamName); 
         
+        // ¡NUEVO! Feedback de éxito
+        showMessage("¡Evento Guardado!", false);
         closeModals();
-        hideMessage(); 
+        setTimeout(hideMessage, 1500);
+        
     } catch (error) {
         console.error("Error al guardar reserva (evento):", error);
         showMessage(`Error al guardar: ${error.message}`, true);
+    } finally {
+        // ¡NUEVO! Reactivar botón
+        saveButton.disabled = false;
+        saveButton.textContent = "Guardar Evento";
     }
+}
+
+/**
+ * (¡ACTUALIZADO! - CORREGIDO)
+ * Esta función AHORA SÍ funciona. Solo abre el modal de razón.
+ */
+function handleDeleteBooking(bookingId) {
+    // La comprobación de si existe la reserva se hace en handleConfirmDelete.
+    // Esta función solo debe abrir el modal.
+    closeModals(); 
+    deleteBookingIdInput.value = bookingId; 
+    deleteReasonText.value = ''; 
+    deleteReasonModal.classList.add('is-open'); 
+    console.log("Solicitando motivo para eliminar:", bookingId);
 }
 
 
@@ -469,7 +514,8 @@ async function handleConfirmDelete(event) {
         console.log("Reserva eliminada:", bookingId);
 
         closeModals();
-        hideMessage(); 
+        showMessage("¡Reserva Eliminada!", false); // Feedback
+        setTimeout(hideMessage, 1500); 
 
     } catch (error) {
         console.error("Error al confirmar eliminación:", error);
@@ -607,11 +653,12 @@ function createDayCell(dayNum, isCurrentMonth, courtCount = 0, eventCount = 0) {
 }
 
 /**
+ * (¡ACTUALIZADO!)
  * Lógica principal de clic en un día.
  */
 function handleDayClick(dateStr) {
     const bookingsOnDay = allMonthBookings.filter(b => b.day === dateStr);
-    const eventOnDay = bookingsOnDay.find(b => b.type === 'event'); // Busca el evento
+    const eventOnDay = bookingsOnDay.find(b => b.type === 'event'); 
     const courtBookings = bookingsOnDay.filter(b => b.type === 'court');
 
     if (eventOnDay) {
@@ -682,30 +729,30 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
 }
 
 /**
+ * (¡ACTUALIZADO!)
  * Muestra el formulario de reserva para EVENTOS (Crear o Editar).
  */
 function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     eventForm.reset();
     
-    // Si hay un evento, solo puede ser este, así que no hay horarios ocupados por "otros"
-    const occupiedHours = new Set();
+    const occupiedHours = new Set(); // Un evento bloquea todo, no hay "otros"
     let selectedHours = [];
     
-    document.getElementById('event-date').value = dateStr;
+    eventDateInput.value = dateStr;
     document.querySelector('input[name="eventPaymentMethod"][value="efectivo"]').checked = true;
     
     if (eventToEdit) {
         // Modo Edición
         document.getElementById('event-modal-title').textContent = `Editar Evento (${dateStr})`;
         eventBookingIdInput.value = eventToEdit.id;
-        eventNameInput.value = eventToEdit.teamName; // teamName se usa para nombre de evento
+        eventNameInput.value = eventToEdit.teamName; 
         contactPersonInput.value = eventToEdit.contactPerson;
         contactPhoneInput.value = eventToEdit.contactPhone;
         eventCostPerHourInput.value = eventToEdit.costPerHour;
         const paymentMethod = eventToEdit.paymentMethod || 'efectivo';
         document.querySelector(`input[name="eventPaymentMethod"][value="${paymentMethod}"]`).checked = true;
-        selectedHours = eventToEdit.courtHours || []; // Horas de evento se guardan en courtHours
+        selectedHours = eventToEdit.courtHours || []; 
     } else {
         // Modo Creación
         document.getElementById('event-modal-title').textContent = `Reservar Evento (${dateStr})`;
@@ -798,21 +845,19 @@ function showOptionsModal(dateStr, courtBookings) {
         listEl.appendChild(itemEl);
     });
     
-    // Muestra el botón "Nueva Reserva" (de cancha)
     document.getElementById('add-new-booking-btn').style.display = 'block';
-    
     optionsModal.classList.add('is-open');
 }
 
 /**
- * ¡NUEVA FUNCIÓN!
+ * (¡ACTUALIZADO!)
  * Muestra las opciones para un EVENTO (solo 1 por día)
  */
 function showEventOptionsModal(eventObject) {
     closeModals();
     optionsModal.dataset.date = eventObject.day;
     const listEl = document.getElementById('daily-bookings-list');
-    listEl.innerHTML = ''; // Limpia la lista
+    listEl.innerHTML = ''; 
 
     const itemEl = document.createElement('div');
     itemEl.className = 'p-3 bg-amber-50 rounded-lg border border-amber-200 flex justify-between items-center';
@@ -832,7 +877,6 @@ function showEventOptionsModal(eventObject) {
     itemEl.appendChild(buttonsEl);
     listEl.appendChild(itemEl);
 
-    // ¡Oculta el botón "Nueva Reserva"! No se pueden agregar más.
     document.getElementById('add-new-booking-btn').style.display = 'none';
 
     optionsModal.classList.add('is-open');
@@ -840,6 +884,7 @@ function showEventOptionsModal(eventObject) {
 
 
 /**
+ * (¡ACTUALIZADO!)
  * Muestra el detalle de la reserva (CANCHA O EVENTO).
  */
 function showViewModal(booking) {
@@ -849,7 +894,6 @@ function showViewModal(booking) {
     const courtHoursStr = booking.courtHours?.map(h => `${h}:00`).join(', ') || 'N/A';
     
     if (booking.type === 'event') {
-        // --- VISTA DE EVENTO ---
         detailsEl.innerHTML = `
             <p><strong>Evento:</strong> ${booking.teamName}</p>
             <p><strong>Contacto:</strong> ${booking.contactPerson || 'N/A'}</p>
@@ -861,7 +905,6 @@ function showViewModal(booking) {
             <p class="text-lg font-bold mt-2"><strong>Total Pagado:</strong> $${totalFinal.toLocaleString('es-AR')}</p>
         `;
     } else {
-        // --- VISTA DE CANCHA (la original) ---
         const grillHoursStr = booking.rentGrill ? (booking.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : 'No alquilada';
         const courtHoursCount = booking.courtHours?.length || 0;
         const grillHoursCount = booking.grillHours?.length || 0;
