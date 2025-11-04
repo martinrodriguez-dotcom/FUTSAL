@@ -86,23 +86,20 @@ const logoutBtn = document.getElementById('logout-btn');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 
-// Referencias de Caja
+// ... (Resto de referencias a Caja, Stats, Historial, Modales, etc. ... )
 const cajaDailyList = document.getElementById('caja-daily-list');
 const cajaTotal = document.getElementById('caja-total');
 const cajaDateFrom = document.getElementById('caja-date-from');
 const cajaDateTo = document.getElementById('caja-date-to');
 const cajaFilterBtn = document.getElementById('caja-filter-btn');
-// Referencias de Estadísticas
 const statsList = document.getElementById('stats-list');
 const statsDateFrom = document.getElementById('stats-date-from');
 const statsDateTo = document.getElementById('stats-date-to');
 const statsFilterBtn = document.getElementById('stats-filter-btn');
-// Referencias de Historial
 const historialList = document.getElementById('historial-list');
 const historialDateFrom = document.getElementById('historial-date-from');
 const historialDateTo = document.getElementById('historial-date-to');
 const historialFilterBtn = document.getElementById('historial-filter-btn');
-// Referencias de Modales
 const typeModal = document.getElementById('type-modal'); 
 const bookingModal = document.getElementById('booking-modal');
 const eventModal = document.getElementById('event-modal'); 
@@ -112,7 +109,6 @@ const cajaDetailModal = document.getElementById('caja-detail-modal');
 const deleteReasonModal = document.getElementById('delete-reason-modal'); 
 const messageOverlay = document.getElementById('message-overlay');
 const messageText = document.getElementById('message-text');
-// Referencias de Formulario Cancha
 const bookingForm = document.getElementById('booking-form');
 const teamNameInput = document.getElementById('teamName');
 const teamNameSuggestions = document.getElementById('teamName-suggestions');
@@ -123,7 +119,6 @@ const grillHoursSection = document.getElementById('grill-hours-section');
 const courtHoursList = document.getElementById('court-hours-list');
 const grillHoursList = document.getElementById('grill-hours-list');
 const bookingTotal = document.getElementById('booking-total');
-// Referencias de Formulario Evento
 const eventForm = document.getElementById('event-form');
 const eventBookingIdInput = document.getElementById('event-booking-id'); 
 const eventDateInput = document.getElementById('event-date'); 
@@ -133,7 +128,6 @@ const contactPhoneInput = document.getElementById('contactPhone');
 const eventCostPerHourInput = document.getElementById('eventCostPerHour');
 const eventHoursList = document.getElementById('event-hours-list');
 const eventTotal = document.getElementById('event-total');
-// Referencias de Formulario Eliminar
 const deleteReasonForm = document.getElementById('delete-reason-form');
 const deleteReasonText = document.getElementById('delete-reason-text');
 const deleteBookingIdInput = document.getElementById('delete-booking-id');
@@ -256,6 +250,17 @@ function setupEventListeners() {
     teamNameInput.oninput = handleTeamNameInput;
     teamNameInput.onblur = () => { setTimeout(() => { teamNameSuggestions.style.display = 'none'; }, 200); };
     teamNameInput.onfocus = handleTeamNameInput;
+    
+    // --- ¡INICIO DE LA CORRECCIÓN! ---
+    // Añadir listeners a los radios de selección de cancha
+    document.querySelectorAll('input[name="courtSelection"]').forEach(radio => {
+        radio.onchange = () => {
+            // Cuando cambia el radio, redibuja la grilla de horarios
+            updateCourtAvailability();
+        };
+    });
+    // --- FIN DE LA CORRECCIÓN ---
+
     rentGrillCheckbox.onchange = () => {
         grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
         updateTotalPrice();
@@ -415,7 +420,7 @@ async function handleSaveBooking(event) {
     const bookingDataBase = {
         type: 'court', 
         teamName: teamName,
-        courtId: document.querySelector('input[name="courtSelection"]:checked').value, // ¡NUEVO!
+        courtId: document.querySelector('input[name="courtSelection"]:checked').value, // Guarda la cancha
         peopleCount: parseInt(document.getElementById('peopleCount').value, 10),
         costPerHour: parseFloat(costPerHourInput.value),
         rentGrill: rentGrillCheckbox.checked,
@@ -495,7 +500,7 @@ async function handleSaveEvent(event) {
         rentGrill: false,
         grillCost: 0,
         grillHours: [],
-        courtId: null // No aplica a eventos
+        courtId: null 
     };
 
     try {
@@ -725,26 +730,20 @@ function handleDayClick(dateStr) {
 
 // --- LÓGICA DE MODALES (RESERVAS) ---
 
-/**
- * (¡ACTUALIZADO!)
- * Muestra el formulario de reserva, cargando la disponibilidad de la cancha seleccionada.
- */
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     bookingForm.reset();
     
     const bookingIdToEdit = bookingToEdit ? bookingToEdit.id : null;
-    bookingForm.dataset.editingId = bookingIdToEdit || ''; // Guardar ID para los listeners de radio
+    bookingForm.dataset.editingId = bookingIdToEdit || ''; 
 
     document.getElementById('booking-date').value = dateStr;
     document.querySelector('input[name="paymentMethod"][value="efectivo"]').checked = true;
     
-    let selectedCourtHours = [];
-    let selectedGrillHours = [];
     let initialCourtId = 'cancha1';
+    let selectedGrillHours = [];
 
     if (bookingToEdit) {
-        // Modo Edición
         document.getElementById('booking-modal-title').textContent = "Editar Reserva (Cancha)";
         document.getElementById('booking-id').value = bookingToEdit.id;
         document.getElementById('teamName').value = bookingToEdit.teamName;
@@ -752,16 +751,11 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
         costPerHourInput.value = bookingToEdit.costPerHour;
         rentGrillCheckbox.checked = bookingToEdit.rentGrill;
         grillCostInput.value = bookingToEdit.grillCost;
-        
-        initialCourtId = bookingToEdit.courtId || 'cancha1'; // Cargar la cancha guardada
-        
+        initialCourtId = bookingToEdit.courtId || 'cancha1'; 
         const paymentMethod = bookingToEdit.paymentMethod || 'efectivo';
         document.querySelector(`input[name="paymentMethod"][value="${paymentMethod}"]`).checked = true;
-        
-        selectedCourtHours = bookingToEdit.courtHours || [];
         selectedGrillHours = bookingToEdit.grillHours || [];
     } else {
-        // Modo Creación
         document.getElementById('booking-modal-title').textContent = `Reservar Cancha (${dateStr})`;
         document.getElementById('booking-id').value = '';
         costPerHourInput.value = "5000";
@@ -769,23 +763,13 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
         rentGrillCheckbox.checked = false;
     }
 
-    // Seleccionar el radio button de la cancha (por defecto 'cancha1' o la guardada)
     document.querySelector(`input[name="courtSelection"][value="${initialCourtId}"]`).checked = true;
 
     // --- Cargar disponibilidad ---
+    // (Llama a la función de actualización en lugar de duplicar la lógica)
+    updateCourtAvailability(); 
     
-    // 1. Cargar slots de Cancha (basado en la cancha seleccionada)
-    const occupiedCourtHours = new Set();
-    allMonthBookings.filter(
-        b => b.day === dateStr &&
-             b.id !== bookingIdToEdit &&
-             b.type === 'court' &&
-             b.courtId === initialCourtId // Filtra por la cancha seleccionada
-    ).forEach(booking => booking.courtHours.forEach(hour => occupiedCourtHours.add(hour)));
-    
-    renderTimeSlots(courtHoursList, occupiedCourtHours, selectedCourtHours);
-
-    // 2. Cargar slots de Parrilla (es un recurso único, se basa en *todas* las reservas)
+    // Cargar slots de Parrilla (recurso único)
     const occupiedGrillHours = new Set();
     allMonthBookings.filter(
         b => b.day === dateStr && b.id !== bookingIdToEdit && b.rentGrill
@@ -793,18 +777,53 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
 
     renderTimeSlots(grillHoursList, occupiedGrillHours, selectedGrillHours);
     
-    // 3. Mostrar/Ocultar parrilla
     grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
-
     updateTotalPrice();
     bookingModal.classList.add('is-open');
 }
+
+/**
+ * ¡NUEVA FUNCIÓN DE AYUDA!
+ * Obtiene las horas seleccionadas actualmente en un contenedor.
+ */
+function getCurrentlySelectedHours(containerEl) {
+    return Array.from(containerEl.querySelectorAll('.time-slot.selected'))
+                .map(el => parseInt(el.dataset.hour, 10));
+}
+
+/**
+ * ¡NUEVA FUNCIÓN! (EL ARREGLO)
+ * Actualiza la grilla de disponibilidad de la cancha al cambiar el radio button.
+ */
+function updateCourtAvailability() {
+    const dateStr = document.getElementById('booking-date').value;
+    const bookingIdToEdit = bookingForm.dataset.editingId;
+    const selectedCourt = document.querySelector('input[name="courtSelection"]:checked').value;
+    
+    // Mantiene las horas que el usuario ya había seleccionado
+    const currentlySelectedHours = getCurrentlySelectedHours(courtHoursList);
+    
+    // Busca horas ocupadas SÓLO para la cancha seleccionada
+    const occupiedCourtHours = new Set();
+    allMonthBookings.filter(
+        b => b.day === dateStr &&
+             b.id !== bookingIdToEdit &&
+             b.type === 'court' &&
+             b.courtId === selectedCourt // ¡LA CLAVE!
+    ).forEach(booking => booking.courtHours.forEach(hour => occupiedCourtHours.add(hour)));
+
+    // Renderiza la grilla de cancha
+    renderTimeSlots(courtHoursList, occupiedCourtHours, currentlySelectedHours);
+    
+    // Actualiza el total, ya que algunas horas seleccionadas pueden haberse deshabilitado
+    updateTotalPrice();
+}
+
 
 function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     eventForm.reset();
     
-    // Si hay un evento para editar, es este. Si no, el día está vacío.
     const occupiedHours = new Set(); 
     let selectedHours = [];
     
@@ -897,7 +916,6 @@ function showOptionsModal(dateStr, courtBookings) {
     courtBookings.forEach(booking => {
         const itemEl = document.createElement('div');
         itemEl.className = 'p-3 bg-gray-50 rounded-lg border flex justify-between items-center';
-        // ¡ACTUALIZADO! Muestra la cancha
         const courtName = booking.courtId === 'cancha2' ? ' (Cancha 2)' : ' (Cancha 1)';
         itemEl.innerHTML = `<span class="font-medium">${booking.teamName}${courtName}</span>`;
         
@@ -966,7 +984,6 @@ function showViewModal(booking) {
             <p class="text-lg font-bold mt-2"><strong>Total Pagado:</strong> $${totalFinal.toLocaleString('es-AR')}</p>
         `;
     } else {
-        // ¡ACTUALIZADO! Muestra la cancha
         const courtName = booking.courtId === 'cancha2' ? 'Cancha 2' : 'Cancha 1';
         const grillHoursStr = booking.rentGrill ? (booking.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : 'No alquilada';
         const courtHoursCount = booking.courtHours?.length || 0;
@@ -1095,7 +1112,6 @@ function showCajaDetail(displayDate, data) {
             const total = booking.totalPrice || 0;
             const item = document.createElement('div');
             item.className = 'caja-booking-item';
-            // ¡ACTUALIZADO! Muestra la cancha
             let displayName = '';
             if (booking.type === 'event') {
                 displayName = `(EVENTO) ${booking.teamName}`;
@@ -1234,7 +1250,6 @@ function renderHistorialList(logEntries) {
             default: statusText = entry.action;
         }
         
-        // ¡ACTUALIZADO! Muestra la cancha
         const courtName = entry.type === 'court' ? ` (${entry.courtId || 'C1'})` : '';
         const courtHoursStr = entry.courtHours?.map(h => `${h}:00`).join(', ') || '-';
         const grillHoursStr = (entry.type === 'court' && entry.rentGrill) ? (entry.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : '';
