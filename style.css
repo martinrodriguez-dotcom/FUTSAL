@@ -47,15 +47,19 @@
 }
 
 
-/* Ocultar modales por defecto */
+/* ============================================= */
+/* MODALES (¡CORREGIDO PARA SCROLL!) */
+/* ============================================= */
 .modal {
     display: none;
     position: fixed;
     inset: 0;
     background-color: rgba(0,0,0,0.5);
-    align-items: center;
+    /* ¡CAMBIOS AQUÍ! */
+    align-items: flex-start;  /* Alinea el modal al inicio (arriba) */
     justify-content: center;
-    padding: 1rem;
+    overflow-y: auto;       /* ¡Añade scroll vertical si es necesario! */
+    padding: 2rem 1rem;     /* Más padding arriba/abajo para "flotar" */
     z-index: 100;
 }
 .modal.is-open {
@@ -63,6 +67,7 @@
 }
 #message-overlay {
     background-color: rgba(255,255,255,0.8);
+    align-items: center; /* El modal de mensaje sí lo centramos */
 }
 
 
@@ -74,7 +79,7 @@
 .view-container {
     padding-top: 6rem; /* Deja espacio para el header fijo */
 }
-/* ¡NUEVO! Vista de Login no necesita padding superior */
+/* Vista de Login no necesita padding superior */
 #login-view.view-container,
 #register-view.view-container {
     padding-top: 0;
