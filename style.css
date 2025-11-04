@@ -22,12 +22,12 @@
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
 }
 
-/* ¡NUEVO! Estilo para el contador de reservas (EVENTO) */
+/* Estilo para el contador de reservas (EVENTO) */
 .booking-count.event {
     background-color: #F59E0B; /* bg-amber-500 */
     color: white;
 }
-/* ¡NUEVO! Estilo para el día bloqueado por evento */
+/* Estilo para el día bloqueado por evento */
 .day-cell-locked {
     background-color: #FEF3C7; /* bg-amber-100 */
     cursor: not-allowed;
@@ -74,6 +74,12 @@
 .view-container {
     padding-top: 6rem; /* Deja espacio para el header fijo */
 }
+/* ¡NUEVO! Vista de Login no necesita padding superior */
+#login-view.view-container,
+#register-view.view-container {
+    padding-top: 0;
+}
+
 
 /* Oculta las vistas que no están activas */
 .is-hidden {
@@ -111,7 +117,7 @@
 /* COMPONENTES */
 /* ============================================= */
 
-/* ¡NUEVO! Botones de selección de tipo */
+/* Botones de selección de tipo */
 .type-selection-btn {
     font-size: 1.125rem; /* text-lg */
     font-weight: 600; /* semibold */
@@ -227,7 +233,7 @@
     color: #ffffff;
     border-color: #047857; /* border-emerald-700 */
 }
-/* ¡NUEVO! Estado SELECCIONADO (EVENTO) */
+/* Estado SELECCIONADO (EVENTO) */
 #event-modal .time-slot.selected {
     background-color: #D97706; /* amber-600 */
     border-color: #B45309; /* amber-700 */
@@ -263,7 +269,6 @@
     background-color: #D1FAE5; /* green-100 */
     color: #065F46; /* green-800 */
 }
-/* ¡NUEVO! Estilo para evento creado */
 .historial-item .status.event-created {
     background-color: #FEF3C7; /* yellow-100 */
     color: #92400E; /* yellow-800 */
