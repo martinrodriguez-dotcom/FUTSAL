@@ -4,7 +4,7 @@
     color: #d1d5db; /* text-gray-300 */
 }
 
-/* Estilo para el contador de reservas */
+/* Estilo para el contador de reservas (CANCHA) */
 .booking-count {
     position: absolute;
     top: 0.25rem;
@@ -21,6 +21,31 @@
     justify-content: center;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
 }
+
+/* ¡NUEVO! Estilo para el contador de reservas (EVENTO) */
+.booking-count.event {
+    background-color: #F59E0B; /* bg-amber-500 */
+    color: white;
+}
+/* ¡NUEVO! Estilo para el día bloqueado por evento */
+.day-cell-locked {
+    background-color: #FEF3C7; /* bg-amber-100 */
+    cursor: not-allowed;
+    position: relative;
+    overflow: hidden;
+}
+.day-cell-locked::after {
+    content: 'EVENTO';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #b45309; /* text-amber-700 */
+    opacity: 0.8;
+}
+
 
 /* Ocultar modales por defecto */
 .modal {
@@ -85,6 +110,18 @@
 /* ============================================= */
 /* COMPONENTES */
 /* ============================================= */
+
+/* ¡NUEVO! Botones de selección de tipo */
+.type-selection-btn {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* semibold */
+    padding: 1.5rem 1rem;
+    border-radius: 0.5rem; /* rounded-lg */
+    transition: transform 0.2s;
+}
+.type-selection-btn:hover {
+    transform: scale(1.02);
+}
 
 /* Estilos para lista de Caja */
 .caja-day-item {
@@ -190,6 +227,11 @@
     color: #ffffff;
     border-color: #047857; /* border-emerald-700 */
 }
+/* ¡NUEVO! Estado SELECCIONADO (EVENTO) */
+#event-modal .time-slot.selected {
+    background-color: #D97706; /* amber-600 */
+    border-color: #B45309; /* amber-700 */
+}
 
 /* Estado OCUPADO/DESHABILITADO */
 .time-slot.disabled {
@@ -221,11 +263,15 @@
     background-color: #D1FAE5; /* green-100 */
     color: #065F46; /* green-800 */
 }
-.historial-item .status.updated {
+/* ¡NUEVO! Estilo para evento creado */
+.historial-item .status.event-created {
     background-color: #FEF3C7; /* yellow-100 */
     color: #92400E; /* yellow-800 */
 }
-
+.historial-item .status.updated {
+    background-color: #DBEAFE; /* blue-100 */
+    color: #1E40AF; /* blue-800 */
+}
 .historial-item .status.deleted {
     background-color: #FEE2E2; /* red-100 */
     color: #991B1B; /* red-800 */
