@@ -1,6 +1,14 @@
 // Importaciones de Firebase SDK (v11.x.x)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    setPersistence, 
+    browserLocalPersistence,
+    createUserWithEmailAndPassword, // ¡NUEVO!
+    signInWithEmailAndPassword,     // ¡NUEVO!
+    signOut                         // ¡NUEVO!
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { 
     getFirestore, 
     doc, 
@@ -41,14 +49,21 @@ const OPERATING_HOURS = [
 ]; 
 
 // --- VARIABLES GLOBALES DE LA APP ---
-let db, auth, userId;
+let db, auth;
+let userId = null; // ¡NUEVO!
+let userEmail = null; // ¡NUEVO!
 let currentMonthDate = new Date();
 let currentBookingsUnsubscribe = null;
 let allMonthBookings = []; 
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 // --- REFERENCIAS AL DOM ---
-// Vistas
+// Vistas de Autenticación (¡NUEVO!)
+const loginView = document.getElementById('login-view');
+const registerView = document.getElementById('register-view');
+const appContainer = document.getElementById('app-container');
+
+// Vistas Principales
 const views = {
     calendar: document.getElementById('calendar-view'),
     caja: document.getElementById('caja-view'),
@@ -64,27 +79,27 @@ const currentMonthYearEl = document.getElementById('current-month-year');
 const menuBtn = document.getElementById('menu-btn');
 const mainMenu = document.getElementById('main-menu');
 const menuOverlay = document.getElementById('menu-overlay');
+const userEmailDisplay = document.getElementById('user-email-display'); // ¡NUEVO!
+const logoutBtn = document.getElementById('logout-btn'); // ¡NUEVO!
 
-// Caja
+// Formularios de Autenticación (¡NUEVO!)
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+
+// ... (Resto de referencias a Caja, Stats, Historial, Modales, etc. ... )
 const cajaDailyList = document.getElementById('caja-daily-list');
 const cajaTotal = document.getElementById('caja-total');
 const cajaDateFrom = document.getElementById('caja-date-from');
 const cajaDateTo = document.getElementById('caja-date-to');
 const cajaFilterBtn = document.getElementById('caja-filter-btn');
-
-// Estadísticas
 const statsList = document.getElementById('stats-list');
 const statsDateFrom = document.getElementById('stats-date-from');
 const statsDateTo = document.getElementById('stats-date-to');
 const statsFilterBtn = document.getElementById('stats-filter-btn');
-
-// Historial
 const historialList = document.getElementById('historial-list');
 const historialDateFrom = document.getElementById('historial-date-from');
 const historialDateTo = document.getElementById('historial-date-to');
 const historialFilterBtn = document.getElementById('historial-filter-btn');
-
-// Modales
 const typeModal = document.getElementById('type-modal'); 
 const bookingModal = document.getElementById('booking-modal');
 const eventModal = document.getElementById('event-modal'); 
@@ -94,8 +109,6 @@ const cajaDetailModal = document.getElementById('caja-detail-modal');
 const deleteReasonModal = document.getElementById('delete-reason-modal'); 
 const messageOverlay = document.getElementById('message-overlay');
 const messageText = document.getElementById('message-text');
-
-// Formulario de Reserva (Cancha)
 const bookingForm = document.getElementById('booking-form');
 const teamNameInput = document.getElementById('teamName');
 const teamNameSuggestions = document.getElementById('teamName-suggestions');
@@ -106,8 +119,6 @@ const grillHoursSection = document.getElementById('grill-hours-section');
 const courtHoursList = document.getElementById('court-hours-list');
 const grillHoursList = document.getElementById('grill-hours-list');
 const bookingTotal = document.getElementById('booking-total');
-
-// Formulario de Reserva (Evento)
 const eventForm = document.getElementById('event-form');
 const eventBookingIdInput = document.getElementById('event-booking-id'); 
 const eventDateInput = document.getElementById('event-date'); 
@@ -117,8 +128,6 @@ const contactPhoneInput = document.getElementById('contactPhone');
 const eventCostPerHourInput = document.getElementById('eventCostPerHour');
 const eventHoursList = document.getElementById('event-hours-list');
 const eventTotal = document.getElementById('event-total');
-
-// Formulario de Razón de Eliminación
 const deleteReasonForm = document.getElementById('delete-reason-form');
 const deleteReasonText = document.getElementById('delete-reason-text');
 const deleteBookingIdInput = document.getElementById('delete-booking-id');
@@ -128,7 +137,7 @@ const deleteBookingIdInput = document.getElementById('delete-booking-id');
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Cargado. Iniciando App...");
-    showMessage("Iniciando conexión...");
+    // No mostramos "Iniciando conexión" aquí, esperamos a Firebase
     setupEventListeners();
     registerServiceWorker();
     firebaseInit();
@@ -142,22 +151,55 @@ function registerServiceWorker() {
     }
 }
 
+/**
+ * (¡ACTUALIZADO!)
+ * Inicializa Firebase y el "gatekeeper" de autenticación.
+ */
 async function firebaseInit() {
     try {
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
-        await setPersistence(auth, browserLocalPersistence);
+        
+        // Mantener al usuario logueado
+        await setPersistence(auth, browserLocalPersistence); 
 
+        // ¡EL CAMBIO MÁS IMPORTANTE!
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // --- Usuario SÍ está logueado ---
+                console.log("Usuario autenticado:", user.email);
                 userId = user.uid;
-                console.log("Usuario autenticado:", userId);
+                userEmail = user.email;
+
+                // Mostrar la app y ocultar el login
+                appContainer.classList.remove('is-hidden');
+                loginView.classList.add('is-hidden');
+                registerView.classList.add('is-hidden');
+                
+                // Actualizar la UI con el email
+                userEmailDisplay.textContent = userEmail;
+                
+                // Cargar los datos de la app
                 await loadBookingsForMonth(); 
-                hideMessage();
+                
             } else {
-                console.log("Sin usuario, intentando anónimo...");
-                await signInAnonymously(auth);
+                // --- Usuario NO está logueado ---
+                console.log("Sin usuario, mostrando login.");
+                userId = null;
+                userEmail = null;
+                
+                // Ocultar la app y mostrar el login
+                appContainer.classList.add('is-hidden');
+                loginView.classList.remove('is-hidden');
+                registerView.classList.add('is-hidden');
+                
+                // Limpiar datos (si el listener de snapshot está activo, detenerlo)
+                if (currentBookingsUnsubscribe) {
+                    currentBookingsUnsubscribe();
+                    currentBookingsUnsubscribe = null;
+                }
+                allMonthBookings = [];
             }
         });
     } catch (error) {
@@ -170,6 +212,8 @@ function setupEventListeners() {
     // Navegación
     menuBtn.onclick = toggleMenu;
     menuOverlay.onclick = toggleMenu;
+    logoutBtn.onclick = handleLogout; // ¡NUEVO!
+    
     document.querySelectorAll('.menu-item').forEach(item => {
         item.onclick = (e) => {
             e.preventDefault();
@@ -178,6 +222,20 @@ function setupEventListeners() {
             toggleMenu();
         };
     });
+    
+    // Formularios de Autenticación (¡NUEVO!)
+    loginForm.onsubmit = handleLogin;
+    registerForm.onsubmit = handleRegister;
+    document.getElementById('show-register').onclick = (e) => {
+        e.preventDefault();
+        loginView.classList.add('is-hidden');
+        registerView.classList.remove('is-hidden');
+    };
+    document.getElementById('show-login').onclick = (e) => {
+        e.preventDefault();
+        registerView.classList.add('is-hidden');
+        loginView.classList.remove('is-hidden');
+    };
     
     // Calendario
     document.getElementById('prev-month-btn').onclick = prevMonth;
@@ -196,8 +254,6 @@ function setupEventListeners() {
         closeModals();
         showBookingModal(dateStr); 
     };
-
-    // Modal de Selección de Tipo
     document.getElementById('type-btn-court').onclick = () => {
         const dateStr = typeModal.dataset.date;
         closeModals();
@@ -209,34 +265,21 @@ function setupEventListeners() {
         showEventModal(dateStr);
     };
     document.getElementById('type-btn-cancel').onclick = closeModals;
-
-
-    // Filtros
     cajaFilterBtn.onclick = loadCajaData;
     statsFilterBtn.onclick = loadStatsData; 
     historialFilterBtn.onclick = loadHistorialData; 
-
-    // Sugerencias de Cliente (Formulario Cancha)
     teamNameInput.oninput = handleTeamNameInput;
     teamNameInput.onblur = () => { setTimeout(() => { teamNameSuggestions.style.display = 'none'; }, 200); };
     teamNameInput.onfocus = handleTeamNameInput;
-    
-    // Cálculo Total (Formulario Cancha)
     rentGrillCheckbox.onchange = () => {
         grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
         updateTotalPrice();
     };
     costPerHourInput.oninput = updateTotalPrice;
     grillCostInput.oninput = updateTotalPrice;
-    
-    // Cálculo Total (Formulario Evento)
     eventCostPerHourInput.oninput = updateEventTotalPrice;
-
-    // Formulario Razón de Eliminación
     deleteReasonForm.onsubmit = handleConfirmDelete;
     document.getElementById('cancel-delete-btn').onclick = closeModals;
-
-     // Cierre de modales genérico
     [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal].forEach(modal => {
         if(modal) { 
             modal.onclick = (e) => {
@@ -267,6 +310,53 @@ function showView(viewName) {
     }
 }
 
+// --- LÓGICA DE AUTENTICACIÓN (¡NUEVA!) ---
+
+async function handleLogin(e) {
+    e.preventDefault();
+    showMessage("Ingresando...");
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged se encargará del resto (ocultar login, mostrar app)
+        hideMessage();
+    } catch (error) {
+        console.error("Error de login:", error.code, error.message);
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    showMessage("Creando cuenta...");
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged se encargará del resto
+        hideMessage();
+    } catch (error) {
+        console.error("Error de registro:", error.code, error.message);
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleLogout() {
+    try {
+        await signOut(auth);
+        // onAuthStateChanged se encargará de mostrar el login
+        console.log("Usuario cerró sesión");
+    } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+    }
+}
+
+
 // --- LÓGICA DE FIREBASE (LOGGING) ---
 
 async function logBookingEvent(action, bookingData, reason = null) {
@@ -276,7 +366,8 @@ async function logBookingEvent(action, bookingData, reason = null) {
             action: action, 
             type: bookingData.type || 'unknown', 
             timestamp: Timestamp.now(), 
-            loggedByUserId: userId 
+            loggedByUserId: userId, // ID del usuario
+            loggedByEmail: userEmail // Email del usuario
         };
         delete logData.id; 
         
@@ -285,7 +376,7 @@ async function logBookingEvent(action, bookingData, reason = null) {
         }
 
         await addDoc(collection(db, logCollectionPath), logData);
-        console.log(`Evento '${action}' (${logData.type}) registrado.`);
+        console.log(`Evento '${action}' (${logData.type}) registrado por ${userEmail}.`);
         
     } catch (error) {
         console.error("Error al registrar evento en historial:", error);
@@ -296,9 +387,13 @@ async function logBookingEvent(action, bookingData, reason = null) {
 // --- LÓGICA DE FIREBASE (RESERVAS) ---
 
 async function loadBookingsForMonth() {
-    if (!db || !userId) return;
+    if (!db || !userId) return; // No cargar si no hay usuario
+    
     showMessage("Cargando reservas...");
-    if (currentBookingsUnsubscribe) currentBookingsUnsubscribe();
+    
+    // Si ya hay un listener, lo detenemos antes de crear uno nuevo
+    if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
+    
     const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
     const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
     
@@ -308,18 +403,21 @@ async function loadBookingsForMonth() {
         hideMessage();
     }, (error) => {
         console.error("Error al obtener reservas (onSnapshot):", error);
-        showMessage(`Error al cargar datos: ${error.message}`, true);
+        // Comprobamos si el error es de permisos (usuario deslogueado)
+        if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
+             console.warn("Permiso denegado. Probablemente el usuario cerró sesión.");
+             // onAuthStateChanged se encargará de limpiar la UI
+        } else {
+             showMessage(`Error al cargar datos: ${error.message}`, true);
+        }
     });
 }
 
 /**
- * (¡ACTUALIZADO!)
- * Guarda una reserva de CANCHA, con feedback de guardado.
+ * Guarda una reserva de CANCHA (Crear o Editar).
  */
 async function handleSaveBooking(event) {
     event.preventDefault();
-    
-    // ¡NUEVO! Deshabilitar botón para evitar doble clic
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
     saveButton.textContent = "Guardando...";
@@ -329,15 +427,13 @@ async function handleSaveBooking(event) {
     const dateStr = document.getElementById('booking-date').value;
     const teamName = document.getElementById('teamName').value.trim();
 
-    const selectedCourtHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected'))
-                                    .map(el => parseInt(el.dataset.hour, 10));
-    const selectedGrillHours = Array.from(grillHoursList.querySelectorAll('.time-slot.selected'))
-                                    .map(el => parseInt(el.dataset.hour, 10));
+    const selectedCourtHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
+    const selectedGrillHours = Array.from(grillHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
     if (selectedCourtHours.length === 0) {
         showMessage("Debes seleccionar al menos un horario de cancha.", true);
         setTimeout(hideMessage, 2000); 
-        saveButton.disabled = false; // Reactivar botón
+        saveButton.disabled = false;
         saveButton.textContent = "Guardar";
         return;
     }
@@ -376,29 +472,24 @@ async function handleSaveBooking(event) {
         await logBookingEvent(action, finalBookingDataForLog);
         await saveCustomer(teamName); 
         
-        // ¡NUEVO! Feedback de éxito
         showMessage("¡Reserva Guardada!", false);
         closeModals(); 
-        setTimeout(hideMessage, 1500); // Mostrar éxito por 1.5s
+        setTimeout(hideMessage, 1500); 
 
     } catch (error) {
         console.error("Error al guardar reserva (cancha):", error);
         showMessage(`Error al guardar: ${error.message}`, true);
     } finally {
-        // ¡NUEVO! Reactivar botón siempre
         saveButton.disabled = false;
         saveButton.textContent = "Guardar";
     }
 }
 
 /**
- * (¡ACTUALIZADO!)
- * Guarda una reserva de EVENTO, con feedback de guardado.
+ * Guarda una reserva de EVENTO (Crear o Editar).
  */
 async function handleSaveEvent(event) {
     event.preventDefault();
-    
-    // ¡NUEVO! Deshabilitar botón
     const saveButton = eventForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
     saveButton.textContent = "Guardando...";
@@ -407,13 +498,12 @@ async function handleSaveEvent(event) {
     const bookingId = eventBookingIdInput.value; 
     const dateStr = eventDateInput.value;
 
-    const selectedEventHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected'))
-                                    .map(el => parseInt(el.dataset.hour, 10));
+    const selectedEventHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
     
     if (selectedEventHours.length === 0) {
         showMessage("Debes seleccionar al menos un horario para el evento.", true);
         setTimeout(hideMessage, 2000); 
-        saveButton.disabled = false; // Reactivar
+        saveButton.disabled = false; 
         saveButton.textContent = "Guardar Evento";
         return;
     }
@@ -454,7 +544,6 @@ async function handleSaveEvent(event) {
         await logBookingEvent(action, finalBookingDataForLog);
         await saveCustomer(eventDataBase.teamName); 
         
-        // ¡NUEVO! Feedback de éxito
         showMessage("¡Evento Guardado!", false);
         closeModals();
         setTimeout(hideMessage, 1500);
@@ -463,19 +552,16 @@ async function handleSaveEvent(event) {
         console.error("Error al guardar reserva (evento):", error);
         showMessage(`Error al guardar: ${error.message}`, true);
     } finally {
-        // ¡NUEVO! Reactivar botón
         saveButton.disabled = false;
         saveButton.textContent = "Guardar Evento";
     }
 }
 
 /**
- * (¡ACTUALIZADO! - CORREGIDO)
- * Esta función AHORA SÍ funciona. Solo abre el modal de razón.
+ * (¡CORREGIDO!)
+ * Solo abre el modal de razón de eliminación.
  */
 function handleDeleteBooking(bookingId) {
-    // La comprobación de si existe la reserva se hace en handleConfirmDelete.
-    // Esta función solo debe abrir el modal.
     closeModals(); 
     deleteBookingIdInput.value = bookingId; 
     deleteReasonText.value = ''; 
@@ -514,7 +600,7 @@ async function handleConfirmDelete(event) {
         console.log("Reserva eliminada:", bookingId);
 
         closeModals();
-        showMessage("¡Reserva Eliminada!", false); // Feedback
+        showMessage("¡Reserva Eliminada!", false); 
         setTimeout(hideMessage, 1500); 
 
     } catch (error) {
@@ -652,23 +738,16 @@ function createDayCell(dayNum, isCurrentMonth, courtCount = 0, eventCount = 0) {
     return dayCell;
 }
 
-/**
- * (¡ACTUALIZADO!)
- * Lógica principal de clic en un día.
- */
 function handleDayClick(dateStr) {
     const bookingsOnDay = allMonthBookings.filter(b => b.day === dateStr);
     const eventOnDay = bookingsOnDay.find(b => b.type === 'event'); 
     const courtBookings = bookingsOnDay.filter(b => b.type === 'court');
 
     if (eventOnDay) {
-        // A. Día BLOQUEADO por un evento. Mostrar opciones del EVENTO.
         showEventOptionsModal(eventOnDay);
     } else if (courtBookings.length > 0) {
-        // B. Día con CANCHAS. Mostrar opciones de CANCHA.
         showOptionsModal(dateStr, courtBookings);
     } else {
-        // C. Día VACÍO. Mostrar modal de selección de tipo.
         typeModal.dataset.date = dateStr; 
         typeModal.classList.add('is-open');
     }
@@ -728,22 +807,17 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
     bookingModal.classList.add('is-open');
 }
 
-/**
- * (¡ACTUALIZADO!)
- * Muestra el formulario de reserva para EVENTOS (Crear o Editar).
- */
 function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     eventForm.reset();
     
-    const occupiedHours = new Set(); // Un evento bloquea todo, no hay "otros"
+    const occupiedHours = new Set(); 
     let selectedHours = [];
     
     eventDateInput.value = dateStr;
     document.querySelector('input[name="eventPaymentMethod"][value="efectivo"]').checked = true;
     
     if (eventToEdit) {
-        // Modo Edición
         document.getElementById('event-modal-title').textContent = `Editar Evento (${dateStr})`;
         eventBookingIdInput.value = eventToEdit.id;
         eventNameInput.value = eventToEdit.teamName; 
@@ -754,7 +828,6 @@ function showEventModal(dateStr, eventToEdit = null) {
         document.querySelector(`input[name="eventPaymentMethod"][value="${paymentMethod}"]`).checked = true;
         selectedHours = eventToEdit.courtHours || []; 
     } else {
-        // Modo Creación
         document.getElementById('event-modal-title').textContent = `Reservar Evento (${dateStr})`;
         eventBookingIdInput.value = '';
         eventCostPerHourInput.value = "10000";
@@ -849,10 +922,6 @@ function showOptionsModal(dateStr, courtBookings) {
     optionsModal.classList.add('is-open');
 }
 
-/**
- * (¡ACTUALIZADO!)
- * Muestra las opciones para un EVENTO (solo 1 por día)
- */
 function showEventOptionsModal(eventObject) {
     closeModals();
     optionsModal.dataset.date = eventObject.day;
@@ -882,11 +951,6 @@ function showEventOptionsModal(eventObject) {
     optionsModal.classList.add('is-open');
 }
 
-
-/**
- * (¡ACTUALIZADO!)
- * Muestra el detalle de la reserva (CANCHA O EVENTO).
- */
 function showViewModal(booking) {
     closeModals();
     const detailsEl = document.getElementById('view-booking-details');
@@ -1165,6 +1229,7 @@ function renderHistorialList(logEntries) {
         
         const courtHoursStr = entry.courtHours?.map(h => `${h}:00`).join(', ') || '-';
         const grillHoursStr = (entry.type === 'court' && entry.rentGrill) ? (entry.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : '';
+        const total = entry.totalPrice || 0;
 
         item.innerHTML = `
             <div class="flex justify-between items-start mb-2">
@@ -1178,8 +1243,10 @@ function renderHistorialList(logEntries) {
                 <p><strong>Horas:</strong> ${courtHoursStr}</p>
                 ${grillHoursStr ? `<p><strong>Horas Parrilla:</strong> ${grillHoursStr}</p>` : ''}
                 ${entry.type === 'event' ? `<p><strong>Contacto:</strong> ${entry.contactPerson || ''} (${entry.contactPhone || ''})</p>` : ''}
-                 <p><strong>Total:</strong> $${(entry.totalPrice || 0).toLocaleString('es-AR')} (${entry.paymentMethod})</p>
+                 <p><strong>Total:</strong> $${total.toLocaleString('es-AR')} (${entry.paymentMethod})</p>
                  <p class="text-xs text-gray-400">Registrado: ${formattedTimestamp}</p>
+                 <!-- ¡NUEVO! Mostrar quién lo hizo -->
+                 <p class="text-xs text-gray-500">Por: ${entry.loggedByEmail || 'Sistema'}</p> 
             </div>
             ${entry.action === 'deleted' && entry.reason ? `<div class="reason">Motivo: ${entry.reason}</div>` : ''}
         `;
