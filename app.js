@@ -758,7 +758,7 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
     } else {
         document.getElementById('booking-modal-title').textContent = `Reservar Cancha (${dateStr})`;
         document.getElementById('booking-id').value = '';
-        costPerHourInput.value = "5000";
+        costPerHourInput.value = "35000";
         grillCostInput.value = "2000";
         rentGrillCheckbox.checked = false;
     }
