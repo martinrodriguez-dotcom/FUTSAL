@@ -23,7 +23,7 @@
     
     <!-- VISTA DE LOGIN -->
     <div id="login-view" class="view-container flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
             <h2 class="text-3xl font-bold text-center text-emerald-700 mb-6">Iniciar Sesión</h2>
             <form id="login-form">
                 <div class="mb-4">
@@ -34,7 +34,7 @@
                     <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                     <input type="password" id="login-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                 </div>
-                <button type="submit" class="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold">Ingresar</button>
+                <button type="submit" class="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all">Ingresar</button>
             </form>
             <p class="text-center text-sm text-gray-600 mt-4">
                 ¿No tienes cuenta? 
@@ -45,7 +45,7 @@
 
     <!-- VISTA DE REGISTRO -->
     <div id="register-view" class="view-container flex items-center justify-center min-h-screen is-hidden">
-        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
             <h2 class="text-3xl font-bold text-center text-emerald-700 mb-6">Crear Cuenta</h2>
             <form id="register-form">
                 <div class="mb-4">
@@ -56,7 +56,7 @@
                     <label for="register-password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña (mín. 6 caracteres)</label>
                     <input type="password" id="register-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                 </div>
-                <button type="submit" class="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold">Registrarse</button>
+                <button type="submit" class="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all">Registrarse</button>
             </form>
             <p class="text-center text-sm text-gray-600 mt-4">
                 ¿Ya tienes cuenta? 
@@ -86,7 +86,7 @@
             <div class="p-4 border-b">
                 <p class="text-sm text-gray-500">Sesión iniciada como:</p>
                 <p id="user-email-display" class="font-medium text-emerald-700 truncate" title="Email del usuario"></p>
-                <button id="logout-btn" class="w-full text-left mt-2 px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md">Cerrar Sesión</button>
+                <button id="logout-btn" class="w-full text-left mt-2 px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all">Cerrar Sesión</button>
             </div>
             
             <a href="#" class="menu-item" data-view="calendar">Calendario</a>
@@ -103,7 +103,7 @@
                 <h1 class="text-4xl font-bold text-emerald-700">Reservas</h1>
                 <p class="text-lg text-gray-600">Gestiona los turnos de tu cancha</p>
             </div>
-            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-4">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-lg mb-4">
                 <button id="prev-month-btn" class="p-2 rounded-lg hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                 <h2 id="current-month-year" class="text-2xl font-semibold text-emerald-600"></h2>
                 <button id="next-month-btn" class="p-2 rounded-lg hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
@@ -117,18 +117,18 @@
         <!-- VISTA 2: GESTIÓN DE CAJA -->
         <div id="caja-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
             <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Caja</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-lg shadow">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-xl shadow-lg">
                 <div>
                     <label for="caja-date-from" class="block text-sm font-medium text-gray-700 mb-1">Desde:</label>
-                    <input type="date" id="caja-date-from" class="w-full px-3 py-2 border rounded-lg">
+                    <input type="date" id="caja-date-from" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
                 <div>
                     <label for="caja-date-to" class="block text-sm font-medium text-gray-700 mb-1">Hasta:</label>
-                    <input type="date" id="caja-date-to" class="w-full px-3 py-2 border rounded-lg">
+                    <input type="date" id="caja-date-to" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
-                <button id="caja-filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg h-11">Filtrar</button>
+                <button id="caja-filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg h-11 shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all">Filtrar</button>
             </div>
-            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
                 <h3 class="text-xl font-semibold text-gray-700">Total en Rango:</h3>
                 <p id="caja-total" class="text-4xl font-bold text-emerald-600">$0</p>
             </div>
@@ -139,16 +139,16 @@
         <!-- VISTA 3: ESTADÍSTICAS -->
         <div id="stats-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
             <h2 class="text-3xl font-bold text-gray-800 mb-6">Estadísticas de Clientes</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-lg shadow">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-xl shadow-lg">
                 <div>
                     <label for="stats-date-from" class="block text-sm font-medium text-gray-700 mb-1">Desde:</label>
-                    <input type="date" id="stats-date-from" class="w-full px-3 py-2 border rounded-lg">
+                    <input type="date" id="stats-date-from" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
                 <div>
                     <label for="stats-date-to" class="block text-sm font-medium text-gray-700 mb-1">Hasta:</label>
-                    <input type="date" id="stats-date-to" class="w-full px-3 py-2 border rounded-lg">
+                    <input type="date" id="stats-date-to" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
-                <button id="stats-filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg h-11">Filtrar</button>
+                <button id="stats-filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg h-11 shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all">Filtrar</button>
             </div>
             <h3 class="text-2xl font-semibold text-gray-800 mb-3">Ranking de Reservas</h3>
             <div id="stats-list" class="space-y-2"></div>
@@ -157,16 +157,16 @@
         <!-- VISTA 4: HISTORIAL -->
         <div id="historial-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
             <h2 class="text-3xl font-bold text-gray-800 mb-6">Historial de Reservas</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-lg shadow">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-xl shadow-lg">
                 <div>
                     <label for="historial-date-from" class="block text-sm font-medium text-gray-700 mb-1">Desde:</label>
-                    <input type="date" id="historial-date-from" class="w-full px-3 py-2 border rounded-lg">
+                    <input type="date" id="historial-date-from" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
                 <div>
                     <label for="historial-date-to" class="block text-sm font-medium text-gray-700 mb-1">Hasta:</label>
-                    <input type="date" id="historial-date-to" class="w-full px-3 py-2 border rounded-lg">
+                    <input type="date" id="historial-date-to" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
-                <button id="historial-filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg h-11">Filtrar</button>
+                <button id="historial-filter-btn" class="self-end px-4 py-2 bg-emerald-600 text-white rounded-lg h-11 shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all">Filtrar</button>
             </div>
             <div id="historial-list" class="space-y-3"></div>
         </div>
@@ -179,20 +179,20 @@
 
     <!-- Modal 0: Selección de Tipo de Reserva -->
     <div id="type-modal" class="modal">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
             <h3 class="text-2xl font-bold text-gray-800 mb-4">Nueva Reserva</h3>
             <p class="text-gray-600 mb-6">¿Qué tipo de reserva deseas realizar?</p>
             <div class="flex flex-col gap-4">
-                <button id="type-btn-court" class="type-selection-btn bg-emerald-600 text-white">Reservar Cancha</button>
-                <button id="type-btn-event" class="type-selection-btn bg-amber-500 text-white">Reservar Evento</button>
-                <button id="type-btn-cancel" class="mt-4 px-4 py-2 bg-gray-200 rounded-lg w-full">Cancelar</button>
+                <button id="type-btn-court" class="type-selection-btn bg-emerald-600 text-white rounded-xl shadow-md hover:shadow-lg">Reservar Cancha</button>
+                <button id="type-btn-event" class="type-selection-btn bg-amber-500 text-white rounded-xl shadow-md hover:shadow-lg">Reservar Evento</button>
+                <button id="type-btn-cancel" class="mt-4 px-4 py-2 bg-gray-200 rounded-lg w-full hover:bg-gray-300 transition-all">Cancelar</button>
             </div>
         </div>
     </div>
     
-    <!-- Modal 1: Formulario de Reserva (CANCHA) (¡ACTUALIZADO!) -->
+    <!-- Modal 1: Formulario de Reserva (CANCHA) -->
     <div id="booking-modal" class="modal">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
             <h3 id="booking-modal-title" class="text-2xl font-bold text-emerald-700 mb-4">Reservar Cancha</h3>
             <form id="booking-form" data-editing-id="">
                 <input type="hidden" id="booking-id">
@@ -201,21 +201,21 @@
                     <div>
                         <div class="mb-4 relative">
                             <label for="teamName" class="block text-sm font-medium text-gray-700 mb-1">Nombre (Equipo/Persona)</label>
-                            <input type="text" id="teamName" class="w-full px-3 py-2 border rounded-lg" required autocomplete="off">
+                            <input type="text" id="teamName" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required autocomplete="off">
                             <div id="teamName-suggestions" class="absolute z-10 w-full"></div>
                         </div>
                         <div class="mb-4">
                             <label for="peopleCount" class="block text-sm font-medium text-gray-700 mb-1">Personas</label>
-                            <input type="number" id="peopleCount" min="1" value="10" class="w-full px-3 py-2 border rounded-lg" required>
+                            <input type="number" id="peopleCount" min="1" value="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                         </div>
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label for="costPerHour" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Cancha)</label>
-                                <input type="number" id="costPerHour" min="0" value="35000" class="w-full px-3 py-2 border rounded-lg">
+                                <input type="number" id="costPerHour" min="0" value="5000" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             </div>
                             <div>
                                 <label for="grillCost" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Parrilla)</label>
-                                <input type="number" id="grillCost" min="0" value="2000" class="w-full px-3 py-2 border rounded-lg">
+                                <input type="number" id="grillCost" min="0" value="2000" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             </div>
                         </div>
                         <div class="mb-4">
@@ -228,15 +228,14 @@
                         </div>
                     </div>
                     <div>
-                        <!-- ¡NUEVO! Selector de Cancha -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Cancha</label>
                             <div class="flex gap-4">
-                                <label class="flex items-center px-3 py-2 border rounded-lg">
+                                <label class="flex items-center px-3 py-2 border border-gray-300 rounded-lg">
                                     <input type="radio" name="courtSelection" value="cancha1" class="h-4 w-4 text-emerald-600" checked>
                                     <span class="ml-2 text-sm">Cancha 1</span>
                                 </label>
-                                <label class="flex items-center px-3 py-2 border rounded-lg">
+                                <label class="flex items-center px-3 py-2 border border-gray-300 rounded-lg">
                                     <input type="radio" name="courtSelection" value="cancha2" class="h-4 w-4 text-emerald-600">
                                     <span class="ml-2 text-sm">Cancha 2</span>
                                 </label>
@@ -248,7 +247,7 @@
                             <div id="court-hours-list" class="time-slot-grid"></div>
                         </div>
                         <div class="mt-4">
-                            <label class="flex items-center mb-2"><input type="checkbox" id="rentGrill" class="h-5 w-5 text-emerald-600 rounded"><span class="ml-2 text-sm font-medium text-gray-700">¿Alquila parrilla?</span></label>
+                            <label class="flex items-center mb-2"><input type="checkbox" id="rentGrill" class="h-5 w-5 text-emerald-600 rounded-md"><span class="ml-2 text-sm font-medium text-gray-700">¿Alquila parrilla?</span></label>
                             <div id="grill-hours-section" class="is-hidden">
                                 <div id="grill-hours-list" class="time-slot-grid"></div>
                             </div>
@@ -261,8 +260,8 @@
                         <div id="booking-total" class="text-3xl font-bold text-emerald-600">$0</div>
                     </div>
                     <div class="flex justify-end gap-3">
-                        <button type="button" id="cancel-booking-btn" class="px-4 py-2 bg-gray-200 rounded-lg">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg">Guardar</button>
+                        <button type="button" id="cancel-booking-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all">Guardar</button>
                     </div>
                 </div>
             </form>
@@ -271,7 +270,7 @@
 
     <!-- Modal 1.5: Formulario de Reserva (EVENTO) -->
     <div id="event-modal" class="modal">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
             <h3 id="event-modal-title" class="text-2xl font-bold text-amber-600 mb-4">Reservar Evento</h3>
             <form id="event-form">
                 <input type="hidden" id="event-booking-id">
@@ -280,19 +279,19 @@
                     <div>
                         <div class="mb-4">
                             <label for="eventName" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Evento</label>
-                            <input type="text" id="eventName" class="w-full px-3 py-2 border rounded-lg" required>
+                            <input type="text" id="eventName" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                         </div>
                         <div class="mb-4">
                             <label for="contactPerson" class="block text-sm font-medium text-gray-700 mb-1">Persona de Contacto</label>
-                            <input type="text" id="contactPerson" class="w-full px-3 py-2 border rounded-lg" required>
+                            <input type="text" id="contactPerson" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                         </div>
                          <div class="mb-4">
                             <label for="contactPhone" class="block text-sm font-medium text-gray-700 mb-1">Celular de Contacto</label>
-                            <input type="tel" id="contactPhone" class="w-full px-3 py-2 border rounded-lg" required>
+                            <input type="tel" id="contactPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                         </div>
                         <div class="mb-4">
                             <label for="eventCostPerHour" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Evento)</label>
-                            <input type="number" id="eventCostPerHour" min="0" value="10000" class="w-full px-3 py-2 border rounded-lg">
+                            <input type="number" id="eventCostPerHour" min="0" value="10000" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium mb-2">Método de Pago</label>
@@ -314,8 +313,8 @@
                         <div id="event-total" class="text-3xl font-bold text-amber-600">$0</div>
                     </div>
                     <div class="flex justify-end gap-3">
-                        <button type="button" id="cancel-event-btn" class="px-4 py-2 bg-gray-200 rounded-lg">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded-lg">Guardar Evento</button>
+                        <button type="button" id="cancel-event-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded-lg shadow-md hover:bg-amber-700 hover:shadow-lg transition-all">Guardar Evento</button>
                     </div>
                 </div>
             </form>
@@ -324,44 +323,44 @@
 
     <!-- Modal 2: Opciones del Día -->
     <div id="options-modal" class="modal">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
             <h3 class="text-2xl font-bold mb-4">Reservas del Día</h3>
             <div id="daily-bookings-list" class="space-y-3 mb-4 max-h-60 overflow-y-auto"></div>
             <div class="flex justify-between gap-3">
-                <button type="button" id="close-options-btn" class="px-4 py-2 bg-gray-200 rounded-lg w-1/2">Cerrar</button>
-                <button type="button" id="add-new-booking-btn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg w-1/2">Nueva Reserva</button>
+                <button type="button" id="close-options-btn" class="px-4 py-2 bg-gray-200 rounded-lg w-1/2 hover:bg-gray-300 transition-all">Cerrar</button>
+                <button type="button" id="add-new-booking-btn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg w-1/2 shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all">Nueva Reserva</button>
             </div>
         </div>
     </div>
 
     <!-- Modal 3: Ver Detalles de Reserva -->
     <div id="view-modal" class="modal">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
             <h3 class="text-2xl font-bold mb-4">Detalle de la Reserva</h3>
             <div id="view-booking-details" class="space-y-2"></div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" id="close-view-btn" class="px-4 py-2 bg-gray-200 rounded-lg">Cerrar</button>
+                <button type="button" id="close-view-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all">Cerrar</button>
             </div>
         </div>
     </div>
 
     <!-- Modal 4: Detalle de Caja por Día -->
     <div id="caja-detail-modal" class="modal">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
             <h3 id="caja-detail-title" class="text-2xl font-bold text-gray-800 mb-4">Detalle del Día</h3>
             <h4 class="text-lg font-semibold text-gray-700 mb-2">Resumen de Pagos</h4>
             <div id="caja-detail-summary" class="space-y-2 text-gray-700 mb-4"></div>
             <h4 class="text-lg font-semibold text-gray-700 mb-2">Reservas</h4>
             <div id="caja-detail-booking-list" class="space-y-2 text-sm max-h-40 overflow-y-auto"></div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" id="close-caja-detail-btn" class="px-4 py-2 bg-gray-200 rounded-lg">Cerrar</button>
+                <button type="button" id="close-caja-detail-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all">Cerrar</button>
             </div>
         </div>
     </div>
     
     <!-- Modal 5: Razón de Eliminación -->
     <div id="delete-reason-modal" class="modal">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Motivo de Eliminación</h3>
             <form id="delete-reason-form">
                  <input type="hidden" id="delete-booking-id">
@@ -370,8 +369,8 @@
                      <textarea id="delete-reason-text" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required></textarea>
                  </div>
                  <div class="flex justify-end gap-3">
-                     <button type="button" id="cancel-delete-btn" class="px-4 py-2 bg-gray-200 rounded-lg">Cancelar</button>
-                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Confirmar Eliminación</button>
+                     <button type="button" id="cancel-delete-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all">Cancelar</button>
+                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 hover:shadow-lg transition-all">Confirmar Eliminación</button>
                  </div>
             </form>
         </div>
