@@ -9,7 +9,7 @@
     border-radius: 0.75rem; /* rounded-xl */
     transition: all 0.2s ease-out;
 }
-.day-cell:hover {
+.day-cell:hover:not(.day-cell-locked) { /* No animar si está bloqueado */
     transform: scale(1.05);
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
