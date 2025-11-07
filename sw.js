@@ -1,4 +1,4 @@
-const CACHE_NAME = 'futsal-app-cache-v2.1'; // <--- ¡AQUÍ ESTÁ EL CAMBIO!
+const CACHE_NAME = 'futsal-app-cache-v2.2'; // <--- ¡AQUÍ ESTÁ EL CAMBIO!
 const urlsToCache = [
     '/',
     '/index.html',
