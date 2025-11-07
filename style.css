@@ -189,35 +189,44 @@
     box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
-/* Estilos para lista de Caja / Stats / Historial */
-.caja-day-item,
-.stats-item,
-.historial-item {
-    padding: 1rem;
+/* ¡NUEVO! Estilos para las tarjetas de datos (Caja, Stats, Historial) */
+.data-card {
     background-color: white;
     border-radius: 0.75rem; /* rounded-xl */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
     border: 1px solid #e5e7eb;
     transition: all 0.2s ease-out;
 }
+.data-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
+    transform: translateY(-2px);
+}
+/* Estilo para el ícono dentro de la tarjeta */
+.data-card-icon {
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.5rem; /* rounded-lg */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+/* Estilo para el SVG dentro del ícono */
+.icon-svg {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+/* Estilos para lista de Caja */
 .caja-day-item {
+    padding: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
 }
-.stats-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.caja-day-item:hover,
-.stats-item:hover,
-.historial-item:hover {
-    background-color: #f9fafb;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
-    transform: translateY(-2px);
-}
+
 /* Detalle de reservas en modal de caja */
 #caja-detail-booking-list .caja-booking-item {
     display: flex;
@@ -230,15 +239,28 @@
     text-transform: capitalize;
 }
 
+/* Estilos para lista de Estadísticas */
+.stats-item {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 .stats-item .client-name {
     font-size: 1.1rem;
-    font-weight: 500;
+    font-weight: 600; /* semibold */
 }
 .stats-item .client-count {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #4B5563; /* gray-600 */
+}
+.stats-item .client-total {
+    font-size: 1.25rem;
     font-weight: 700;
     color: #059669; /* text-emerald-600 */
 }
+
 
 /* Estilos para sugerencias de clientes */
 #teamName-suggestions {
@@ -316,6 +338,10 @@
 /* ============================================= */
 /* HISTORIAL */
 /* ============================================= */
+.historial-item {
+    padding: 1rem;
+}
+
 .historial-item .status {
     font-weight: 600; /* semibold */
     padding: 0.25rem 0.5rem;
