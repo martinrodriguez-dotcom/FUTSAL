@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Fuente Inter -->
+    <!-- ¡NUEVO! Fuente Inter para un look más moderno -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -82,7 +82,6 @@
             <div class="w-8"></div> <!-- Spacer -->
         </header>
 
-        <!-- Menú Desplegable (ACTUALIZADO) -->
         <nav id="main-menu" class="main-menu-hidden">
             <div class="p-4 border-b">
                 <p class="text-sm text-gray-500">Sesión iniciada como:</p>
@@ -94,7 +93,7 @@
             <a href="#" class="menu-item" data-view="caja">Gestión de Caja</a>
             <a href="#" class="menu-item" data-view="stats">Estadísticas</a>
             <a href="#" class="menu-item" data-view="historial">Historial</a> 
-            <a href="#" class="menu-item" data-view="config">Configuración</a> <!-- ¡NUEVO! -->
+            <a href="#" class="menu-item" data-view="configuracion">Configuración</a> <!-- ¡AÑADIDO! -->
         </nav>
         <div id="menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleMenu()"></div>
 
@@ -172,36 +171,41 @@
             </div>
             <div id="historial-list" class="space-y-3"></div>
         </div>
-
-        <!-- ¡NUEVO! VISTA 5: CONFIGURACIÓN -->
+        
+        <!-- ============================================= -->
+        <!-- VISTA 5: CONFIGURACIÓN (¡AÑADIDA!) -->
+        <!-- ============================================= -->
         <div id="config-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
+            
             <h2 class="text-3xl font-bold text-gray-800 mb-6">Configuración de Precios</h2>
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-xl max-w-lg mx-auto">
                 <form id="config-form">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Precio Cancha 1 -->
-                        <div class="mb-4">
-                            <label for="config-cancha1" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Cancha 1)</label>
-                            <input type="number" id="config-cancha1" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                    <p class="text-gray-600 mb-6">Define los precios por defecto que aparecerán al crear una nueva reserva. Los cambios se aplicarán a todas las *nuevas* reservas.</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="config-court1-price" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Cancha 1)</label>
+                            <input type="number" id="config-court1-price" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                         </div>
-                        <!-- Precio Cancha 2 -->
-                        <div class="mb-4">
-                            <label for="config-cancha2" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Cancha 2)</label>
-                            <input type="number" id="config-cancha2" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                        <div>
+                            <label for="config-court2-price" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Cancha 2)</label>
+                            <input type="number" id="config-court2-price" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                         </div>
-                        <!-- Precio Parrilla -->
-                        <div class="mb-4">
-                            <label for="config-parrilla" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Parrilla)</label>
-                            <input type="number" id="config-parrilla" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                        <div>
+                            <label for="config-grill-price" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Parrilla)</label>
+                            <input type="number" id="config-grill-price" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                         </div>
-                        <!-- Precio Evento -->
-                        <div class="mb-4">
-                            <label for="config-evento" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Evento)</label>
-                            <input type="number" id="config-evento" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                        <div>
+                            <label for="config-event-price" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Evento)</label>
+                            <input type="number" id="config-event-price" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                         </div>
                     </div>
-                    <div class="mt-6 text-right">
-                        <button type="submit" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white">Guardar Cambios</button>
+                    
+                    <div class="mt-8 text-right">
+                        <button type="submit" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white">
+                            Guardar Precios
+                        </button>
                     </div>
                 </form>
             </div>
@@ -248,13 +252,11 @@
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label for="costPerHour" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Cancha)</label>
-                                <!-- ¡ACTUALIZADO! Valor vacío, se llena con JS -->
-                                <input type="number" id="costPerHour" min="0" value="" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                <input type="number" id="costPerHour" min="0" value="5000" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             </div>
                             <div>
                                 <label for="grillCost" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Parrilla)</label>
-                                <!-- ¡ACTUALIZADO! Valor vacío, se llena con JS -->
-                                <input type="number" id="grillCost" min="0" value="" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                <input type="number" id="grillCost" min="0" value="2000" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             </div>
                         </div>
                         <div class="mb-4">
@@ -330,8 +332,7 @@
                         </div>
                         <div class="mb-4">
                             <label for="eventCostPerHour" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora (Evento)</label>
-                            <!-- ¡ACTUALIZADO! Valor vacío, se llena con JS -->
-                            <input type="number" id="eventCostPerHour" min="0" value="" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <input type="number" id="eventCostPerHour" min="0" value="10000" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         </div>
                         <div class="mb-4">
                             <label class="block text-sm font-medium mb-2">Método de Pago</label>
@@ -376,7 +377,9 @@
     <!-- Modal 3: Ver Detalles de Reserva -->
     <div id="view-modal" class="modal">
         <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-            <div id="view-booking-details"></div>
+            <div id="view-booking-details">
+                <!-- El contenido se genera en app.js -->
+            </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" id="close-view-btn" class="modern-btn-gray">Cerrar</button>
             </div>
