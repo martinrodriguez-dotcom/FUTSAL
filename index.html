@@ -2,13 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Reservas Futsal - Panza Verde</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     
-    <!-- ¡NUEVO! Fuente Inter para un look más moderno -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -82,6 +81,7 @@
             <div class="w-8"></div> <!-- Spacer -->
         </header>
 
+        <!-- Menú Desplegable -->
         <nav id="main-menu" class="main-menu-hidden">
             <div class="p-4 border-b">
                 <p class="text-sm text-gray-500">Sesión iniciada como:</p>
@@ -93,6 +93,7 @@
             <a href="#" class="menu-item" data-view="caja">Gestión de Caja</a>
             <a href="#" class="menu-item" data-view="stats">Estadísticas</a>
             <a href="#" class="menu-item" data-view="historial">Historial</a> 
+            <a href="#" class="menu-item" data-view="settings">Configuración</a> <!-- ¡NUEVO! -->
         </nav>
         <div id="menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleMenu()"></div>
 
@@ -133,7 +134,7 @@
                 <p id="caja-total" class="text-4xl font-bold text-emerald-600">$0</p>
             </div>
             <h3 class="text-2xl font-semibold text-gray-800 mb-3">Detalle por Día</h3>
-            <div id="caja-daily-list" class="space-y-3"></div> <!-- Contenedor vacío -->
+            <div id="caja-daily-list" class="space-y-3"></div>
         </div>
         
         <!-- VISTA 3: ESTADÍSTICAS -->
@@ -151,7 +152,7 @@
                 <button id="stats-filter-btn" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white self-end h-11">Filtrar</button>
             </div>
             <h3 class="text-2xl font-semibold text-gray-800 mb-3">Ranking de Reservas</h3>
-            <div id="stats-list" class="space-y-3"></div> <!-- Contenedor vacío -->
+            <div id="stats-list" class="space-y-3"></div>
         </div>
 
         <!-- VISTA 4: HISTORIAL -->
@@ -168,8 +169,54 @@
                 </div>
                 <button id="historial-filter-btn" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white self-end h-11">Filtrar</button>
             </div>
-            <div id="historial-list" class="space-y-3"></div> <!-- Contenedor vacío -->
+            <div id="historial-list" class="space-y-3"></div>
         </div>
+
+        <!-- VISTA 5: CONFIGURACIÓN (¡NUEVA!) -->
+        <div id="settings-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Configuración de Precios</h2>
+            
+            <form id="settings-form" class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Precio Cancha 1 -->
+                    <div class="data-card p-4">
+                        <label for="price-cancha-1" class="block text-lg font-semibold text-emerald-700 mb-2">Costo por Hora (Cancha 1)</label>
+                        <div class="flex items-center">
+                            <span class="text-2xl text-gray-500 mr-2">$</span>
+                            <input type="number" id="price-cancha-1" class="w-full text-2xl font-bold border-b-2 border-gray-200 focus:border-emerald-500 outline-none p-2" value="5000">
+                        </div>
+                    </div>
+                    <!-- Precio Cancha 2 -->
+                    <div class="data-card p-4">
+                        <label for="price-cancha-2" class="block text-lg font-semibold text-emerald-700 mb-2">Costo por Hora (Cancha 2)</label>
+                        <div class="flex items-center">
+                            <span class="text-2xl text-gray-500 mr-2">$</span>
+                            <input type="number" id="price-cancha-2" class="w-full text-2xl font-bold border-b-2 border-gray-200 focus:border-emerald-500 outline-none p-2" value="5000">
+                        </div>
+                    </div>
+                    <!-- Precio Parrilla -->
+                    <div class="data-card p-4">
+                        <label for="price-parrilla" class="block text-lg font-semibold text-gray-700 mb-2">Costo por Hora (Parrilla)</label>
+                        <div class="flex items-center">
+                            <span class="text-2xl text-gray-500 mr-2">$</span>
+                            <input type="number" id="price-parrilla" class="w-full text-2xl font-bold border-b-2 border-gray-200 focus:border-gray-500 outline-none p-2" value="2000">
+                        </div>
+                    </div>
+                    <!-- Precio Evento -->
+                    <div class="data-card p-4">
+                        <label for="price-evento" class="block text-lg font-semibold text-amber-700 mb-2">Costo por Hora (Evento)</label>
+                        <div class="flex items-center">
+                            <span class="text-2xl text-gray-500 mr-2">$</span>
+                            <input type="number" id="price-evento" class="w-full text-2xl font-bold border-b-2 border-gray-200 focus:border-amber-500 outline-none p-2" value="10000">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 text-right">
+                    <button type="submit" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white w-full md:w-auto">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+
     </div> <!-- Fin de #app-container -->
 
 
@@ -333,28 +380,10 @@
         </div>
     </div>
 
-    <!-- Modal 3: Ver Detalles de Reserva (¡REDISEÑADO!) -->
+    <!-- Modal 3: Ver Detalles de Reserva -->
     <div id="view-modal" class="modal">
         <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-            <!-- El contenido se genera en app.js -->
-            <div id="view-booking-details">
-                <!-- EJEMPLO de la nueva estructura que generará app.js:
-                <div class="flex items-center mb-4">
-                    <span class="p-3 rounded-full bg-emerald-100 text-emerald-600 mr-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" ...></svg>
-                    </span>
-                    <div>
-                        <h3 class="text-2xl font-bold text-emerald-700">Reserva de Cancha</h3>
-                        <p class="text-lg text-gray-600">Martín (Cancha 1)</p>
-                    </div>
-                </div>
-                <div class="space-y-3 text-gray-700">
-                    <div class="flex items-center"><svg...></svg> <span>Horas: 9:00, 10:00</span></div>
-                    <div class="flex items-center"><svg...></svg> <span>Parrilla: No</span></div>
-                    <div class="flex items-center"><svg...></svg> <span>Total: $10.000 (Efectivo)</span></div>
-                </div>
-                -->
-            </div>
+            <div id="view-booking-details"></div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" id="close-view-btn" class="modern-btn-gray">Cerrar</button>
             </div>
