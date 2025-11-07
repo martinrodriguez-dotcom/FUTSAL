@@ -42,7 +42,7 @@ const firebaseConfig = {
 const bookingsCollectionPath = "bookings"; 
 const customersCollectionPath = "customers";
 const logCollectionPath = "booking_log"; 
-const configCollectionPath = "config"; // ¡NUEVO!
+const settingsDocPath = "app_settings/prices"; // Para Configuración
 
 // --- CONSTANTES DE LA APP ---
 const OPERATING_HOURS = [
@@ -56,17 +56,15 @@ let userEmail = null;
 let currentMonthDate = new Date();
 let currentBookingsUnsubscribe = null;
 let allMonthBookings = []; 
-
-// ¡NUEVO! Configuración de precios por defecto
-let appConfig = {
-    cancha1: 5000,
-    cancha2: 5000,
-    parrilla: 2000,
-    evento: 10000
-};
-let configDocRef; // Referencia al documento de config en Firestore
-
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+// Precios por defecto (fallback)
+let appSettings = {
+    court1Price: 5000,
+    court2Price: 5000,
+    grillPrice: 2000,
+    eventPrice: 10000
+};
 
 // --- REFERENCIAS AL DOM ---
 // Vistas de Autenticación
@@ -80,7 +78,7 @@ const views = {
     caja: document.getElementById('caja-view'),
     stats: document.getElementById('stats-view'),
     historial: document.getElementById('historial-view'),
-    config: document.getElementById('config-view') // ¡NUEVO!
+    configuracion: document.getElementById('config-view') 
 };
 
 // Calendario
@@ -114,13 +112,6 @@ const historialList = document.getElementById('historial-list');
 const historialDateFrom = document.getElementById('historial-date-from');
 const historialDateTo = document.getElementById('historial-date-to');
 const historialFilterBtn = document.getElementById('historial-filter-btn');
-// Referencias de Configuración (¡NUEVO!)
-const configForm = document.getElementById('config-form');
-const configCancha1 = document.getElementById('config-cancha1');
-const configCancha2 = document.getElementById('config-cancha2');
-const configParrilla = document.getElementById('config-parrilla');
-const configEvento = document.getElementById('config-evento');
-
 // Referencias de Modales
 const typeModal = document.getElementById('type-modal'); 
 const bookingModal = document.getElementById('booking-modal');
@@ -157,6 +148,13 @@ const deleteReasonForm = document.getElementById('delete-reason-form');
 const deleteReasonText = document.getElementById('delete-reason-text');
 const deleteBookingIdInput = document.getElementById('delete-booking-id');
 
+// Referencias de Formulario Configuración
+const configForm = document.getElementById('config-form');
+const configCourt1Price = document.getElementById('config-court1-price');
+const configCourt2Price = document.getElementById('config-court2-price');
+const configGrillPrice = document.getElementById('config-grill-price');
+const configEventPrice = document.getElementById('config-event-price');
+
 
 // --- INICIALIZACIÓN ---
 
@@ -180,10 +178,6 @@ async function firebaseInit() {
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
-        
-        // ¡NUEVO! Referencia al doc de config
-        configDocRef = doc(db, configCollectionPath, "prices");
-
         await setPersistence(auth, browserLocalPersistence); 
 
         onAuthStateChanged(auth, async (user) => {
@@ -191,14 +185,15 @@ async function firebaseInit() {
                 console.log("Usuario autenticado:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
+                
+                await loadAppSettings(); 
+
                 appContainer.classList.remove('is-hidden');
                 loginView.classList.add('is-hidden');
                 registerView.classList.add('is-hidden');
                 userEmailDisplay.textContent = userEmail;
                 
-                await loadAppConfig(); // Cargar precios
-                await loadBookingsForMonth(); // Cargar reservas
-                
+                await loadBookingsForMonth(); 
             } else {
                 console.log("Sin usuario, mostrando login.");
                 userId = null;
@@ -255,7 +250,11 @@ function setupEventListeners() {
     // Formularios y Modales
     bookingForm.onsubmit = handleSaveBooking;
     eventForm.onsubmit = handleSaveEvent; 
-    configForm.onsubmit = handleSaveConfig; // ¡NUEVO!
+    
+    if (configForm) {
+        configForm.onsubmit = handleSaveConfig;
+    }
+
     document.getElementById('cancel-booking-btn').onclick = closeModals;
     document.getElementById('cancel-event-btn').onclick = closeModals; 
     document.getElementById('close-options-btn').onclick = closeModals;
@@ -319,12 +318,15 @@ function showView(viewName) {
     for (const key in views) {
         if (views[key]) views[key].classList.add('is-hidden');
     }
-    if (views[viewName]) {
-        views[viewName].classList.remove('is-hidden');
+    
+    const viewToShow = views[viewName];
+    if (viewToShow) {
+        viewToShow.classList.remove('is-hidden');
+        
         if (viewName === 'caja') loadCajaData();
         else if (viewName === 'stats') loadStatsData();
         else if (viewName === 'historial') loadHistorialData();
-        else if (viewName === 'config') populateConfigForm(); // ¡NUEVO!
+        else if (viewName === 'configuracion') loadConfigDataIntoForm(); 
     } else {
         console.warn(`Vista "${viewName}" no encontrada.`);
     }
@@ -374,64 +376,59 @@ async function handleLogout() {
 }
 
 
-// --- LÓGICA DE CONFIGURACIÓN (¡NUEVA!) ---
+// --- LÓGICA DE CONFIGURACIÓN ---
 
-/**
- * Carga la configuración de precios desde Firestore al iniciar.
- */
-async function loadAppConfig() {
+async function loadAppSettings() {
     try {
-        const docSnap = await getDoc(configDocRef);
+        const docRef = doc(db, settingsDocPath);
+        const docSnap = await getDoc(docRef);
+
         if (docSnap.exists()) {
-            // Combina los defaults con lo guardado, por si falta algún campo
-            appConfig = { ...appConfig, ...docSnap.data() };
-            console.log("Configuración de precios cargada:", appConfig);
+            console.log("Configuración de precios cargada desde Firestore.");
+            appSettings = docSnap.data();
         } else {
-            console.log("No se encontró config, usando defaults. Se creará al guardar.");
-            // Opcional: guardar los defaults la primera vez
-            await setDoc(configDocRef, appConfig);
+            console.warn("No se encontró config de precios. Creando una nueva...");
+            await setDoc(docRef, appSettings); 
         }
-    } catch (e) {
-        console.error("Error cargando config:", e);
-        // Usar defaults si falla
+    } catch (error) {
+        console.error("Error al cargar la configuración de precios:", error);
     }
-    // Llenar el formulario de config por si el usuario navega allí
-    populateConfigForm();
 }
 
-/**
- * Llena el formulario de Configuración con los valores actuales.
- */
-function populateConfigForm() {
-    configCancha1.value = appConfig.cancha1;
-    configCancha2.value = appConfig.cancha2;
-    configParrilla.value = appConfig.parrilla;
-    configEvento.value = appConfig.evento;
+function loadConfigDataIntoForm() {
+    if (!configCourt1Price) {
+        console.warn("Formulario de configuración no encontrado en el HTML.");
+        return;
+    }
+    configCourt1Price.value = appSettings.court1Price;
+    configCourt2Price.value = appSettings.court2Price;
+    configGrillPrice.value = appSettings.grillPrice;
+    configEventPrice.value = appSettings.eventPrice;
 }
 
-/**
- * Guarda los nuevos precios en Firestore.
- */
 async function handleSaveConfig(e) {
     e.preventDefault();
     showMessage("Guardando configuración...");
     
-    const newConfig = {
-        cancha1: parseFloat(configCancha1.value),
-        cancha2: parseFloat(configCancha2.value),
-        parrilla: parseFloat(configParrilla.value),
-        evento: parseFloat(configEvento.value)
+    const newSettings = {
+        court1Price: parseFloat(configCourt1Price.value) || 0,
+        court2Price: parseFloat(configCourt2Price.value) || 0,
+        grillPrice: parseFloat(configGrillPrice.value) || 0,
+        eventPrice: parseFloat(configEventPrice.value) || 0
     };
-    
+
     try {
-        await setDoc(configDocRef, newConfig);
-        appConfig = newConfig; // Actualizar config global
-        showMessage("¡Configuración Guardada!", false);
-    } catch (error) {
-        console.error("Error guardando config:", error);
-        showMessage(`Error: ${error.message}`, true);
-    } finally {
+        const docRef = doc(db, settingsDocPath);
+        await setDoc(docRef, newSettings);
+        
+        appSettings = newSettings;
+        
+        showMessage("¡Precios actualizados!", false);
         setTimeout(hideMessage, 1500);
+
+    } catch (error) {
+        console.error("Error al guardar configuración:", error);
+        showMessage(`Error: ${error.message}`, true);
     }
 }
 
@@ -467,9 +464,8 @@ async function logBookingEvent(action, bookingData, reason = null) {
 
 async function loadBookingsForMonth() {
     if (!db || !userId) return; 
-    if (currentBookingsUnsubscribe) return; // Ya está escuchando
-    
     showMessage("Cargando reservas...");
+    if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
     
     const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
     const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
@@ -851,9 +847,9 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
     } else {
         document.getElementById('booking-modal-title').textContent = `Reservar Cancha (${dateStr})`;
         document.getElementById('booking-id').value = '';
-        // ¡ACTUALIZADO! Usar precios de config
-        costPerHourInput.value = appConfig.cancha1; 
-        grillCostInput.value = appConfig.parrilla;
+        // Cargar precios desde la config global
+        costPerHourInput.value = appSettings.court1Price; 
+        grillCostInput.value = appSettings.grillPrice; 
         rentGrillCheckbox.checked = false;
     }
 
@@ -879,15 +875,17 @@ function getCurrentlySelectedHours(containerEl) {
                 .map(el => parseInt(el.dataset.hour, 10));
 }
 
-/**
- * (¡ACTUALIZADO!)
- * Actualiza la grilla de disponibilidad Y el precio al cambiar el radio button.
- */
 function updateCourtAvailability() {
     const dateStr = document.getElementById('booking-date').value;
     const bookingIdToEdit = bookingForm.dataset.editingId;
     const selectedCourt = document.querySelector('input[name="courtSelection"]:checked').value;
     
+    if (selectedCourt === 'cancha1') {
+        costPerHourInput.value = appSettings.court1Price;
+    } else {
+        costPerHourInput.value = appSettings.court2Price;
+    }
+
     const currentlySelectedHours = getCurrentlySelectedHours(courtHoursList);
     
     const occupiedCourtHours = new Set();
@@ -895,14 +893,8 @@ function updateCourtAvailability() {
         b => b.day === dateStr &&
              b.id !== bookingIdToEdit &&
              b.type === 'court' &&
-             b.courtId === selectedCourt // ¡LA CLAVE!
+             b.courtId === selectedCourt
     ).forEach(booking => booking.courtHours.forEach(hour => occupiedCourtHours.add(hour)));
-
-    // ¡NUEVO! Actualizar el precio al cambiar la cancha
-    // Solo si NO estamos editando (si editamos, mantenemos el precio guardado)
-    if (!bookingIdToEdit) {
-         costPerHourInput.value = (selectedCourt === 'cancha1') ? appConfig.cancha1 : appConfig.cancha2;
-    }
 
     renderTimeSlots(courtHoursList, occupiedCourtHours, currentlySelectedHours);
     updateTotalPrice();
@@ -925,14 +917,14 @@ function showEventModal(dateStr, eventToEdit = null) {
         eventNameInput.value = eventToEdit.teamName; 
         contactPersonInput.value = eventToEdit.contactPerson;
         contactPhoneInput.value = eventToEdit.contactPhone;
-        eventCostPerHourInput.value = eventToEdit.costPerHour; // Usar precio guardado
+        eventCostPerHourInput.value = eventToEdit.costPerHour; 
         const paymentMethod = eventToEdit.paymentMethod || 'efectivo';
         document.querySelector(`input[name="eventPaymentMethod"][value="${paymentMethod}"]`).checked = true;
         selectedHours = eventToEdit.courtHours || []; 
     } else {
         document.getElementById('event-modal-title').textContent = `Reservar Evento (${dateStr})`;
         eventBookingIdInput.value = '';
-        eventCostPerHourInput.value = appConfig.evento; // ¡ACTUALIZADO! Usar precio de config
+        eventCostPerHourInput.value = appSettings.eventPrice; // Cargar precio desde config
     }
 
     renderTimeSlots(eventHoursList, occupiedHours, selectedHours);
@@ -1055,10 +1047,6 @@ function showEventOptionsModal(eventObject) {
     optionsModal.classList.add('is-open');
 }
 
-/**
- * (¡REDISEÑADO!)
- * Muestra el detalle de la reserva (CANCHA O EVENTO) con un look moderno.
- */
 function showViewModal(booking) {
     closeModals();
     const detailsEl = document.getElementById('view-booking-details');
@@ -1068,7 +1056,6 @@ function showViewModal(booking) {
     let html = '';
     
     if (booking.type === 'event') {
-        // --- VISTA DE EVENTO ---
         html = `
             <div class="flex items-center mb-4">
                 <span class="p-3 rounded-xl bg-amber-100 text-amber-600 mr-4">
@@ -1089,7 +1076,6 @@ function showViewModal(booking) {
             </div>
         `;
     } else {
-        // --- VISTA DE CANCHA ---
         const courtName = booking.courtId === 'cancha2' ? 'Cancha 2' : 'Cancha 1';
         const grillHoursStr = booking.rentGrill ? (booking.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : 'No alquilada';
         
@@ -1133,3 +1119,300 @@ function closeModals() {
 function prevMonth() {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
     loadBookingsForMonth();
+}
+function nextMonth() {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+    loadBookingsForMonth();
+}
+
+
+// --- LÓGICA DE VISTA DE CAJA ---
+async function loadCajaData() {
+    if (!db) return;
+    showMessage("Cargando datos de caja...");
+    try {
+        let q = query(collection(db, bookingsCollectionPath));
+        const from = cajaDateFrom.value;
+        const to = cajaDateTo.value;
+        if (from) q = query(q, where("day", ">=", from));
+        if (to) q = query(q, where("day", "<=", to));
+        const snapshot = await getDocs(q);
+        
+        let grandTotal = 0;
+        const dailyTotals = {};
+        
+        snapshot.docs.forEach(doc => {
+            const booking = { id: doc.id, ...doc.data() };
+            const total = booking.totalPrice || 0; 
+            grandTotal += total;
+            const day = booking.day;
+            const paymentMethod = booking.paymentMethod || 'efectivo';
+            if (!dailyTotals[day]) {
+                dailyTotals[day] = { total: 0, efectivo: 0, transferencia: 0, mercadopago: 0, bookings: [] };
+            }
+            dailyTotals[day].total += total;
+            if (dailyTotals[day][paymentMethod] !== undefined) {
+                dailyTotals[day][paymentMethod] += total;
+            }
+            dailyTotals[day].bookings.push(booking); 
+        });
+        
+        cajaTotal.textContent = `$${grandTotal.toLocaleString('es-AR')}`;
+        renderCajaList(dailyTotals);
+        hideMessage();
+    } catch (error) {
+        console.error("Error al cargar datos de caja:", error);
+        showMessage(`Error: ${error.message}. ¿Creaste el índice en Firestore?`, true);
+    }
+}
+
+function renderCajaList(dailyTotals) {
+    cajaDailyList.innerHTML = '';
+    const sortedDays = Object.keys(dailyTotals).sort((a, b) => b.localeCompare(a));
+    if (sortedDays.length === 0) {
+        cajaDailyList.innerHTML = '<p class="text-gray-500 text-center">No hay reservas en el rango.</p>';
+        return;
+    }
+    sortedDays.forEach(day => {
+        const data = dailyTotals[day];
+        const [year, month, dayNum] = day.split('-');
+        const displayDate = `${dayNum}/${month}/${year}`;
+        
+        const item = document.createElement('div');
+        item.className = 'caja-day-item data-card'; // Clase de tarjeta
+        item.innerHTML = `
+            <div class="flex items-center">
+                <div class="data-card-icon bg-emerald-100 text-emerald-600">
+                    <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <strong class="font-semibold text-lg text-gray-800">${displayDate}</strong>
+                    <div class="text-sm text-gray-500">${data.bookings.length} reserva(s)</div>
+                </div>
+            </div>
+            <strong class="text-xl font-bold text-emerald-600">$${data.total.toLocaleString('es-AR')}</strong>
+        `;
+        item.onclick = () => showCajaDetail(displayDate, data);
+        cajaDailyList.appendChild(item);
+    });
+}
+
+function showCajaDetail(displayDate, data) {
+    cajaDetailModal.classList.add('is-open');
+    document.getElementById('caja-detail-title').textContent = `Detalle: ${displayDate}`;
+    const summaryEl = document.getElementById('caja-detail-summary');
+    summaryEl.innerHTML = `
+        <p class="flex justify-between"><span>Efectivo:</span> <strong>$${data.efectivo.toLocaleString('es-AR')}</strong></p>
+        <p class="flex justify-between"><span>Transferencia:</span> <strong>$${data.transferencia.toLocaleString('es-AR')}</strong></p>
+        <p class="flex justify-between"><span>Mercado Pago:</span> <strong>$${data.mercadopago.toLocaleString('es-AR')}</strong></p>
+        <hr class="my-2">
+        <p class="flex justify-between text-lg font-bold"><span>Total Día:</span> <strong>$${data.total.toLocaleString('es-AR')}</strong></p>
+    `;
+    const listEl = document.getElementById('caja-detail-booking-list');
+    listEl.innerHTML = '';
+    if (data.bookings.length === 0) {
+        listEl.innerHTML = '<p class="text-gray-500">No hay detalles de reservas.</p>';
+    } else {
+        data.bookings.forEach(booking => {
+            const total = booking.totalPrice || 0;
+            const item = document.createElement('div');
+            item.className = 'caja-booking-item';
+            let displayName = '';
+            if (booking.type === 'event') {
+                displayName = `(EVENTO) ${booking.teamName}`;
+            } else {
+                const courtName = booking.courtId === 'cancha2' ? ' (C2)' : ' (C1)';
+                displayName = `${booking.teamName}${courtName}`;
+            }
+            item.innerHTML = `
+                <span>${displayName}</span>
+                <span class="font-medium text-gray-600">$${total.toLocaleString('es-AR')} (${booking.paymentMethod})</span>
+            `;
+            listEl.appendChild(item);
+        });
+    }
+}
+
+
+// --- LÓGICA DE VISTA DE ESTADÍSTICAS ---
+async function loadStatsData() {
+    if (!db) return;
+    showMessage("Calculando estadísticas...");
+    try {
+        let q = query(collection(db, bookingsCollectionPath));
+        const from = statsDateFrom.value;
+        const to = statsDateTo.value;
+        if (from) q = query(q, where("day", ">=", from));
+        if (to) q = query(q, where("day", "<=", to));
+        
+        const snapshot = await getDocs(q);
+        const stats = {};
+        
+        snapshot.docs.forEach(doc => {
+            const booking = doc.data();
+            const total = booking.totalPrice || 0;
+            const normalizedName = booking.teamName.trim().toLowerCase();
+            if (normalizedName) { 
+                if (!stats[normalizedName]) {
+                    stats[normalizedName] = { 
+                        name: booking.teamName.trim(), 
+                        count: 0, 
+                        totalSpent: 0 
+                    };
+                }
+                stats[normalizedName].count++;
+                stats[normalizedName].totalSpent += total;
+            }
+        });
+        
+        renderStatsList(stats);
+        hideMessage();
+    } catch (error) {
+        console.error("Error al cargar estadísticas:", error);
+        showMessage(`Error: ${error.message}.`, true);
+    }
+}
+
+function renderStatsList(stats) {
+    statsList.innerHTML = '';
+    const statsArray = Object.values(stats);
+    statsArray.sort((a, b) => b.count - a.count);
+    if (statsArray.length === 0) {
+        statsList.innerHTML = '<p class="text-gray-500 text-center">No hay reservas en el rango.</p>';
+        return;
+    }
+    statsArray.forEach((client, index) => {
+        const item = document.createElement('div');
+        item.className = 'stats-item data-card'; // Clase de tarjeta
+        
+        let iconHtml = '';
+        if (index === 0) { // Primer puesto
+            iconHtml = `<div class="data-card-icon bg-amber-100 text-amber-600"><svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg></div>`;
+        } else {
+            iconHtml = `<div class="data-card-icon bg-gray-100 text-gray-600"><svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`;
+        }
+        
+        item.innerHTML = `
+            <div class="flex items-center">
+                ${iconHtml}
+                <div>
+                    <div class="client-name">${client.name}</div>
+                    <div class="client-count">${client.count} reserva(s)</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="client-total">$${client.totalSpent.toLocaleString('es-AR')}</div>
+                <div class="text-sm text-gray-500">Gastado</div>
+            </div>
+        `;
+        statsList.appendChild(item);
+    });
+}
+
+// --- LÓGICA DE VISTA DE HISTORIAL ---
+
+async function loadHistorialData() {
+    if (!db) return;
+    showMessage("Cargando historial...");
+    try {
+        let q = query(collection(db, logCollectionPath), orderBy("timestamp", "desc")); 
+        const fromDateStr = historialDateFrom.value;
+        const toDateStr = historialDateTo.value;
+        if (fromDateStr) {
+            const fromTimestamp = Timestamp.fromDate(new Date(fromDateStr + "T00:00:00")); 
+            q = query(q, where("timestamp", ">=", fromTimestamp));
+        }
+        if (toDateStr) {
+             const toTimestamp = Timestamp.fromDate(new Date(toDateStr + "T23:59:59")); 
+            q = query(q, where("timestamp", "<=", toTimestamp));
+        }
+        const snapshot = await getDocs(q);
+        const logEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderHistorialList(logEntries);
+        hideMessage();
+    } catch (error) {
+        console.error("Error al cargar historial:", error);
+        showMessage(`Error al cargar historial: ${error.message}. ¿Creaste el índice en Firestore?`, true);
+    }
+}
+
+function renderHistorialList(logEntries) {
+    historialList.innerHTML = '';
+    if (logEntries.length === 0) {
+        historialList.innerHTML = '<p class="text-gray-500 text-center">No hay eventos en el rango seleccionado.</p>';
+        return;
+    }
+    logEntries.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'historial-item data-card'; // Clase de tarjeta
+        const eventDate = entry.timestamp.toDate();
+        const formattedTimestamp = eventDate.toLocaleString('es-AR', { 
+            day: '2-digit', month: '2-digit', year: 'numeric', 
+            hour: '2-digit', minute: '2-digit' 
+        });
+        
+        let statusClass = '', statusText = '', statusIcon = '';
+        switch(entry.action) {
+            case 'created': 
+                statusClass = entry.type === 'event' ? 'event-created' : 'created'; 
+                statusText = entry.type === 'event' ? 'Evento Creado' : 'Reserva Creada';
+                statusIcon = `<svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                break;
+            case 'updated': 
+                statusClass = 'updated'; 
+                statusText = entry.type === 'event' ? 'Evento Actualizado' : 'Reserva Actualizada';
+                statusIcon = `<svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11.418 0a8.001 8.001 0 00-15.356-2H4"></path></svg>`;
+                break;
+            case 'deleted': 
+                statusClass = 'deleted'; 
+                statusText = entry.type === 'event' ? 'Evento Eliminado' : 'Reserva Eliminada';
+                statusIcon = `<svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+                break;
+            default: statusText = entry.action;
+        }
+        
+        const courtName = entry.type === 'court' ? ` (${entry.courtId || 'C1'})` : '';
+        const courtHoursStr = entry.courtHours?.map(h => `${h}:00`).join(', ') || '-';
+        const grillHoursStr = (entry.type === 'court' && entry.rentGrill) ? (entry.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : '';
+        const total = entry.totalPrice || 0;
+
+        item.innerHTML = `
+            <div class="flex items-start">
+                <div class="data-card-icon ${statusClass} ${statusClass.replace('-created', '-100').replace('created', 'green-100').replace('updated', 'blue-100').replace('deleted', 'red-100')}">
+                    ${statusIcon}
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <strong class="text-lg text-gray-800">${entry.teamName}${courtName}</strong>
+                            <div class="text-sm text-gray-500">Día: ${entry.day}</div>
+                        </div>
+                        <span class="status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="mt-4 pl-4 border-l-2 border-gray-100">
+                        <div class="text-sm text-gray-700 space-y-2">
+                            <p><strong>Total:</strong> $${total.toLocaleString('es-AR')} (${entry.paymentMethod})</p>
+                            <p><strong>Horas:</strong> ${courtHoursStr}</p>
+                            ${grillHoursStr ? `<p><strong>Horas Parrilla:</strong> ${grillHoursStr}</p>` : ''}
+                            ${entry.type === 'event' ? `<p><strong>Contacto:</strong> ${entry.contactPerson || ''} (${entry.contactPhone || ''})</p>` : ''}
+                             <p class="text-xs text-gray-500">Por: ${entry.loggedByEmail || 'Sistema'}</p> 
+                        </div>
+                        ${entry.action === 'deleted' && entry.reason ? `<div class="reason mt-2">Motivo: ${entry.reason}</div>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        historialList.appendChild(item);
+    });
+}
+
+
+// --- UTILIDADES (MENSAJES) ---
+function showMessage(msg, isError = false) {
+    messageText.textContent = msg;
+    messageText.className = isError ? 'text-xl font-semibold text-red-600' : 'text-xl font-semibold text-gray-700';
+    messageOverlay.classList.add('is-open');
+}
+function hideMessage() {
+    messageOverlay.classList.remove('is-open');
+}
