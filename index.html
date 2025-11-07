@@ -19,7 +19,6 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     
 </head>
-<!-- ¡NUEVO! Aplicamos la fuente Inter -->
 <body class="bg-gray-100 font-sans antialiased" style="font-family: 'Inter', sans-serif;">
 
     <!-- ============================================= -->
@@ -134,7 +133,7 @@
                 <p id="caja-total" class="text-4xl font-bold text-emerald-600">$0</p>
             </div>
             <h3 class="text-2xl font-semibold text-gray-800 mb-3">Detalle por Día</h3>
-            <div id="caja-daily-list" class="space-y-2"></div>
+            <div id="caja-daily-list" class="space-y-3"></div> <!-- Contenedor vacío -->
         </div>
         
         <!-- VISTA 3: ESTADÍSTICAS -->
@@ -152,7 +151,7 @@
                 <button id="stats-filter-btn" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white self-end h-11">Filtrar</button>
             </div>
             <h3 class="text-2xl font-semibold text-gray-800 mb-3">Ranking de Reservas</h3>
-            <div id="stats-list" class="space-y-2"></div>
+            <div id="stats-list" class="space-y-3"></div> <!-- Contenedor vacío -->
         </div>
 
         <!-- VISTA 4: HISTORIAL -->
@@ -169,7 +168,7 @@
                 </div>
                 <button id="historial-filter-btn" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white self-end h-11">Filtrar</button>
             </div>
-            <div id="historial-list" class="space-y-3"></div>
+            <div id="historial-list" class="space-y-3"></div> <!-- Contenedor vacío -->
         </div>
     </div> <!-- Fin de #app-container -->
 
@@ -180,7 +179,7 @@
 
     <!-- Modal 0: Selección de Tipo de Reserva -->
     <div id="type-modal" class="modal">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
             <h3 class="text-2xl font-bold text-gray-800 mb-4">Nueva Reserva</h3>
             <p class="text-gray-600 mb-6">¿Qué tipo de reserva deseas realizar?</p>
             <div class="flex flex-col gap-4">
@@ -193,7 +192,7 @@
     
     <!-- Modal 1: Formulario de Reserva (CANCHA) -->
     <div id="booking-modal" class="modal">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg">
             <h3 id="booking-modal-title" class="text-2xl font-bold text-emerald-700 mb-4">Reservar Cancha</h3>
             <form id="booking-form" data-editing-id="">
                 <input type="hidden" id="booking-id">
@@ -271,7 +270,7 @@
 
     <!-- Modal 1.5: Formulario de Reserva (EVENTO) -->
     <div id="event-modal" class="modal">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg">
             <h3 id="event-modal-title" class="text-2xl font-bold text-amber-600 mb-4">Reservar Evento</h3>
             <form id="event-form">
                 <input type="hidden" id="event-booking-id">
@@ -324,7 +323,7 @@
 
     <!-- Modal 2: Opciones del Día -->
     <div id="options-modal" class="modal">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
             <h3 class="text-2xl font-bold mb-4">Reservas del Día</h3>
             <div id="daily-bookings-list" class="space-y-3 mb-4 max-h-60 overflow-y-auto"></div>
             <div class="flex justify-between gap-3">
@@ -334,11 +333,28 @@
         </div>
     </div>
 
-    <!-- Modal 3: Ver Detalles de Reserva -->
+    <!-- Modal 3: Ver Detalles de Reserva (¡REDISEÑADO!) -->
     <div id="view-modal" class="modal">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-            <h3 class="text-2xl font-bold mb-4">Detalle de la Reserva</h3>
-            <div id="view-booking-details" class="space-y-2"></div>
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+            <!-- El contenido se genera en app.js -->
+            <div id="view-booking-details">
+                <!-- EJEMPLO de la nueva estructura que generará app.js:
+                <div class="flex items-center mb-4">
+                    <span class="p-3 rounded-full bg-emerald-100 text-emerald-600 mr-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" ...></svg>
+                    </span>
+                    <div>
+                        <h3 class="text-2xl font-bold text-emerald-700">Reserva de Cancha</h3>
+                        <p class="text-lg text-gray-600">Martín (Cancha 1)</p>
+                    </div>
+                </div>
+                <div class="space-y-3 text-gray-700">
+                    <div class="flex items-center"><svg...></svg> <span>Horas: 9:00, 10:00</span></div>
+                    <div class="flex items-center"><svg...></svg> <span>Parrilla: No</span></div>
+                    <div class="flex items-center"><svg...></svg> <span>Total: $10.000 (Efectivo)</span></div>
+                </div>
+                -->
+            </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" id="close-view-btn" class="modern-btn-gray">Cerrar</button>
             </div>
@@ -347,7 +363,7 @@
 
     <!-- Modal 4: Detalle de Caja por Día -->
     <div id="caja-detail-modal" class="modal">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
             <h3 id="caja-detail-title" class="text-2xl font-bold text-gray-800 mb-4">Detalle del Día</h3>
             <h4 class="text-lg font-semibold text-gray-700 mb-2">Resumen de Pagos</h4>
             <div id="caja-detail-summary" class="space-y-2 text-gray-700 mb-4"></div>
@@ -361,7 +377,7 @@
     
     <!-- Modal 5: Razón de Eliminación -->
     <div id="delete-reason-modal" class="modal">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Motivo de Eliminación</h3>
             <form id="delete-reason-form">
                  <input type="hidden" id="delete-booking-id">
