@@ -43,14 +43,14 @@ const firebaseConfig = {
 const bookingsCollectionPath = "bookings"; 
 const customersCollectionPath = "customers";
 const logCollectionPath = "booking_log"; 
-const settingsDocPath = "app_settings/prices"; // Para Configuración
+const settingsDocPath = "app_settings/prices"; 
 
 // --- CONSTANTES DE LA APP ---
 const OPERATING_HOURS = [
     9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
 ]; 
 const WEEKDAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-const MONTHS_TO_SHOW = 12; // Mostrar los próximos 12 meses en recurrencia
+const MONTHS_TO_SHOW = 12; 
 
 // --- VARIABLES GLOBALES DE LA APP ---
 let db, auth;
@@ -61,7 +61,6 @@ let currentBookingsUnsubscribe = null;
 let allMonthBookings = []; 
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-// Precios por defecto (fallback)
 let appSettings = {
     court1Price: 5000,
     court2Price: 5000,
@@ -69,10 +68,9 @@ let appSettings = {
     eventPrice: 10000
 };
 
-// Para guardar la selección de recurrencia
 let recurringSettings = {
-    dayOfWeek: null, // 0-6
-    months: [] // [{ month: 10, year: 2025 }, ...]
+    dayOfWeek: null, 
+    months: [] 
 };
 
 // --- REFERENCIAS AL DOM ---
@@ -201,14 +199,11 @@ async function firebaseInit() {
                 console.log("Usuario autenticado:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
-                
                 await loadAppSettings(); 
-
                 appContainer.classList.remove('is-hidden');
                 loginView.classList.add('is-hidden');
                 registerView.classList.add('is-hidden');
                 userEmailDisplay.textContent = userEmail;
-                
                 await loadBookingsForMonth(); 
             } else {
                 console.log("Sin usuario, mostrando login.");
@@ -315,15 +310,22 @@ function setupEventListeners() {
     deleteReasonForm.onsubmit = handleConfirmDelete;
     document.getElementById('cancel-delete-btn').onclick = closeModals;
 
-    // Listeners para Recurrencia
+    // --- ¡INICIO DE LA CORRECCIÓN! ---
     recurringToggle.onchange = openRecurringModal;
+    
+    // Botón CANCELAR del modal de recurrencia
     document.getElementById('cancel-recurring-btn').onclick = () => {
+        recurringModal.classList.remove('is-open'); // Cierra solo este modal
         recurringToggle.checked = false; // Desmarcar el switch
         recurringSummary.classList.add('is-hidden'); // Ocultar resumen
-        recurringSettings = { dayOfWeek: null, months: [] }; // Resetear
-        closeModals();
+        recurringSummary.textContent = '';
+        recurringSettings = { dayOfWeek: null, months: [] }; // Resetea
     };
+    
+    // Botón CONFIRMAR del modal de recurrencia
     document.getElementById('confirm-recurring-btn').onclick = saveRecurringSettings;
+    // --- FIN DE LA CORRECCIÓN ---
+    
     recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => {
         btn.onclick = (e) => selectRecurringDay(e.target);
     });
@@ -513,9 +515,6 @@ async function loadBookingsForMonth() {
     });
 }
 
-/**
- * Decide si guardar una reserva simple o recurrente.
- */
 async function handleSaveBooking(event) {
     event.preventDefault();
     
@@ -526,9 +525,6 @@ async function handleSaveBooking(event) {
     }
 }
 
-/**
- * Guarda UNA SOLA reserva (cancha).
- */
 async function handleSaveSingleBooking(event) {
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
@@ -598,16 +594,12 @@ async function handleSaveSingleBooking(event) {
     }
 }
 
-/**
- * Guarda MÚLTIPLES reservas recurrentes.
- */
 async function handleSaveRecurringBooking(event) {
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
     saveButton.textContent = "Guardando...";
     showMessage("Procesando reservas recurrentes...");
 
-    // 1. Obtener datos comunes del formulario
     const teamName = document.getElementById('teamName').value.trim();
     const courtId = document.querySelector('input[name="courtSelection"]:checked').value;
     const selectedCourtHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
@@ -635,7 +627,6 @@ async function handleSaveRecurringBooking(event) {
         totalPrice: updateTotalPrice()
     };
     
-    // 2. Obtener fechas y comprobar conflictos
     const { dayOfWeek, months } = recurringSettings;
     let datesToBook = [];
     
@@ -660,7 +651,6 @@ async function handleSaveRecurringBooking(event) {
         return;
     }
 
-    // 3. Comprobar conflictos
     const conflicts = [];
     const bookingsToCreate = [];
     
@@ -669,7 +659,7 @@ async function handleSaveRecurringBooking(event) {
     const q = query(collection(db, bookingsCollectionPath), 
         where("type", "==", "court"),
         where("courtId", "==", courtId),
-        where("day", ">=", datesToBook[0]) // Optimización: solo buscar desde la primera fecha
+        where("day", ">=", datesToBook[0]) 
     );
     const snapshot = await getDocs(q);
     
@@ -696,36 +686,32 @@ async function handleSaveRecurringBooking(event) {
         }
     }
 
-    // 4. Guardar en lote
     try {
         if (bookingsToCreate.length > 0) {
             const batch = writeBatch(db);
-            const logBatch = []; // Array para logs
+            const logBatch = []; 
             
             for (const bookingData of bookingsToCreate) {
-                const docRef = doc(collection(db, bookingsCollectionPath)); // Crea una nueva referencia
+                const docRef = doc(collection(db, bookingsCollectionPath)); 
                 batch.set(docRef, bookingData);
-                
-                // Preparamos los datos para el log (sin ID, se genera en Firebase)
                 logBatch.push(logBookingEvent('created', bookingData));
             }
             
-            await batch.commit(); // Guardar todas las reservas
-            await Promise.all(logBatch); // Guardar todos los logs
+            await batch.commit(); 
+            await Promise.all(logBatch); 
         }
 
-        // 5. Mostrar resumen al usuario
         let successMsg = `Se crearon ${bookingsToCreate.length} reservas.`;
         if (conflicts.length > 0) {
             successMsg += `\n${conflicts.length} fechas omitidas por conflictos: ${conflicts.join(', ')}`;
-            showMessage(successMsg, true); // Mostrar como advertencia/error
+            showMessage(successMsg, true); 
         } else {
-            showMessage(successMsg, false); // Mostrar como éxito
+            showMessage(successMsg, false); 
         }
         
         await saveCustomer(commonBookingData.teamName); 
         closeModals(); 
-        setTimeout(hideMessage, 4000); // Más tiempo para leer el resumen
+        setTimeout(hideMessage, 4000); 
 
     } catch (error) {
         console.error("Error al guardar reservas recurrentes:", error);
@@ -1679,7 +1665,7 @@ function saveRecurringSettings() {
     recurringSummary.textContent = `Repetir cada ${dayName} de ${monthNames}.`;
     recurringSummary.classList.remove('is-hidden');
     
-    closeModals();
+    recurringModal.classList.remove('is-open'); // ¡CORREGIDO! Cierra solo este modal
 }
 
 
