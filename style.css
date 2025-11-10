@@ -9,7 +9,7 @@
     border-radius: 0.75rem; /* rounded-xl */
     transition: all 0.2s ease-out;
 }
-.day-cell:hover:not(.day-cell-locked) { /* No animar si está bloqueado */
+.day-cell:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
@@ -140,7 +140,7 @@
 }
 
 /* ============================================= */
-/* ¡NUEVO! CLASES DE BOTONES MODERNOS */
+/* CLASES DE BOTONES MODERNOS */
 /* ============================================= */
 .modern-btn {
     padding: 0.75rem 1.25rem;
@@ -189,7 +189,7 @@
     box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
-/* ¡NUEVO! Estilos para las tarjetas de datos (Caja, Stats, Historial) */
+/* Estilos para las tarjetas de datos (Caja, Stats, Historial) */
 .data-card {
     background-color: white;
     border-radius: 0.75rem; /* rounded-xl */
@@ -373,4 +373,81 @@
     font-size: 0.875rem; /* text-sm */
     padding-left: 0.5rem;
     border-left: 2px solid #ef4444; /* red-500 */
+}
+
+/* ============================================= */
+/* ¡NUEVO! INTERRUPTOR DE RECURRENCIA */
+/* ============================================= */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px; /* Ancho */
+  height: 28px; /* Alto */
+}
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 28px; /* Alto */
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px; /* Círculo interior */
+  width: 20px; /* Círculo interior */
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #059669; /* Color de Tailwind (emerald-600) */
+}
+input:checked + .slider:before {
+  transform: translateX(22px); /* Ancho - (Alto - (padding*2)) */
+}
+
+/* ============================================= */
+/* ¡NUEVO! GRILLAS DE RECURRENCIA */
+/* ============================================= */
+.day-selector-grid, .month-selector-grid {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.day-selector-grid {
+    grid-template-columns: repeat(4, 1fr);
+}
+.month-selector-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.day-toggle-btn, .month-toggle-btn {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #D1D5DB; /* border-gray-300 */
+    border-radius: 0.5rem; /* rounded-lg */
+    background-color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.day-toggle-btn:hover, .month-toggle-btn:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+}
+.day-toggle-btn.selected, .month-toggle-btn.selected {
+    background-color: #10B981; /* bg-emerald-500 */
+    color: white;
+    border-color: #059669; /* bg-emerald-600 */
 }
