@@ -1,4 +1,4 @@
-const CACHE_NAME = 'futsal-app-cache-v2.4'; // <--- ¡AQUÍ ESTÁ EL CAMBIO!
+const CACHE_NAME = 'futsal-app-cache-v3'; // Subimos versión para forzar actualización
 const urlsToCache = [
     '/',
     '/index.html',
@@ -9,7 +9,7 @@ const urlsToCache = [
     '/apple-touch-icon.png',
     '/icon-192x192.png',
     '/icon-512x512.png',
-    'https://cdn.tailwindcss.com',
+    // 'https://cdn.tailwindcss.com',  <-- ¡ELIMINADO! Esto causaba el error CORS
     'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js',
     'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js',
     'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'
@@ -20,8 +20,11 @@ self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Cache abierto y assets nuevos cacheados (v2)');
+                console.log('Cache abierto y assets nuevos cacheados (v3)');
                 return cache.addAll(urlsToCache);
+            })
+            .catch(err => {
+                console.error('Error al cachear archivos:', err);
             })
     );
     self.skipWaiting(); // Forzar al nuevo SW a activarse
@@ -43,7 +46,7 @@ self.addEventListener('activate', event => {
     self.clients.claim(); // Tomar control de todas las pestañas abiertas
 });
 
-// Evento Fetch: estrategia "Cache First"
+// Evento Fetch: estrategia "Cache First" con Fallback a Red
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
@@ -56,20 +59,20 @@ self.addEventListener('fetch', event => {
                 // Si no, se busca en la red
                 return fetch(event.request).then(
                     networkResponse => {
-                        // (Opcional) Guardar en caché la nueva respuesta
-                        // Solo cacheamos respuestas GET exitosas
-                        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
-                            const responseToCache = networkResponse.clone();
-                            caches.open(CACHE_NAME)
-                                .then(cache => {
-                                    cache.put(event.request, responseToCache);
-                                });
+                        // Solo cacheamos respuestas GET exitosas y que sean del mismo origen
+                        // OJO: No cacheamos respuestas opacas (CDN externos) para evitar errores CORS
+                        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                            return networkResponse;
                         }
+
+                        const responseToCache = networkResponse.clone();
+                        caches.open(CACHE_NAME)
+                            .then(cache => {
+                                cache.put(event.request, responseToCache);
+                            });
                         return networkResponse;
                     }
-                ).catch(() => {
-                    // Manejo de error si falla la red (puedes mostrar una página offline)
-                });
+                );
             })
     );
 });
