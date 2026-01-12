@@ -19,7 +19,7 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     
 </head>
-<body class="bg-gray-100 font-sans antialiased" style="font-family: 'Inter', sans-serif;">
+<body class="bg-gray-100 font-sans antialiased text-gray-900" style="font-family: 'Inter', sans-serif;">
 
     <!-- ============================================= -->
     <!-- VISTAS DE AUTENTICACIÓN -->
@@ -37,7 +37,7 @@
                     <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                     <input type="password" id="login-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                 </div>
-                <button type="submit" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white w-full">Ingresar</button>
+                <button type="submit" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white w-full py-3 rounded-lg font-semibold">Ingresar</button>
             </form>
             <p class="text-center text-sm text-gray-600 mt-4">
                 ¿No tienes cuenta? 
@@ -58,7 +58,7 @@
                     <label for="register-password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña (mín. 6 caracteres)</label>
                     <input type="password" id="register-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                 </div>
-                <button type="submit" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white w-full">Registrarse</button>
+                <button type="submit" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white w-full py-3 rounded-lg font-semibold">Registrarse</button>
             </form>
             <p class="text-center text-sm text-gray-600 mt-4">
                 ¿Ya tienes cuenta? 
@@ -79,9 +79,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <h1 class="text-xl font-bold text-emerald-700">Reservas Futsal - Panza Verde</h1>
+                <h1 class="text-lg md:text-xl font-bold text-emerald-700">Panza Verde</h1>
             </div>
-            
+
             <!-- Botón Venta Rápida Kiosco -->
             <button id="header-sale-btn" class="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold shadow-md hover:bg-emerald-700 transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -109,13 +109,13 @@
         <!-- VISTA 1: CALENDARIO -->
         <div id="calendar-view" class="view-container container mx-auto max-w-4xl p-4 pt-24">
             <div class="text-center mb-6">
-                <h1 class="text-4xl font-bold text-emerald-700">Reservas</h1>
+                <h1 class="text-4xl font-bold text-emerald-700 tracking-tight">Reservas</h1>
                 <p class="text-lg text-gray-600">Gestiona los turnos de tu cancha</p>
             </div>
-            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-lg mb-4">
-                <button id="prev-month-btn" class="p-2 rounded-lg hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-lg mb-4 border border-gray-100">
+                <button id="prev-month-btn" class="p-2 rounded-lg hover:bg-gray-100 text-emerald-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                 <h2 id="current-month-year" class="text-2xl font-semibold text-emerald-600"></h2>
-                <button id="next-month-btn" class="p-2 rounded-lg hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
+                <button id="next-month-btn" class="p-2 rounded-lg hover:bg-gray-100 text-emerald-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
             </div>
             <div class="grid grid-cols-7 gap-2 text-center font-medium text-gray-500 mb-2">
                 <div>Dom</div> <div>Lun</div> <div>Mar</div> <div>Mié</div> <div>Jue</div> <div>Vie</div> <div>Sáb</div>
@@ -123,7 +123,7 @@
             <div id="calendar-grid" class="grid grid-cols-7 gap-2 text-sm"></div>
         </div>
 
-        <!-- VISTA: KIOSCO / PRODUCTOS (INTEGRADA) -->
+        <!-- VISTA: KIOSCO / PRODUCTOS (NUEVA) -->
         <div id="productos-view" class="view-container container mx-auto max-w-5xl p-4 pt-24 is-hidden">
             <div class="flex justify-between items-center mb-8">
                 <div>
@@ -133,14 +133,16 @@
                 <button id="add-product-btn" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all text-sm">+ NUEVO PRODUCTO</button>
             </div>
 
+            <!-- Buscador -->
             <input type="text" id="inventory-search-input" class="w-full p-4 border border-gray-100 bg-white rounded-2xl shadow-sm mb-8 font-medium focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Buscar producto...">
 
+            <!-- Formulario de Carga -->
             <div id="product-form-container" class="bg-white p-6 md:p-8 rounded-[2rem] shadow-xl mb-12 is-hidden border-2 border-blue-50">
                 <h3 class="text-xl font-bold text-blue-800 mb-6 flex items-center gap-2">✨ Carga de Producto</h3>
                 <form id="product-form" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="md:col-span-2">
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-2 ml-1">Nombre del Producto</label>
-                        <input type="text" id="prod-name" placeholder="Ej: Coca Cola 500ml" class="w-full px-5 py-4 border border-gray-100 bg-gray-50 rounded-2xl font-bold focus:ring-2 focus:ring-blue-500" required>
+                        <input type="text" id="prod-name" placeholder="Ej: Alfajor Jorgito" class="w-full px-5 py-4 border border-gray-100 bg-gray-50 rounded-2xl font-bold focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-2 ml-1">Stock Inicial (Unidades)</label>
@@ -208,51 +210,50 @@
         
         <!-- VISTA 3: ESTADÍSTICAS -->
         <div id="stats-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">Estadísticas de Clientes</h2>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 font-black uppercase tracking-tighter">Ranking Clientes</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-2xl shadow-lg">
                 <input type="date" id="stats-date-from" class="w-full px-3 py-2 border rounded-lg">
                 <input type="date" id="stats-date-to" class="w-full px-3 py-2 border rounded-lg">
                 <button id="stats-filter-btn" class="modern-btn bg-emerald-600 text-white h-11">Filtrar</button>
             </div>
-            <h3 class="text-2xl font-semibold text-gray-800 mb-3">Ranking de Reservas</h3>
             <div id="stats-list" class="space-y-3"></div>
         </div>
 
         <!-- VISTA 4: HISTORIAL -->
         <div id="historial-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Historial de Turnos</h2>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center font-black uppercase tracking-tighter">Historial de Auditoría</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-2xl shadow-lg">
                 <input type="date" id="historial-date-from" class="w-full px-3 py-2 border rounded-lg">
                 <input type="date" id="historial-date-to" class="w-full px-3 py-2 border rounded-lg">
-                <button id="historial-filter-btn" class="modern-btn bg-emerald-600 text-white h-11">Filtrar</button>
+                <button id="historial-filter-btn" class="modern-btn bg-emerald-600 text-white h-11 font-bold">Filtrar</button>
             </div>
             <div id="historial-list" class="space-y-3"></div>
         </div>
         
         <!-- VISTA 5: CONFIGURACIÓN -->
         <div id="config-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden text-center">
-            <h2 class="text-3xl font-bold text-gray-800 mb-10 uppercase tracking-tighter text-emerald-800 text-center">⚙️ Configuración Maestra</h2>
+            <h2 class="text-3xl font-bold text-gray-800 mb-10 uppercase tracking-tighter text-emerald-800 text-center font-black">⚙️ Ajustes de Precios</h2>
             <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl max-w-md mx-auto border border-white">
                 <form id="config-form" class="space-y-8">
                     <div class="space-y-6">
                         <div>
                             <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-2 tracking-widest">Costo Cancha 1</label>
-                            <input type="number" id="config-court1-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-emerald-700 focus:ring-2 focus:ring-emerald-500 shadow-inner" required>
+                            <input type="number" id="config-court1-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-emerald-700 shadow-inner" required>
                         </div>
                         <div>
                             <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-2 tracking-widest">Costo Cancha 2</label>
-                            <input type="number" id="config-court2-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-emerald-700 focus:ring-2 focus:ring-emerald-500 shadow-inner" required>
+                            <input type="number" id="config-court2-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-emerald-700 shadow-inner" required>
                         </div>
                         <div>
                             <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-2 tracking-widest">Costo Parrilla</label>
-                            <input type="number" id="config-grill-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-amber-700 focus:ring-2 focus:ring-amber-500 shadow-inner" required>
+                            <input type="number" id="config-grill-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-amber-700 shadow-inner" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-2 tracking-widest">Costo Evento Especial</label>
-                            <input type="number" id="config-event-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-blue-700 focus:ring-2 focus:ring-blue-500 shadow-inner" required>
+                            <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-2 tracking-widest">Costo Evento</label>
+                            <input type="number" id="config-event-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-blue-700 shadow-inner" required>
                         </div>
                     </div>
-                    <button type="submit" class="bg-emerald-600 text-white w-full py-6 rounded-[2rem] font-black text-lg shadow-xl shadow-emerald-100 transition-all active:scale-95 uppercase tracking-[0.2em]">Guardar Precios</button>
+                    <button type="submit" class="bg-emerald-600 text-white w-full py-6 rounded-[2rem] font-black text-lg shadow-xl shadow-emerald-100 active:scale-95 transition-all uppercase tracking-[0.2em]">Guardar Cambios</button>
                 </form>
             </div>
         </div>
@@ -261,10 +262,10 @@
 
 
     <!-- ============================================= -->
-    <!-- MODALES -->
+    <!-- MODALES DE KIOSCO (NUEVOS) -->
     <!-- ============================================= -->
 
-    <!-- Modal: VENTA RÁPIDA (KIOSCO) -->
+    <!-- VENTA RÁPIDA -->
     <div id="sale-modal" class="modal">
         <div class="bg-white rounded-[3rem] p-10 md:p-12 w-full max-w-lg shadow-2xl border border-white overflow-hidden text-sm md:text-base">
             <h3 class="text-3xl font-black text-emerald-700 mb-8 flex items-center gap-4 tracking-tighter uppercase">🛒 Registrar Venta</h3>
@@ -300,7 +301,7 @@
         </div>
     </div>
 
-    <!-- Modal: REPOSICIÓN (LÓGICA ACTUALIZACIÓN ÚLTIMO PRECIO) -->
+    <!-- REPOSICIÓN DIRECTA -->
     <div id="restock-modal" class="modal">
         <div class="bg-white rounded-[3rem] p-12 w-full max-w-md shadow-2xl border border-blue-50 text-sm">
             <h3 class="text-2xl font-black text-blue-700 mb-8 uppercase tracking-tighter">📦 Reposición Directa</h3>
@@ -325,15 +326,145 @@
         </div>
     </div>
 
-    <!-- Modales Originales -->
-    <div id="type-modal" class="modal"><div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm text-center"><h3 class="text-3xl font-black text-gray-800 mb-2">Nueva Reserva</h3><div class="flex flex-col gap-5 mt-8"><button id="type-btn-court" class="p-6 bg-emerald-600 text-white rounded-[2rem] font-black uppercase text-sm">Cancha</button><button id="type-btn-event" class="p-6 bg-amber-500 text-white rounded-[2rem] font-black uppercase text-sm">Evento</button><button id="type-btn-cancel" class="mt-4 text-gray-400 font-bold uppercase text-[10px]">Cerrar</button></div></div></div>
-    <div id="options-modal" class="modal"><div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md"><h3 class="text-2xl font-bold mb-4">Turnos del Día</h3><div id="daily-bookings-list" class="space-y-3 mb-6 max-h-60 overflow-y-auto"></div><div class="flex justify-between gap-3"><button type="button" id="close-options-btn" class="modern-btn-gray w-1/2">Cerrar</button><button type="button" id="add-new-booking-btn" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-black uppercase text-xs w-1/2">+ AGREGAR</button></div></div></div>
-    <div id="view-modal" class="modal"><div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm shadow-2xl text-center"><div id="view-booking-details"></div><button onclick="closeModals()" class="mt-10 w-full bg-gray-100 py-5 rounded-2xl font-black text-gray-400 uppercase text-xs">Cerrar Detalle</button></div></div>
-    <div id="delete-reason-modal" class="modal"><div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm"><h3 class="text-xl font-bold text-gray-800 mb-4 tracking-tighter">Motivo de Eliminación</h3><form id="delete-reason-form"><input type="hidden" id="delete-booking-id"><textarea id="delete-reason-text" rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500" required placeholder="Explica por qué se borra..."></textarea><div class="flex justify-end gap-3 mt-6"><button type="button" id="cancel-delete-btn" class="px-4 font-bold text-gray-400 uppercase text-[10px]">Atrás</button><button type="submit" class="bg-red-600 text-white px-10 py-3 rounded-2xl font-black uppercase text-[10px]">Confirmar</button></div></form></div></div>
+    <!-- HISTORIAL Y EDICIÓN -->
+    <div id="product-history-modal" class="modal"><div class="bg-white p-12 rounded-[3rem] w-full max-w-lg shadow-2xl border border-white text-sm"><h3 class="text-3xl font-black text-gray-800 mb-2 tracking-tighter font-black">📜 Movimientos</h3><h4 id="history-product-name" class="text-blue-600 font-bold mb-10 border-b pb-6 uppercase tracking-widest text-xs"></h4><div id="product-history-list" class="space-y-4 max-h-[28rem] overflow-y-auto pr-4 custom-scrollbar text-sm"></div><button onclick="closeModals()" class="w-full mt-10 py-6 bg-gray-100 rounded-[1.5rem] font-black text-gray-400 uppercase text-[10px] tracking-widest transition-colors hover:bg-gray-200">Cerrar</button></div></div>
+    <div id="edit-product-modal" class="modal"><div class="bg-white rounded-[3rem] p-10 md:p-14 w-full max-w-md shadow-2xl border border-gray-50"><h3 class="text-3xl font-black text-gray-800 mb-10 tracking-tighter text-center font-black">✏️ Editar Ficha</h3><form id="edit-product-form" class="space-y-6"><input type="hidden" id="edit-prod-id"><div><label class="text-[10px] font-black uppercase text-gray-400 mb-2 ml-1 block tracking-widest">Nombre</label><input type="text" id="edit-prod-name" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-lg" required></div><div class="grid grid-cols-2 gap-6"><div><label class="text-[10px] font-black uppercase text-gray-400 mb-2 ml-1 block tracking-widest">Costo ($)</label><input type="number" id="edit-prod-cost" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl shadow-inner" required step="0.01"></div><div><label class="text-[10px] font-black uppercase text-gray-400 mb-2 ml-1 block tracking-widest">Venta ($)</label><input type="number" id="edit-prod-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-emerald-600 shadow-inner" required step="0.01"></div></div><div><label class="text-[10px] font-black uppercase text-gray-400 mb-2 ml-1 block tracking-widest">Stock a Mano</label><input type="number" id="edit-prod-stock" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl shadow-inner" required></div><div class="flex gap-4 pt-10"><button type="button" onclick="closeModals()" class="flex-1 py-6 font-black text-gray-300 uppercase text-[10px] tracking-widest">Atrás</button><button type="submit" class="flex-2 bg-gray-900 text-white px-10 py-6 rounded-[2rem] font-black shadow-xl uppercase text-xs tracking-widest">Guardar</button></div></form></div></div>
+
+
+    <!-- ============================================= -->
+    <!-- MODALES DE RESERVA ORIGINALES -->
+    <!-- ============================================= -->
+
+    <!-- Modal 0: Selección de Tipo de Reserva -->
+    <div id="type-modal" class="modal">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Nueva Reserva</h3>
+            <p class="text-gray-600 mb-6">¿Qué tipo de reserva deseas realizar?</p>
+            <div class="flex flex-col gap-4">
+                <button id="type-btn-court" class="type-selection-btn bg-emerald-600 text-white py-3 rounded-xl font-bold">Reservar Cancha</button>
+                <button id="type-btn-event" class="type-selection-btn bg-amber-500 text-white py-3 rounded-xl font-bold">Reservar Evento</button>
+                <button id="type-btn-cancel" class="modern-btn-gray mt-4 w-full">Cancelar</button>
+            </div>
+        </div>
+    </div>
     
-    <!-- Historial y Edición Mercadería -->
-    <div id="product-history-modal" class="modal"><div class="bg-white p-12 rounded-[3rem] w-full max-w-lg shadow-2xl border border-white text-sm"><h3 class="text-3xl font-black text-gray-800 mb-6 border-b pb-6">📜 Historial Kiosco</h3><h4 id="history-product-name" class="text-blue-600 font-bold mb-4"></h4><div id="product-history-list" class="space-y-3 max-h-[28rem] overflow-y-auto pr-3 custom-scrollbar"></div><button onclick="closeModals()" class="w-full mt-10 py-6 bg-gray-100 rounded-[1.5rem] font-black text-gray-400 uppercase text-[10px] tracking-widest">Cerrar</button></div></div>
-    <div id="edit-product-modal" class="modal"><div class="bg-white rounded-[3rem] p-10 w-full max-w-md shadow-2xl border border-gray-50"><h3 class="text-3xl font-black mb-8 tracking-tighter">✏️ Editar Ficha</h3><form id="edit-product-form" class="space-y-6"><input type="hidden" id="edit-prod-id"><input type="text" id="edit-prod-name" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-lg" required placeholder="Nombre"><div class="grid grid-cols-2 gap-4"><input type="number" id="edit-prod-cost" class="p-4 border rounded-2xl font-bold" step="0.01" placeholder="Costo"><input type="number" id="edit-prod-price" class="p-4 border rounded-2xl font-bold text-emerald-600" step="0.01" placeholder="Venta"></div><input type="number" id="edit-prod-stock" class="w-full p-4 border rounded-2xl font-bold" required placeholder="Stock"><button type="submit" class="w-full bg-gray-900 text-white py-5 rounded-[2rem] font-black uppercase text-xs">Guardar</button></form></div></div>
+    <!-- Modal 1: Formulario de Reserva (CANCHA) -->
+    <div id="booking-modal" class="modal">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg overflow-y-auto max-h-[90vh]">
+            <h3 id="booking-modal-title" class="text-2xl font-bold text-emerald-700 mb-4 tracking-tighter">Reservar Cancha</h3>
+            <form id="booking-form" data-editing-id="">
+                <input type="hidden" id="booking-id">
+                <input type="hidden" id="booking-date">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="mb-4 relative">
+                            <label for="teamName" class="block text-sm font-medium text-gray-700 mb-1">Nombre (Equipo/Persona)</label>
+                            <input type="text" id="teamName" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold" required autocomplete="off">
+                            <div id="teamName-suggestions" class="absolute z-10 w-full"></div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="peopleCount" class="block text-sm font-medium text-gray-700 mb-1">Personas</label>
+                            <input type="number" id="peopleCount" min="1" value="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="costPerHour" class="block text-sm font-medium text-gray-700 mb-1">Cancha ($)</label>
+                                <input type="number" id="costPerHour" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold">
+                            </div>
+                            <div>
+                                <label for="grillCost" class="block text-sm font-medium text-gray-700 mb-1">Parrilla ($)</label>
+                                <input type="number" id="grillCost" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Método de Pago</label>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="flex items-center px-3 py-1 border rounded-lg cursor-pointer"><input type="radio" name="paymentMethod" value="efectivo" checked><span class="ml-2 text-sm">Efectivo</span></label>
+                                <label class="flex items-center px-3 py-1 border rounded-lg cursor-pointer"><input type="radio" name="paymentMethod" value="transferencia"><span class="ml-2 text-sm">Transf.</span></label>
+                                <label class="flex items-center px-3 py-1 border rounded-lg cursor-pointer"><input type="radio" name="paymentMethod" value="mercadopago"><span class="ml-2 text-sm">MP</span></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Cancha</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer"><input type="radio" name="courtSelection" value="cancha1" checked><span class="ml-2 text-sm font-bold">C1</span></label>
+                                <label class="flex items-center px-3 py-2 border border-gray-300 rounded-lg cursor-pointer"><input type="radio" name="courtSelection" value="cancha2"><span class="ml-2 text-sm font-bold">C2</span></label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Horarios</label>
+                            <div id="court-hours-list" class="time-slot-grid"></div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="flex items-center mb-2 cursor-pointer"><input type="checkbox" id="rentGrill"><span class="ml-2 text-sm font-medium text-gray-700">¿Parrilla?</span></label>
+                            <div id="grill-hours-section" class="is-hidden">
+                                <div id="grill-hours-list" class="time-slot-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-6 pt-4 border-t">
+                    <div class="text-right">
+                        <div class="text-sm text-gray-600">Total a Pagar</div>
+                        <div id="booking-total" class="text-3xl font-bold text-emerald-600 tracking-tighter">$0</div>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" id="cancel-booking-btn" class="modern-btn-gray px-4 py-2">Cancelar</button>
+                        <button type="submit" class="modern-btn bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold">Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 1.5: Formulario de Reserva (EVENTO) -->
+    <div id="event-modal" class="modal">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg">
+            <h3 id="event-modal-title" class="text-2xl font-bold text-amber-600 mb-4">Reservar Evento</h3>
+            <form id="event-form">
+                <input type="hidden" id="event-booking-id">
+                <input type="hidden" id="event-date">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="mb-4"><label for="eventName" class="block text-sm font-medium text-gray-700 mb-1">Nombre Evento</label><input type="text" id="eventName" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold" required></div>
+                        <div class="mb-4"><label for="contactPerson" class="block text-sm font-medium text-gray-700 mb-1">Contacto</label><input type="text" id="contactPerson" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required></div>
+                         <div class="mb-4"><label for="contactPhone" class="block text-sm font-medium text-gray-700 mb-1">Celular</label><input type="tel" id="contactPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required></div>
+                        <div class="mb-4"><label for="eventCostPerHour" class="block text-sm font-medium text-gray-700 mb-1">Costo x Hora</label><input type="number" id="eventCostPerHour" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-bold"></div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Pago</label>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="flex items-center px-3 py-1 border rounded-lg"><input type="radio" name="eventPaymentMethod" value="efectivo" checked><span class="ml-2 text-sm">Efe</span></label>
+                                <label class="flex items-center px-3 py-1 border rounded-lg"><input type="radio" name="eventPaymentMethod" value="transferencia"><span class="ml-2 text-sm">Tra</span></label>
+                                <label class="flex items-center px-3 py-1 border rounded-lg"><input type="radio" name="eventPaymentMethod" value="mercadopago"><span class="ml-2 text-sm">MP</span></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Horarios</label>
+                        <div id="event-hours-list" class="time-slot-grid"></div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-6 pt-4 border-t">
+                    <div class="text-right">
+                        <div class="text-sm text-gray-600 font-bold">Total Pagar</div>
+                        <div id="event-total" class="text-3xl font-bold text-amber-600 tracking-tighter">$0</div>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" id="cancel-event-btn" class="modern-btn-gray">Cancelar</button>
+                        <button type="submit" class="modern-btn bg-amber-600 text-white font-bold px-6 py-2 rounded-xl">Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Otros Modales Originales -->
+    <div id="options-modal" class="modal"><div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md"><h3 class="text-2xl font-bold mb-4">Turnos del Día</h3><div id="daily-bookings-list" class="space-y-3 mb-4 max-h-60 overflow-y-auto"></div><div class="flex justify-between gap-3"><button type="button" id="close-options-btn" class="modern-btn-gray w-1/2">Cerrar</button><button type="button" id="add-new-booking-btn" class="modern-btn bg-emerald-600 hover:bg-emerald-700 text-white w-1/2 font-bold uppercase text-xs">Nueva Reserva</button></div></div></div>
+    <div id="view-modal" class="modal"><div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md"><div id="view-booking-details"></div><div class="flex justify-end gap-3 mt-6"><button type="button" id="close-view-btn" class="modern-btn-gray">Cerrar</button></div></div></div>
+    <div id="caja-detail-modal" class="modal"><div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md"><h3 id="caja-detail-title" class="text-2xl font-bold text-gray-800 mb-4">Detalle</h3><div id="caja-detail-summary" class="space-y-2 text-gray-700 mb-4"></div><h4 class="text-lg font-semibold text-gray-700 mb-2">Turnos</h4><div id="caja-detail-booking-list" class="space-y-2 text-sm max-h-40 overflow-y-auto"></div><div class="flex justify-end gap-3 mt-6"><button type="button" id="close-caja-detail-btn" class="modern-btn-gray">Cerrar</button></div></div></div>
+    <div id="delete-reason-modal" class="modal"><div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"><h3 class="text-xl font-bold text-gray-800 mb-4">Motivo Eliminación</h3><form id="delete-reason-form"><input type="hidden" id="delete-booking-id"><textarea id="delete-reason-text" rows="3" class="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500" required placeholder="Ingresa el motivo..."></textarea><div class="flex justify-end gap-3 mt-4"><button type="button" id="cancel-delete-btn" class="modern-btn-gray">Atrás</button><button type="submit" class="modern-btn bg-red-600 text-white px-6 py-2 rounded-xl font-bold">Confirmar</button></div></form></div></div>
 
     <!-- SCRIPTS CORE -->
     <script type="module" src="app.js"></script>
