@@ -1,453 +1,358 @@
-/* Estilo para los días que no pertenecen al mes actual */
-.other-month-day {
-    background-color: #f3f4f6; /* bg-gray-100 */
-    color: #d1d5db; /* text-gray-300 */
-    border-radius: 0.75rem; /* rounded-xl */
-}
-/* Estilo para celda de día normal */
-.day-cell {
-    border-radius: 0.75rem; /* rounded-xl */
-    transition: all 0.2s ease-out;
-}
-.day-cell:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+/* ============================================= */
+/* VARIABLES Y CONFIGURACIÓN BASE */
+/* ============================================= */
+:root {
+    --emerald-primary: #059669;
+    --emerald-dark: #047857;
+    --emerald-light: #ecfdf5;
+    --blue-primary: #2563eb;
+    --blue-dark: #1e40af;
+    --amber-primary: #d97706;
 }
 
-/* Estilo para el contador de reservas (CANCHA) */
-.booking-count {
-    position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
-    background-color: #10B981; /* bg-emerald-500 */
-    color: white;
-    font-size: 0.75rem;
-    font-weight: bold;
-    width: 1.75rem; /* Un poco más grande */
-    height: 1.75rem; /* Un poco más grande */
-    border-radius: 9999px; /* rounded-full */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border: 2px solid white;
+/* Scrollbar personalizada para una mejor estética */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
-
-/* Estilo para el contador de reservas (EVENTO) */
-.booking-count.event {
-    background-color: #F59E0B; /* bg-amber-500 */
-    color: white;
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
 }
-/* Estilo para el día bloqueado por evento */
-.day-cell-locked {
-    background-color: #FEF3C7; /* bg-amber-100 */
-    cursor: not-allowed;
-    position: relative;
-    overflow: hidden;
-    border-radius: 0.75rem; /* rounded-xl */
-    border: 1px solid #FDE68A; /* border-amber-200 */
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
 }
-.day-cell-locked::after {
-    content: 'EVENTO';
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.875rem;
-    color: #b45309; /* text-amber-700 */
-    opacity: 0.8;
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }
-
 
 /* ============================================= */
-/* MODALES (¡CORREGIDO PARA SCROLL!) */
+/* CONTENEDORES Y VISTAS */
+/* ============================================= */
+.view-container {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.is-hidden {
+    display: none !important;
+}
+
+/* ============================================= */
+/* MENÚ LATERAL (DRAWER) */
+/* ============================================= */
+#main-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background-color: white;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+}
+
+#main-menu.is-open {
+    transform: translateX(0);
+}
+
+.menu-item {
+    display: block;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    color: #4b5563;
+    border-radius: 12px;
+    margin: 0.25rem 0.75rem;
+    transition: all 0.2s;
+}
+
+.menu-item:hover {
+    background-color: var(--emerald-light);
+    color: var(--emerald-dark);
+    transform: translateX(5px);
+}
+
+/* ============================================= */
+/* CALENDARIO */
+/* ============================================= */
+.day-cell {
+    aspect-ratio: 1 / 1;
+    min-height: 80px;
+    border-radius: 16px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #f3f4f6;
+    overflow: hidden;
+}
+
+.day-cell:hover:not(.other-month-day) {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    border-color: var(--emerald-primary);
+}
+
+.other-month-day {
+    background-color: #f9fafb;
+    color: #d1d5db;
+    opacity: 0.5;
+}
+
+.booking-count {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background-color: var(--emerald-primary);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ============================================= */
+/* MODALES GENERALES */
 /* ============================================= */
 .modal {
     display: none;
     position: fixed;
     inset: 0;
-    background-color: rgba(0,0,0,0.5);
-    align-items: flex-start;  /* Alinea el modal al inicio (arriba) */
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    align-items: center;
     justify-content: center;
-    overflow-y: auto;       /* ¡Añade scroll vertical si es necesario! */
-    padding: 2rem 1rem;     /* Más padding arriba/abajo para "flotar" */
-    z-index: 100;
+    padding: 1rem;
+    z-index: 150;
+    animation: fadeIn 0.2s ease-out;
 }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .modal.is-open {
     display: flex;
 }
-#message-overlay {
-    background-color: rgba(255,255,255,0.8);
-    align-items: center; /* El modal de mensaje sí lo centramos */
-}
-
 
 /* ============================================= */
-/* MENÚ Y VISTAS */
-/* ============================================= */
-
-/* Contenedor para las "vistas" (páginas) */
-.view-container {
-    padding-top: 6rem; /* Deja espacio para el header fijo */
-}
-/* Vista de Login no necesita padding superior */
-#login-view.view-container,
-#register-view.view-container {
-    padding-top: 0;
-}
-
-
-/* Oculta las vistas que no están activas */
-.is-hidden {
-    display: none !important;
-}
-
-/* Menú Desplegable */
-#main-menu {
-    position: fixed;
-    top: 65px; /* Debajo del header */
-    left: 0;
-    width: 250px;
-    height: calc(100vh - 65px);
-    background-color: white;
-    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    z-index: 90;
-    border-top-right-radius: 0.75rem; /* rounded-tr-xl */
-    border-bottom-right-radius: 0.75rem; /* rounded-br-xl */
-    padding-top: 0.5rem;
-}
-#main-menu.is-open {
-    transform: translateX(0);
-}
-.menu-item {
-    display: block;
-    padding: 0.75rem 1rem;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #374151; /* text-gray-700 */
-    border: none;
-    margin: 0.25rem 0.5rem;
-    border-radius: 0.5rem; /* rounded-lg */
-    transition: background-color 0.2s, color 0.2s;
-}
-.menu-item:hover {
-    background-color: #ECFDF5; /* emerald-50 */
-    color: #047857; /* emerald-700 */
-}
-
-/* ============================================= */
-/* CLASES DE BOTONES MODERNOS */
-/* ============================================= */
-.modern-btn {
-    padding: 0.75rem 1.25rem;
-    border-radius: 0.5rem; /* rounded-lg */
-    font-weight: 600;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease-out;
-    transform: translateZ(0); /* Truco para animar la sombra */
-}
-.modern-btn:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
-.modern-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-.modern-btn-gray {
-    padding: 0.75rem 1.25rem;
-    border-radius: 0.5rem; /* rounded-lg */
-    font-weight: 600;
-    background-color: #E5E7EB; /* bg-gray-200 */
-    color: #374151; /* text-gray-700 */
-    transition: all 0.2s ease-out;
-}
-.modern-btn-gray:hover {
-    background-color: #D1D5DB; /* bg-gray-300 */
-}
-
-
-/* ============================================= */
-/* COMPONENTES (Actualizados) */
-/* ============================================= */
-
-/* Botones de selección de tipo */
-.type-selection-btn {
-    font-size: 1.125rem; /* text-lg */
-    font-weight: 600; /* semibold */
-    padding: 1.5rem 1rem;
-    border-radius: 0.75rem; /* rounded-xl */
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-.type-selection-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-}
-
-/* Estilos para las tarjetas de datos (Caja, Stats, Historial) */
-.data-card {
-    background-color: white;
-    border-radius: 0.75rem; /* rounded-xl */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e5e7eb;
-    transition: all 0.2s ease-out;
-}
-.data-card:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
-    transform: translateY(-2px);
-}
-/* Estilo para el ícono dentro de la tarjeta */
-.data-card-icon {
-    flex-shrink: 0;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 0.5rem; /* rounded-lg */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-}
-/* Estilo para el SVG dentro del ícono */
-.icon-svg {
-    width: 1.75rem;
-    height: 1.75rem;
-}
-
-/* Estilos para lista de Caja */
-.caja-day-item {
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-}
-
-/* Detalle de reservas en modal de caja */
-#caja-detail-booking-list .caja-booking-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem;
-    background-color: #f9fafb; /* bg-gray-50 */
-    border-radius: 0.5rem; /* rounded-lg */
-}
-#caja-detail-booking-list .caja-booking-item span {
-    text-transform: capitalize;
-}
-
-/* Estilos para lista de Estadísticas */
-.stats-item {
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.stats-item .client-name {
-    font-size: 1.1rem;
-    font-weight: 600; /* semibold */
-}
-.stats-item .client-count {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #4B5563; /* gray-600 */
-}
-.stats-item .client-total {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #059669; /* text-emerald-600 */
-}
-
-
-/* Estilos para sugerencias de clientes */
-#teamName-suggestions {
-    display: none; /* Oculto por defecto */
-    max-height: 10rem;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #d1d5db;
-    border-top: none;
-    border-radius: 0 0 0.5rem 0.5rem; /* rounded-b-lg */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-}
-.suggestion-item {
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-}
-.suggestion-item:hover {
-    background-color: #f3f4f6; /* bg-gray-100 */
-}
-
-/* ============================================= */
-/* GRILLA DE HORARIOS */
+/* COMPONENTES DE RESERVA (CANCHA / HORARIOS) */
 /* ============================================= */
 .time-slot-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-    max-height: 200px;
-    overflow-y: auto;
-    padding: 0.5rem;
-    background-color: #f9fafb; /* bg-gray-50 */
-    border-radius: 0.75rem; /* rounded-xl */
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
 }
 
 .time-slot {
-    font-size: 0.875rem; /* text-sm */
-    font-weight: 600; /* semibold */
-    padding: 0.5rem 0.25rem;
-    border: 2px solid #e5e7eb; /* border-gray-200 */
-    border-radius: 0.5rem; /* rounded-lg */
+    padding: 10px 4px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.8rem;
     text-align: center;
-    cursor: pointer;
-    background-color: #ffffff;
-    transition: all 0.15s ease-out;
-}
-
-.time-slot:hover:not(.disabled) {
-    background-color: #f3f4f6; /* bg-gray-100 */
-    border-color: #d1d5db; /* border-gray-300 */
-    transform: scale(1.05);
-}
-
-/* Estado SELECCIONADO */
-.time-slot.selected {
-    background-color: #059669; /* text-emerald-600 */
-    color: #ffffff;
-    border-color: #047857; /* border-emerald-700 */
-    transform: scale(1.05);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-/* Estado SELECCIONADO (EVENTO) */
-#event-modal .time-slot.selected {
-    background-color: #D97706; /* amber-600 */
-    border-color: #B45309; /* amber-700 */
-}
-
-/* Estado OCUPADO/DESHABILITADO */
-.time-slot.disabled {
-    background-color: #f3f4f6; /* bg-gray-100 */
-    color: #9ca3af; /* text-gray-400 */
-    cursor: not-allowed;
-    text-decoration: line-through;
-}
-
-/* ============================================= */
-/* HISTORIAL */
-/* ============================================= */
-.historial-item {
-    padding: 1rem;
-}
-
-.historial-item .status {
-    font-weight: 600; /* semibold */
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.5rem; /* rounded-lg */
-    font-size: 0.875rem; /* text-sm */
-}
-
-.historial-item .status.created {
-    background-color: #D1FAE5; /* green-100 */
-    color: #065F46; /* green-800 */
-}
-.historial-item .status.event-created {
-    background-color: #FEF3C7; /* yellow-100 */
-    color: #92400E; /* yellow-800 */
-}
-.historial-item .status.updated {
-    background-color: #DBEAFE; /* blue-100 */
-    color: #1E40AF; /* blue-800 */
-}
-.historial-item .status.deleted {
-    background-color: #FEE2E2; /* red-100 */
-    color: #991B1B; /* red-800 */
-}
-
-.historial-item .reason {
-    font-style: italic;
-    color: #6B7280; /* gray-500 */
-    margin-top: 0.25rem;
-    font-size: 0.875rem; /* text-sm */
-    padding-left: 0.5rem;
-    border-left: 2px solid #ef4444; /* red-500 */
-}
-
-/* ============================================= */
-/* ¡NUEVO! INTERRUPTOR DE RECURRENCIA */
-/* ============================================= */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px; /* Ancho */
-  height: 28px; /* Alto */
-}
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 28px; /* Alto */
-}
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 20px; /* Círculo interior */
-  width: 20px; /* Círculo interior */
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-}
-input:checked + .slider {
-  background-color: #059669; /* Color de Tailwind (emerald-600) */
-}
-input:checked + .slider:before {
-  transform: translateX(22px); /* Ancho - (Alto - (padding*2)) */
-}
-
-/* ============================================= */
-/* ¡NUEVO! GRILLAS DE RECURRENCIA */
-/* ============================================= */
-.day-selector-grid, .month-selector-grid {
-    display: grid;
-    gap: 0.5rem;
-}
-
-.day-selector-grid {
-    grid-template-columns: repeat(4, 1fr);
-}
-.month-selector-grid {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.day-toggle-btn, .month-toggle-btn {
-    padding: 0.5rem 0.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: 1px solid #D1D5DB; /* border-gray-300 */
-    border-radius: 0.5rem; /* rounded-lg */
-    background-color: #fff;
     cursor: pointer;
     transition: all 0.2s;
 }
-.day-toggle-btn:hover, .month-toggle-btn:hover {
-    background-color: #f3f4f6; /* bg-gray-100 */
+
+.time-slot:hover:not(.disabled) {
+    border-color: var(--emerald-primary);
+    background-color: var(--emerald-light);
 }
-.day-toggle-btn.selected, .month-toggle-btn.selected {
-    background-color: #10B981; /* bg-emerald-500 */
+
+.time-slot.selected {
+    background-color: var(--emerald-primary);
     color: white;
-    border-color: #059669; /* bg-emerald-600 */
+    border-color: var(--emerald-dark);
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+}
+
+.time-slot.disabled {
+    background-color: #f3f4f6;
+    color: #d1d5db;
+    text-decoration: line-through;
+    cursor: not-allowed;
+    border-color: #f3f4f6;
+}
+
+/* ============================================= */
+/* INTERRUPTOR (SWITCH) */
+/* ============================================= */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #d1d5db;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--emerald-primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+/* ============================================= */
+/* RECURRENCIA (DÍAS Y MESES) */
+/* ============================================= */
+.day-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.month-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.day-toggle-btn, .month-toggle-btn {
+    padding: 12px 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    transition: all 0.2s;
+}
+
+.day-toggle-btn.selected, .month-toggle-btn.selected {
+    background-color: var(--emerald-primary);
+    color: white;
+    border-color: var(--emerald-dark);
+}
+
+/* ============================================= */
+/* INVENTARIO Y PRODUCTOS */
+/* ============================================= */
+.product-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 24px;
+    border: 1px solid #f3f4f6;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+}
+
+.stock-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.stock-low { background-color: #fee2e2; color: #991b1b; }
+.stock-ok { background-color: #dcfce7; color: #166534; }
+
+/* ============================================= */
+/* BUSCADOR DE VENTAS */
+/* ============================================= */
+.sale-result-item {
+    padding: 12px 16px;
+    background-color: #f9fafb;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.sale-result-item:hover {
+    background-color: var(--emerald-light);
+    border-color: var(--emerald-primary);
+}
+
+/* ============================================= */
+/* BOTONES MODERNOS */
+/* ============================================= */
+.modern-btn {
+    border-radius: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.modern-btn:active {
+    transform: scale(0.95);
+}
+
+/* ============================================= */
+/* CAJA Y LOGS */
+/* ============================================= */
+.data-card {
+    background-color: white;
+    border-radius: 20px;
+    padding: 1rem;
+    border: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.data-card:hover {
+    transform: scale(1.01);
+    border-color: var(--emerald-primary);
+}
+
+/* Sugerencias de clientes */
+#teamName-suggestions {
+    display: none;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.suggestion-item:hover {
+    background-color: var(--emerald-light);
+    color: var(--emerald-primary);
 }
