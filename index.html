@@ -22,7 +22,7 @@
     <!-- ============================================= -->
     <!-- OVERLAY DE MENSAJES GLOBAL -->
     <!-- ============================================= -->
-    <div id="message-overlay" class="modal !z-[3000]">
+    <div id="message-overlay" class="modal !z-[4000]">
         <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl text-center border-4 border-emerald-50 max-w-xs w-full">
             <div class="mb-4 flex justify-center">
                 <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
@@ -47,7 +47,7 @@
                 <button type="submit" class="modern-btn bg-emerald-600 text-white w-full py-5 font-black shadow-xl shadow-emerald-100 mt-4">INGRESAR AL PANEL</button>
             </form>
             <p class="text-center text-sm text-gray-500 mt-8 font-medium">
-                ¿Primera vez aquí? <a href="#" id="show-register" class="text-emerald-600 font-black decoration-2 hover:underline">Crear cuenta</a>
+                ¿No tienes cuenta? <a href="#" id="show-register" class="text-emerald-600 font-black decoration-2 hover:underline">Crear cuenta</a>
             </p>
         </div>
     </div>
@@ -91,13 +91,13 @@
         <nav id="main-menu" class="main-menu-hidden">
             <div class="p-6 border-b bg-emerald-50">
                 <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-black">PV</div>
+                    <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-black text-xs">PV</div>
                     <div class="overflow-hidden">
-                        <p class="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Admin Activo</p>
-                        <p id="user-email-display" class="font-bold text-emerald-900 truncate text-sm"></p>
+                        <p class="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Administrador</p>
+                        <p id="user-email-display" class="font-bold text-emerald-900 truncate text-xs"></p>
                     </div>
                 </div>
-                <button id="logout-btn" class="w-full text-center py-2.5 bg-white text-red-600 rounded-xl font-black shadow-sm border border-red-50 hover:bg-red-50 transition-colors">Cerrar Sesión</button>
+                <button id="logout-btn" class="w-full text-center py-2 bg-white text-red-600 rounded-xl font-black shadow-sm border border-red-50 hover:bg-red-50 transition-colors text-xs">Cerrar Sesión</button>
             </div>
             <div class="p-3 space-y-1">
                 <a href="#" class="menu-item" data-view="calendar">📅 Calendario de Turnos</a>
@@ -110,15 +110,13 @@
         </nav>
         <div id="menu-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[900] hidden"></div>
 
-        <!-- ============================================= -->
         <!-- VISTAS PRINCIPALES -->
-        <!-- ============================================= -->
-
+        
         <!-- 1. CALENDARIO -->
         <div id="calendar-view" class="view-container container mx-auto max-w-4xl p-4 pt-24">
-            <div class="flex justify-between items-center bg-white p-5 rounded-[2rem] shadow-xl shadow-gray-200/50 mb-6 border border-white">
+            <div class="flex justify-between items-center bg-white p-5 rounded-[2rem] shadow-xl mb-6 border border-white">
                 <button id="prev-month-btn" class="p-3 rounded-2xl hover:bg-emerald-50 text-emerald-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg></button>
-                <h2 id="current-month-year" class="text-2xl font-black text-gray-800 capitalize tracking-tighter"></h2>
+                <h2 id="current-month-year" class="text-xl md:text-2xl font-black text-gray-800 capitalize tracking-tighter"></h2>
                 <button id="next-month-btn" class="p-3 rounded-2xl hover:bg-emerald-50 text-emerald-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" /></svg></button>
             </div>
             <div id="calendar-grid" class="grid grid-cols-7 gap-2 md:gap-4"></div>
@@ -128,374 +126,216 @@
         <div id="productos-view" class="view-container container mx-auto max-w-5xl p-4 pt-24 is-hidden">
             <div class="flex justify-between items-center mb-8">
                 <div>
-                    <h2 class="text-4xl font-black text-gray-800 tracking-tight">Buffet</h2>
-                    <p class="text-gray-400 font-bold text-xs uppercase tracking-widest">Control de Stock y Costos</p>
+                    <h2 class="text-3xl md:text-4xl font-black text-gray-800 tracking-tight">Buffet</h2>
+                    <p class="text-gray-400 font-bold text-[10px] uppercase tracking-widest">Control de Stock y Costos</p>
                 </div>
-                <button id="add-product-btn" class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-blue-100 hover:scale-105 transition-all">+ NUEVO</button>
+                <button id="add-product-btn" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black shadow-lg shadow-blue-100 hover:scale-105 transition-all text-sm">+ NUEVO</button>
             </div>
 
-            <!-- Buscador Superior -->
             <div class="relative mb-8">
-                <input type="text" id="inventory-search-input" class="w-full pl-14 pr-6 py-5 bg-white border-none rounded-3xl shadow-sm font-bold text-lg focus:ring-4 focus:ring-blue-50 transition-all" placeholder="Buscar por nombre de producto...">
-                <svg class="w-7 h-7 absolute left-5 top-4.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="inventory-search-input" class="w-full pl-14 pr-6 py-5 bg-white border-none rounded-3xl shadow-sm font-bold text-lg focus:ring-4 focus:ring-blue-50 transition-all" placeholder="Buscar por nombre...">
+                <svg class="w-7 h-7 absolute left-5 top-4.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
 
-            <!-- Formulario de Alta -->
-            <div id="product-form-container" class="bg-white p-8 rounded-[2.5rem] shadow-2xl mb-12 is-hidden border-2 border-blue-50">
-                <h3 class="text-xl font-black text-blue-800 mb-8 flex items-center gap-2">✨ Carga de Producto Nuevo</h3>
+            <div id="product-form-container" class="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-2xl mb-12 is-hidden border-2 border-blue-50">
+                <h3 class="text-xl font-black text-blue-800 mb-8 flex items-center gap-2">✨ Nuevo Producto</h3>
                 <form id="product-form" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="md:col-span-2">
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Nombre Completo</label>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nombre</label>
                         <input type="text" id="prod-name" placeholder="Ej: Coca Cola 500ml" class="w-full px-5 py-4 border border-gray-100 bg-gray-50 rounded-2xl font-bold focus:ring-2 focus:ring-blue-500" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Stock Inicial</label>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Stock Inicial</label>
                         <input type="number" id="prod-stock" class="w-full px-5 py-4 border border-gray-100 bg-gray-50 rounded-2xl font-bold" required min="0">
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Costo Total Lote ($)</label>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Costo Lote ($)</label>
                         <input type="number" id="prod-batch-cost" class="w-full px-5 py-4 border border-gray-100 bg-gray-50 rounded-2xl font-bold text-blue-600" step="0.01" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Unidades en Lote</label>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Unidades Lote</label>
                         <input type="number" id="prod-batch-qty" class="w-full px-5 py-4 border border-gray-100 bg-gray-50 rounded-2xl font-bold" required min="1">
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">% Ganancia Deseada</label>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">% Ganancia</label>
                         <input type="number" id="prod-profit-pct" class="w-full px-5 py-4 border border-gray-100 bg-gray-50 rounded-2xl font-bold text-emerald-600" value="50">
                     </div>
                     <div class="md:col-span-3 p-6 bg-emerald-50 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6 mt-2">
                         <div class="text-center md:text-left">
                             <span class="text-[10px] font-black text-emerald-800 uppercase tracking-widest block mb-1">Precio Venta Sugerido</span>
-                            <span id="prod-suggested-price" class="text-5xl font-black text-emerald-700 tracking-tighter">$0</span>
+                            <span id="prod-suggested-price" class="text-4xl font-black text-emerald-700 tracking-tighter">$0</span>
                             <input type="hidden" id="prod-unit-cost">
                         </div>
                         <div class="flex gap-4 w-full md:w-auto">
-                            <button type="button" id="cancel-product-btn" class="flex-1 px-8 py-4 font-black text-gray-400 hover:text-gray-600 transition-colors uppercase text-sm">Cancelar</button>
-                            <button type="submit" class="flex-2 bg-blue-600 text-white px-12 py-4 rounded-2xl font-black shadow-lg shadow-blue-100 uppercase text-sm tracking-widest">Guardar en Base</button>
+                            <button type="button" id="cancel-product-btn" class="flex-1 px-8 py-4 font-black text-gray-400 hover:text-gray-600 uppercase text-xs">Cancelar</button>
+                            <button type="submit" class="flex-2 bg-blue-600 text-white px-10 py-4 rounded-2xl font-black shadow-lg shadow-blue-100 uppercase text-xs tracking-widest">Guardar</button>
                         </div>
                     </div>
                 </form>
             </div>
-
-            <!-- Rejilla de Productos -->
             <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
         <!-- 3. CAJA UNIFICADA -->
         <div id="caja-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
-            <h2 class="text-4xl font-black mb-8 tracking-tight text-center">Estado de Caja</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-black mb-8 tracking-tight text-center">Estado de Caja</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-center text-sm md:text-base">
                 <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-b-8 border-emerald-500">
-                    <h3 class="text-gray-400 font-bold uppercase text-xs tracking-widest mb-2">Ingresos Canchas</h3>
-                    <p id="caja-total-bookings" class="text-4xl font-black text-emerald-600">$0</p>
+                    <h3 class="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-2">Ingresos Canchas</h3>
+                    <p id="caja-total-bookings" class="text-3xl font-black text-emerald-600">$0</p>
                 </div>
                 <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-b-8 border-blue-500">
-                    <h3 class="text-gray-400 font-bold uppercase text-xs tracking-widest mb-2">Ventas Buffet</h3>
-                    <p id="caja-total-sales" class="text-4xl font-black text-blue-600">$0</p>
+                    <h3 class="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-2">Ventas Buffet</h3>
+                    <p id="caja-total-sales" class="text-3xl font-black text-blue-600">$0</p>
                 </div>
             </div>
-            <div class="bg-emerald-800 p-10 rounded-[3rem] text-white text-center mb-10 shadow-2xl shadow-emerald-100 relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/5 rounded-full"></div>
-                <h3 class="text-lg font-bold opacity-70 uppercase tracking-[0.2em] mb-3">Saldo Total Combinado</h3>
-                <p id="caja-total-combined" class="text-6xl font-black tracking-tighter">$0</p>
+            <div class="bg-emerald-800 p-8 md:p-10 rounded-[3rem] text-white text-center mb-10 shadow-2xl relative overflow-hidden">
+                <h3 class="text-sm font-bold opacity-70 uppercase tracking-[0.2em] mb-3">Total Combinado</h3>
+                <p id="caja-total-combined" class="text-5xl md:text-6xl font-black tracking-tighter">$0</p>
             </div>
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col md:flex-row gap-4 border border-white">
-                <input type="date" id="caja-date-from" class="flex-1 border-none bg-gray-50 p-4 rounded-2xl font-black text-gray-700 focus:ring-2 focus:ring-emerald-500">
-                <input type="date" id="caja-date-to" class="flex-1 border-none bg-gray-50 p-4 rounded-2xl font-black text-gray-700 focus:ring-2 focus:ring-emerald-500">
-                <button id="caja-filter-btn" class="bg-emerald-700 text-white px-12 py-4 rounded-2xl font-black shadow-lg shadow-emerald-100 hover:bg-emerald-800 transition-all">CONSULTAR</button>
+            <div class="bg-white p-6 rounded-[2rem] flex flex-col md:flex-row gap-4 border border-white">
+                <input type="date" id="caja-date-from" class="flex-1 border-none bg-gray-50 p-4 rounded-2xl font-black text-gray-700 focus:ring-2 focus:ring-emerald-50 text-sm">
+                <input type="date" id="caja-date-to" class="flex-1 border-none bg-gray-50 p-4 rounded-2xl font-black text-gray-700 focus:ring-2 focus:ring-emerald-50 text-sm">
+                <button id="caja-filter-btn" class="bg-emerald-700 text-white px-10 py-4 rounded-2xl font-black shadow-lg uppercase text-xs">Consultar</button>
             </div>
-            <div id="caja-daily-list" class="mt-10 space-y-4"></div>
+            <div id="caja-daily-list" class="mt-10 space-y-4 text-sm"></div>
         </div>
 
-        <!-- OTRAS VISTAS -->
-        <div id="stats-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
-            <h2 class="text-3xl font-black mb-8">Ranking de Clientes</h2>
-            <div id="stats-list" class="space-y-4"></div>
-        </div>
-
-        <div id="historial-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
-            <h2 class="text-3xl font-black mb-8">Bitácora de Operaciones</h2>
-            <div id="historial-list" class="space-y-2"></div>
-        </div>
-
+        <!-- 4. OTROS -->
+        <div id="stats-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden"><h2 class="text-3xl font-black mb-8">Ranking Clientes</h2><div id="stats-list" class="space-y-4"></div></div>
+        <div id="historial-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden"><h2 class="text-3xl font-black mb-8">Bitácora</h2><div id="historial-list" class="space-y-2"></div></div>
         <div id="config-view" class="view-container container mx-auto max-w-4xl p-4 pt-24 is-hidden">
-            <h2 class="text-3xl font-black mb-10 text-center text-emerald-800 uppercase tracking-tighter">Configuración Maestra</h2>
-            <div class="bg-white p-10 rounded-[3rem] shadow-2xl max-w-md mx-auto border border-white">
-                <form id="config-form" class="space-y-8">
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-1">Valor Cancha 1 (x hora)</label>
-                            <input type="number" id="config-court1-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-emerald-700 focus:ring-2 focus:ring-emerald-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-1">Valor Cancha 2 (x hora)</label>
-                            <input type="number" id="config-court2-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-emerald-700 focus:ring-2 focus:ring-emerald-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-1">Valor Alquiler Parrilla</label>
-                            <input type="number" id="config-grill-price" class="w-full px-6 py-5 bg-gray-50 border-none rounded-2xl font-black text-xl text-amber-700 focus:ring-2 focus:ring-amber-500" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="modern-btn bg-emerald-600 text-white w-full py-6 font-black text-lg shadow-2xl shadow-emerald-100 hover:scale-[1.02] transition-transform">GUARDAR PRECIOS GLOBALES</button>
+            <h2 class="text-3xl font-black mb-10 text-center text-emerald-800">⚙️ Configuración</h2>
+            <div class="bg-white p-10 rounded-[3rem] shadow-2xl max-w-md mx-auto">
+                <form id="config-form" class="space-y-6 text-sm">
+                    <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Cancha 1</label><input type="number" id="config-court1-price" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-black text-lg text-emerald-700" required></div>
+                    <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Cancha 2</label><input type="number" id="config-court2-price" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-black text-lg text-emerald-700" required></div>
+                    <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Parrilla</label><input type="number" id="config-grill-price" class="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-black text-lg text-amber-700" required></div>
+                    <button type="submit" class="bg-emerald-600 text-white w-full py-5 rounded-2xl font-black shadow-xl">GUARDAR PRECIOS</button>
                 </form>
             </div>
         </div>
-
     </div>
 
     <!-- ============================================= -->
     <!-- MODALES DE ACCIÓN -->
     <!-- ============================================= -->
 
-    <!-- MODAL VENTA RÁPIDA -->
+    <!-- MODAL VENTA -->
     <div id="sale-modal" class="modal">
-        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-lg shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] border border-white">
-            <h3 class="text-3xl font-black text-emerald-700 mb-8 flex items-center gap-3">🛒 Registrar Venta</h3>
+        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl border border-white">
+            <h3 class="text-2xl font-black text-emerald-700 mb-8 flex items-center gap-3">🛒 Registrar Venta</h3>
             <div class="relative mb-6">
-                <input type="text" id="sale-search-input" class="w-full p-6 border-none bg-gray-100 rounded-3xl font-black text-lg focus:ring-4 focus:ring-emerald-100 transition-all placeholder:text-gray-400" placeholder="¿Qué se lleva el cliente?">
-                <div id="sale-search-results" class="mt-4 max-h-60 overflow-y-auto space-y-2 custom-scrollbar"></div>
+                <input type="text" id="sale-search-input" class="w-full p-6 bg-gray-100 border-none rounded-3xl font-black text-sm" placeholder="Nombre del producto...">
+                <div id="sale-search-results" class="mt-4 max-h-60 overflow-y-auto space-y-2 custom-scrollbar text-sm"></div>
             </div>
-
-            <div id="selected-product-info" class="p-8 bg-emerald-50 rounded-[2rem] mb-8 is-hidden border-2 border-emerald-100 animate-pulse-slow">
-                <div class="flex justify-between items-start mb-8">
-                    <div>
-                        <h4 id="sel-prod-name" class="font-black text-emerald-900 text-2xl leading-tight"></h4>
-                        <p class="text-xs font-bold text-emerald-600 uppercase mt-1 tracking-widest">En stock: <span id="sel-prod-stock"></span></p>
-                    </div>
-                    <div id="sel-prod-price" class="text-4xl font-black text-emerald-700 tracking-tighter"></div>
+            <div id="selected-product-info" class="p-8 bg-emerald-50 rounded-[2rem] mb-8 is-hidden border-2 border-emerald-100">
+                <div class="flex justify-between items-start mb-6">
+                    <div><h4 id="sel-prod-name" class="font-black text-emerald-900 text-xl"></h4><p class="text-[10px] font-bold text-emerald-600 uppercase">Stock: <span id="sel-prod-stock"></span></p></div>
+                    <div id="sel-prod-price" class="text-3xl font-black text-emerald-700"></div>
                 </div>
                 <div class="flex items-center justify-center gap-10">
-                    <button id="sale-qty-minus" class="w-16 h-16 bg-white border-2 border-emerald-100 rounded-2xl font-black text-3xl text-emerald-700 hover:bg-emerald-200 shadow-sm transition-colors">-</button>
-                    <input type="number" id="sale-qty-input" class="w-24 text-center font-black text-4xl bg-transparent text-emerald-800 border-none focus:ring-0" value="1">
-                    <button id="sale-qty-plus" class="w-16 h-16 bg-white border-2 border-emerald-100 rounded-2xl font-black text-3xl text-emerald-700 hover:bg-emerald-200 shadow-sm transition-colors">+</button>
+                    <button id="sale-qty-minus" class="w-14 h-14 bg-white border rounded-2xl font-black text-2xl text-emerald-700">-</button>
+                    <input type="number" id="sale-qty-input" class="w-16 text-center font-black text-3xl bg-transparent focus:ring-0" value="1">
+                    <button id="sale-qty-plus" class="w-14 h-14 bg-white border rounded-2xl font-black text-2xl text-emerald-700">+</button>
                 </div>
             </div>
-
-            <div class="flex flex-col sm:flex-row justify-between items-center border-t border-gray-100 pt-8 gap-6">
-                <div class="text-center sm:text-left">
-                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] block mb-1">Total del Buffet</span>
-                    <span id="sale-total-display" class="text-5xl font-black text-emerald-700 tracking-tighter">$0</span>
-                </div>
-                <div class="flex gap-4 w-full sm:w-auto">
-                    <button type="button" id="close-sale-modal-btn" class="flex-1 py-4 font-black text-gray-300 hover:text-gray-500 uppercase text-xs tracking-widest">Cerrar</button>
-                    <button id="confirm-sale-btn" class="flex-2 bg-emerald-600 text-white px-12 py-5 rounded-2xl font-black shadow-xl shadow-emerald-100 disabled:opacity-20 transition-all uppercase tracking-widest text-sm" disabled>Cobrar</button>
+            <div class="flex justify-between items-center border-t border-gray-100 pt-8">
+                <div><span class="text-[10px] font-black text-gray-400 block mb-1">TOTAL</span><span id="sale-total-display" class="text-4xl font-black text-emerald-700">$0</span></div>
+                <div class="flex gap-4">
+                    <button id="close-sale-modal-btn" class="font-black text-gray-300 uppercase text-[10px] tracking-widest">Cerrar</button>
+                    <button id="confirm-sale-btn" class="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black shadow-lg disabled:opacity-20 text-xs uppercase" disabled>Cobrar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL REPOSICIÓN (LOGICA DE COSTO NUEVO DIRECTO) -->
+    <!-- MODAL REPOSICIÓN -->
     <div id="restock-modal" class="modal">
-        <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-blue-50">
-            <h3 class="text-2xl font-black text-blue-700 mb-8 flex items-center gap-3">📦 Reposición de Mercadería</h3>
-            <div class="mb-8 p-6 bg-gray-50 rounded-3xl border border-gray-100">
-                <h4 id="restock-name" class="font-black text-gray-800 text-xl leading-none mb-2">-</h4>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cantidad actual: <span id="restock-current-stock" class="text-blue-600">0</span></p>
-            </div>
+        <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-blue-50 text-sm">
+            <h3 class="text-2xl font-black text-blue-700 mb-8">📦 Reposición</h3>
             <form id="restock-form" class="space-y-6">
                 <input type="hidden" id="restock-prod-id">
-                <div>
-                    <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Nuevas unidades ingresadas</label>
-                    <input type="number" id="restock-qty" class="w-full px-6 py-5 border-none bg-gray-50 rounded-2xl font-black text-2xl focus:ring-2 focus:ring-blue-500" required min="1" placeholder="0">
-                </div>
-                <div>
-                    <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Costo total del nuevo lote ($)</label>
-                    <input type="number" id="restock-batch-cost" class="w-full px-6 py-5 border-none bg-gray-50 rounded-2xl font-black text-2xl focus:ring-2 focus:ring-blue-500 text-blue-700" required step="0.01" placeholder="0.00">
-                </div>
-                <div class="p-5 bg-amber-50 rounded-2xl border border-amber-100">
-                    <p class="text-[10px] font-black text-amber-700 uppercase mb-1 tracking-tighter">Importante</p>
-                    <p class="text-[11px] text-amber-800 font-bold leading-tight">Al confirmar, el costo de **toda la mercadería en stock** se actualizará al precio unitario de esta nueva compra.</p>
-                </div>
-                <div class="flex gap-4 pt-4">
-                    <button type="button" onclick="closeModals()" class="flex-1 py-5 font-black text-gray-300 uppercase text-xs">Cancelar</button>
-                    <button type="submit" class="flex-2 bg-blue-700 text-white px-8 py-5 rounded-2xl font-black shadow-xl shadow-blue-50 uppercase text-xs tracking-widest">Confirmar Ingreso</button>
-                </div>
+                <p id="restock-name" class="font-black text-xl text-gray-800 border-b pb-4"></p>
+                <div><label class="text-[10px] font-black uppercase text-gray-400 block mb-1">Unidades Nuevas</label><input type="number" id="restock-qty" class="w-full p-5 border rounded-2xl font-black text-2xl" required min="1"></div>
+                <div><label class="text-[10px] font-black uppercase text-gray-400 block mb-1">Costo Lote ($)</label><input type="number" id="restock-batch-cost" class="w-full p-5 border rounded-2xl font-black text-2xl text-blue-700" required step="0.01"></div>
+                <button type="submit" class="w-full bg-blue-700 text-white py-5 rounded-2xl font-black shadow-lg uppercase tracking-widest text-xs">Confirmar Ingreso</button>
             </form>
         </div>
     </div>
 
-    <!-- MODAL HISTORIAL DE PRODUCTO -->
-    <div id="product-history-modal" class="modal">
-        <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-lg shadow-2xl border border-gray-50">
-            <h3 class="text-2xl font-black text-gray-800 mb-2">📜 Historial de Producto</h3>
-            <h4 id="history-product-name" class="text-blue-600 font-bold mb-8 italic uppercase text-xs tracking-widest border-b pb-4"></h4>
-            <div id="product-history-list" class="space-y-3 max-h-[25rem] overflow-y-auto pr-3 custom-scrollbar"></div>
-            <button onclick="closeModals()" class="w-full mt-10 py-5 bg-gray-100 font-black text-gray-500 rounded-2xl hover:bg-gray-200 transition-colors uppercase tracking-widest text-xs">Cerrar Historial</button>
-        </div>
-    </div>
-
-    <!-- MODAL EDICIÓN MANUAL DE PRODUCTO -->
+    <!-- MODAL EDICIÓN PRODUCTO -->
     <div id="edit-product-modal" class="modal">
-        <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-gray-50">
-            <h3 class="text-2xl font-black text-gray-800 mb-8 flex items-center gap-3">✏️ Ajuste Manual</h3>
+        <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl text-sm">
+            <h3 class="text-2xl font-black mb-8">✏️ Ajuste</h3>
             <form id="edit-product-form" class="space-y-6">
                 <input type="hidden" id="edit-prod-id">
-                <div>
-                    <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Nombre</label>
-                    <input type="text" id="edit-prod-name" class="w-full px-5 py-4 border-none bg-gray-50 rounded-2xl font-bold" required>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Costo ($)</label>
-                        <input type="number" id="edit-prod-cost" class="w-full px-5 py-4 border-none bg-gray-50 rounded-2xl font-bold" required step="0.01">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Venta ($)</label>
-                        <input type="number" id="edit-prod-price" class="w-full px-5 py-4 border-none bg-gray-50 rounded-2xl font-bold text-emerald-600" required step="0.01">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Stock Actual</label>
-                    <input type="number" id="edit-prod-stock" class="w-full px-5 py-4 border-none bg-gray-50 rounded-2xl font-bold" required>
-                </div>
-                <div class="flex gap-4 pt-4">
-                    <button type="button" onclick="closeModals()" class="flex-1 py-5 font-black text-gray-300 uppercase text-xs">Cancelar</button>
-                    <button type="submit" class="flex-2 bg-gray-900 text-white px-8 py-5 rounded-2xl font-black shadow-lg uppercase text-xs tracking-widest">Aplicar Ajustes</button>
-                </div>
+                <input type="text" id="edit-prod-name" class="w-full p-4 border rounded-2xl font-bold" required>
+                <div class="grid grid-cols-2 gap-4"><input type="number" id="edit-prod-cost" class="p-4 border rounded-2xl font-bold" step="0.01"><input type="number" id="edit-prod-price" class="p-4 border rounded-2xl font-bold text-emerald-600" step="0.01"></div>
+                <input type="number" id="edit-prod-stock" class="w-full p-4 border rounded-2xl font-bold" required>
+                <button type="submit" class="w-full bg-gray-800 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest">Guardar</button>
             </form>
         </div>
     </div>
 
-    <!-- MODALES DE RESERVA -->
-    <div id="type-modal" class="modal">
-        <div class="bg-white rounded-[3rem] shadow-2xl p-10 w-full max-w-sm text-center border-8 border-gray-50">
-            <h3 class="text-3xl font-black text-gray-800 mb-3 tracking-tighter">Nueva Reserva</h3>
-            <p class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-10">¿Qué tipo de turno es?</p>
-            <div class="flex flex-col gap-5">
-                <button id="type-btn-court" class="p-6 bg-emerald-600 text-white rounded-[2rem] font-black shadow-xl shadow-emerald-50 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest text-sm">RESERVAR CANCHA</button>
-                <button id="type-btn-event" class="p-6 bg-amber-500 text-white rounded-[2rem] font-black shadow-xl shadow-amber-50 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest text-sm">EVENTO ESPECIAL</button>
-                <button id="type-btn-cancel" class="mt-6 text-gray-400 font-bold hover:text-gray-600 transition-colors uppercase text-[10px] tracking-[0.2em]">Cerrar opciones</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="booking-modal" class="modal">
-        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl custom-scrollbar border border-white">
-            <h3 id="booking-modal-title" class="text-3xl font-black text-emerald-800 mb-8 tracking-tighter">Configurar Reserva</h3>
-            <form id="booking-form" class="space-y-6">
-                <input type="hidden" id="booking-id">
-                <input type="hidden" id="booking-date">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-5">
-                        <div class="relative">
-                            <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Nombre del Equipo / Cliente</label>
-                            <input type="text" id="teamName" class="w-full px-5 py-4 border-none bg-gray-50 rounded-2xl font-black text-lg focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Los Galácticos" required autocomplete="off">
-                            <div id="teamName-suggestions" class="absolute z-10 w-full top-full mt-2"></div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Jugadores</label>
-                                <input type="number" id="peopleCount" class="w-full px-5 py-4 border-none bg-gray-50 rounded-2xl font-black" value="10">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-black text-gray-400 uppercase mb-2 ml-1">Precio / H</label>
-                                <input type="number" id="costPerHour" class="w-full px-5 py-4 border-none bg-gray-50 rounded-2xl font-black text-emerald-700">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-1">Método de Cobro</label>
-                            <div class="flex gap-2">
-                                <label class="flex-1 bg-gray-50 p-3 rounded-xl text-center font-black text-[10px] uppercase cursor-pointer border-2 border-transparent has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50 transition-all"><input type="radio" name="paymentMethod" value="efectivo" class="hidden" checked> EFECTIVO</label>
-                                <label class="flex-1 bg-gray-50 p-3 rounded-xl text-center font-black text-[10px] uppercase cursor-pointer border-2 border-transparent has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50 transition-all"><input type="radio" name="paymentMethod" value="transferencia" class="hidden"> TRANSF.</label>
-                                <label class="flex-1 bg-gray-50 p-3 rounded-xl text-center font-black text-[10px] uppercase cursor-pointer border-2 border-transparent has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50 transition-all"><input type="radio" name="paymentMethod" value="mercadopago" class="hidden"> M.PAGO</label>
-                            </div>
-                        </div>
-                        <div class="p-6 bg-emerald-50 rounded-3xl flex justify-between items-center shadow-inner">
-                            <div>
-                                <span class="font-black text-emerald-900 text-sm block">¿Reserva Fija?</span>
-                                <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Activar repetición</p>
-                            </div>
-                            <label class="switch"><input type="checkbox" id="recurring-toggle"><span class="slider"></span></label>
-                        </div>
-                        <div id="recurring-summary" class="is-hidden p-4 bg-amber-50 text-amber-800 rounded-2xl text-[11px] font-black uppercase leading-relaxed border border-amber-100"></div>
-                    </div>
-
-                    <div class="space-y-5">
-                        <div>
-                            <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-1">Ubicación</label>
-                            <div class="flex gap-4">
-                                <label class="flex-1 border-2 border-gray-100 bg-gray-50 p-4 rounded-2xl text-center font-black cursor-pointer has-[:checked]:border-emerald-600 has-[:checked]:bg-white transition-all"><input type="radio" name="courtSelection" value="cancha1" class="hidden" checked> CANCHA 1</label>
-                                <label class="flex-1 border-2 border-gray-100 bg-gray-50 p-4 rounded-2xl text-center font-black cursor-pointer has-[:checked]:border-emerald-600 has-[:checked]:bg-white transition-all"><input type="radio" name="courtSelection" value="cancha2" class="hidden"> CANCHA 2</label>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black text-gray-400 uppercase mb-3 ml-1">Horarios de Cancha</label>
-                            <div id="court-hours-list" class="time-slot-grid"></div>
-                        </div>
-                        <div class="pt-2">
-                            <label class="flex items-center gap-3 font-black text-sm text-gray-700 cursor-pointer bg-gray-100 p-4 rounded-2xl hover:bg-gray-200 transition-colors">
-                                <input type="checkbox" id="rentGrill" class="w-6 h-6 rounded-lg accent-emerald-600"> ¿ALQUILA PARRILLA TAMBIÉN?
-                            </label>
-                            <div id="grill-hours-section" class="is-hidden mt-4 space-y-3 p-4 bg-amber-50/50 rounded-[2rem] border-2 border-dashed border-amber-200">
-                                <input type="number" id="grillCost" class="w-full p-4 border-none bg-white rounded-2xl font-black" placeholder="Precio Parrilla">
-                                <div id="grill-hours-list" class="time-slot-grid"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row justify-between items-center pt-8 border-t gap-6 mt-6">
-                    <div class="text-center sm:text-left">
-                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total a cobrar al cliente</span>
-                        <span id="booking-total" class="text-5xl font-black text-emerald-700 tracking-tighter">$0</span>
-                    </div>
-                    <div class="flex gap-4 w-full sm:w-auto">
-                        <button type="button" id="cancel-booking-btn" class="flex-1 px-8 py-5 font-black text-gray-400 uppercase text-xs">Cancelar</button>
-                        <button type="submit" class="flex-2 bg-emerald-600 text-white px-12 py-5 rounded-[1.5rem] font-black shadow-xl shadow-emerald-50 uppercase text-sm tracking-widest">Confirmar Turno</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- OTROS MODALES COMPLEMENTARIOS -->
+    <!-- MODAL RECURRENCIA -->
     <div id="recurring-modal" class="modal">
-        <div class="bg-white p-8 rounded-[2.5rem] w-full max-w-sm shadow-2xl">
-            <h3 class="text-2xl font-black mb-2 tracking-tighter">Configuración Masiva</h3>
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-8">Elige días y meses</p>
+        <div class="bg-white p-8 rounded-[2.5rem] w-full max-w-sm shadow-2xl text-center">
+            <h3 class="text-2xl font-black mb-6 tracking-tighter">Repetición</h3>
             <div class="day-selector-grid mb-6">
-                <button class="day-toggle-btn" data-day="1">Lun</button>
-                <button class="day-toggle-btn" data-day="2">Mar</button>
-                <button class="day-toggle-btn" data-day="3">Mié</button>
-                <button class="day-toggle-btn" data-day="4">Jue</button>
-                <button class="day-toggle-btn" data-day="5">Vie</button>
-                <button class="day-toggle-btn" data-day="6">Sáb</button>
-                <button class="day-toggle-btn" data-day="0">Dom</button>
+                <button class="day-toggle-btn" data-day="1">Lun</button><button class="day-toggle-btn" data-day="2">Mar</button><button class="day-toggle-btn" data-day="3">Mié</button><button class="day-toggle-btn" data-day="4">Jue</button><button class="day-toggle-btn" data-day="5">Vie</button><button class="day-toggle-btn" data-day="6">Sáb</button><button class="day-toggle-btn" data-day="0">Dom</button>
             </div>
             <div id="recurring-month-list" class="month-selector-grid mb-8"></div>
-            <button id="confirm-recurring-btn" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase text-xs tracking-widest">Confirmar Repetición</button>
-        </div>
-    </div>
-
-    <div id="options-modal" class="modal">
-        <div class="bg-white p-8 rounded-[2.5rem] w-full max-w-sm shadow-2xl border-4 border-gray-50">
-            <h3 class="text-2xl font-black mb-2 tracking-tighter">Turnos Agendados</h3>
-            <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-6">Selecciona una acción</p>
-            <div id="daily-bookings-list" class="space-y-3 mb-8 max-h-60 overflow-y-auto pr-2 custom-scrollbar"></div>
-            <div class="flex flex-col gap-3">
-                <button id="add-new-booking-btn" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase text-xs tracking-widest">+ AGREGAR OTRO</button>
-                <button id="close-options-btn" class="w-full text-gray-400 font-black py-4 uppercase text-[10px] tracking-[0.2em]">Cerrar</button>
+            <div class="flex gap-4">
+                <!-- Botón Cancelar Crítico -->
+                <button id="cancel-recurring-btn" class="flex-1 py-4 font-black text-gray-300 uppercase text-[10px] tracking-widest">Cancelar</button>
+                <button id="confirm-recurring-btn" class="flex-2 bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg text-[10px] uppercase tracking-widest">Confirmar</button>
             </div>
         </div>
     </div>
 
-    <div id="view-modal" class="modal">
-        <div class="bg-white p-10 rounded-[2.5rem] w-full max-w-sm shadow-2xl">
-            <div id="view-booking-details"></div>
-            <button onclick="closeModals()" class="mt-10 w-full bg-gray-100 py-5 rounded-2xl font-black text-gray-500 uppercase text-xs tracking-widest hover:bg-gray-200 transition-colors">Cerrar Detalle</button>
+    <!-- MODALES RESERVA -->
+    <div id="booking-modal" class="modal">
+        <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl custom-scrollbar border border-white text-sm">
+            <h3 id="booking-modal-title" class="text-3xl font-black text-emerald-800 mb-8">Configurar Turno</h3>
+            <form id="booking-form" class="space-y-6">
+                <input type="hidden" id="booking-id"><input type="hidden" id="booking-date">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-5">
+                        <div class="relative"><label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Cliente / Equipo</label><input type="text" id="teamName" class="w-full px-5 py-4 border-none bg-gray-50 rounded-2xl font-black text-lg" required autocomplete="off"><div id="teamName-suggestions" class="absolute z-10 w-full top-full mt-2"></div></div>
+                        <div class="grid grid-cols-2 gap-4"><div><label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Gente</label><input type="number" id="peopleCount" class="w-full px-5 py-4 bg-gray-50 rounded-2xl font-black" value="10"></div><div><label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Precio/H</label><input type="number" id="costPerHour" class="w-full px-5 py-4 bg-gray-50 rounded-2xl font-black text-emerald-700"></div></div>
+                        <div class="p-6 bg-emerald-50 rounded-3xl flex justify-between items-center"><span class="font-black text-sm">¿Reserva Fija?</span><label class="switch"><input type="checkbox" id="recurring-toggle"><span class="slider"></span></label></div>
+                        <div id="recurring-summary" class="is-hidden p-4 bg-amber-50 text-amber-800 rounded-2xl font-black text-[11px]"></div>
+                        <div class="flex gap-2">
+                            <label class="flex-1 bg-gray-50 p-3 rounded-xl text-center font-black text-[10px] cursor-pointer has-[:checked]:bg-emerald-600 has-[:checked]:text-white"><input type="radio" name="paymentMethod" value="efectivo" class="hidden" checked> EFECTIVO</label>
+                            <label class="flex-1 bg-gray-50 p-3 rounded-xl text-center font-black text-[10px] cursor-pointer has-[:checked]:bg-emerald-600 has-[:checked]:text-white"><input type="radio" name="paymentMethod" value="transferencia" class="hidden"> TRANSF.</label>
+                            <label class="flex-1 bg-gray-50 p-3 rounded-xl text-center font-black text-[10px] cursor-pointer has-[:checked]:bg-emerald-600 has-[:checked]:text-white"><input type="radio" name="paymentMethod" value="mercadopago" class="hidden"> M.PAGO</label>
+                        </div>
+                    </div>
+                    <div class="space-y-5">
+                        <div class="flex gap-4"><label class="flex-1 border-2 p-4 rounded-2xl text-center font-black cursor-pointer has-[:checked]:border-emerald-600"><input type="radio" name="courtSelection" value="cancha1" class="hidden" checked> CANCHA 1</label><label class="flex-1 border-2 p-4 rounded-2xl text-center font-black cursor-pointer has-[:checked]:border-emerald-600"><input type="radio" name="courtSelection" value="cancha2" class="hidden"> CANCHA 2</label></div>
+                        <div id="court-hours-list" class="time-slot-grid"></div>
+                        <label class="font-black flex items-center gap-3 bg-gray-100 p-4 rounded-2xl cursor-pointer"><input type="checkbox" id="rentGrill" class="w-6 h-6 rounded-lg"> ¿USA PARRILLA?</label>
+                        <div id="grill-hours-section" class="is-hidden p-4 bg-amber-50 rounded-2xl space-y-3"><input type="number" id="grillCost" class="w-full p-4 border rounded-xl font-black" placeholder="Precio Parrilla"><div id="grill-hours-list" class="time-slot-grid"></div></div>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t gap-6">
+                    <div class="text-center md:text-left"><span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Total a cobrar</span><span id="booking-total" class="text-5xl font-black text-emerald-700">$0</span></div>
+                    <div class="flex gap-4 w-full md:w-auto"><button type="button" id="cancel-booking-btn" class="flex-1 px-8 py-5 font-black text-gray-300 uppercase text-xs">Cancelar</button><button type="submit" class="flex-2 bg-emerald-600 text-white px-12 py-5 rounded-2xl font-black shadow-lg text-sm uppercase tracking-widest">Confirmar</button></div>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- APOYO -->
+    <div id="options-modal" class="modal"><div class="bg-white p-8 rounded-[2.5rem] w-full max-w-sm shadow-2xl text-center"><h3 class="text-2xl font-black mb-6 tracking-tighter">Turnos</h3><div id="daily-bookings-list" class="space-y-3 mb-8 text-sm"></div><button id="add-new-booking-btn" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase text-xs tracking-widest">+ AGREGAR</button><button id="close-options-btn" class="mt-4 text-gray-400 font-bold uppercase text-[10px]">Cerrar</button></div></div>
+    <div id="view-modal" class="modal"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-sm shadow-2xl text-sm"><div id="view-booking-details"></div><button onclick="closeModals()" class="mt-8 w-full bg-gray-100 py-4 rounded-xl font-black text-gray-400">Cerrar</button></div></div>
+    <div id="product-history-modal" class="modal"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-lg shadow-2xl text-sm"><h3 class="text-2xl font-black mb-2">📜 Historial</h3><h4 id="history-product-name" class="text-blue-600 font-bold mb-6 border-b pb-4"></h4><div id="product-history-list" class="space-y-3 max-h-80 overflow-y-auto pr-3 custom-scrollbar"></div><button onclick="closeModals()" class="w-full mt-8 py-5 bg-gray-100 rounded-xl font-black text-gray-400 uppercase text-xs tracking-widest">Cerrar</button></div></div>
+
     <script type="module" src="app.js"></script>
     <script>
-        // Función global de emergencia por si el overlay se traba
-        function hideMessage() {
-            const overlay = document.getElementById('message-overlay');
-            if (overlay) overlay.classList.remove('is-open');
-        }
+        function hideMessage() { const o = document.getElementById('message-overlay'); if(o) o.classList.remove('is-open'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-open')); }
     </script>
 </body>
 </html>
