@@ -8,351 +8,285 @@
     --blue-primary: #2563eb;
     --blue-dark: #1e40af;
     --amber-primary: #d97706;
+    --gray-bg: #f3f4f6;
 }
 
-/* Scrollbar personalizada para una mejor estética */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* ============================================= */
-/* CONTENEDORES Y VISTAS */
-/* ============================================= */
-.view-container {
-    transition: opacity 0.3s ease-in-out;
+body {
+    background-color: var(--gray-bg);
+    overflow-x: hidden;
 }
 
-.is-hidden {
-    display: none !important;
-}
+/* Scrollbar personalizada */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
 
 /* ============================================= */
-/* MENÚ LATERAL (DRAWER) */
+/* MENÚ Y NAVEGACIÓN (RESPONSIVO) */
 /* ============================================= */
 #main-menu {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 280px;
-    height: 100vh;
-    background-color: white;
-    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+    top: 0; left: 0;
+    width: 280px; height: 100vh;
+    background: white;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.05);
     transform: translateX(-100%);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
+    z-index: 1000;
 }
+#main-menu.is-open { transform: translateX(0); }
 
-#main-menu.is-open {
-    transform: translateX(0);
+@media (max-width: 640px) {
+    #main-menu { width: 85%; }
 }
 
 .menu-item {
     display: block;
-    padding: 1rem 1.5rem;
-    font-weight: 600;
+    padding: 0.85rem 1.25rem;
+    font-weight: 700;
     color: #4b5563;
-    border-radius: 12px;
+    border-radius: 14px;
     margin: 0.25rem 0.75rem;
     transition: all 0.2s;
+    font-size: 0.95rem;
 }
-
-.menu-item:hover {
-    background-color: var(--emerald-light);
-    color: var(--emerald-dark);
-    transform: translateX(5px);
-}
+.menu-item:hover { background: var(--emerald-light); color: var(--emerald-dark); transform: translateX(5px); }
 
 /* ============================================= */
-/* CALENDARIO */
+/* CALENDARIO (FIX RESPONSIVO) */
 /* ============================================= */
 .day-cell {
+    position: relative;
     aspect-ratio: 1 / 1;
-    min-height: 80px;
-    border-radius: 16px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    transition: all 0.2s;
     border: 1px solid #f3f4f6;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+@media (min-width: 768px) {
+    .day-cell { border-radius: 18px; }
 }
 
 .day-cell:hover:not(.other-month-day) {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    transform: scale(1.05);
+    box-shadow: 0 8px 15px -3px rgba(0,0,0,0.1);
+    z-index: 10;
     border-color: var(--emerald-primary);
 }
 
 .other-month-day {
     background-color: #f9fafb;
     color: #d1d5db;
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .booking-count {
     position: absolute;
-    bottom: 6px;
-    right: 6px;
-    background-color: var(--emerald-primary);
+    bottom: 2px;
+    right: 2px;
+    background: var(--emerald-primary);
     color: white;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     font-weight: 900;
-    padding: 2px 6px;
-    border-radius: 8px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+@media (min-width: 768px) {
+    .booking-count { width: 22px; height: 22px; font-size: 0.75rem; bottom: 6px; right: 6px; }
+}
+
 /* ============================================= */
-/* MODALES GENERALES */
+/* TARJETAS DE PRODUCTO (BUFFET) */
+/* ============================================= */
+.product-card {
+    background: white;
+    border-radius: 24px;
+    padding: 1.25rem;
+    border: 1px solid #f3f4f6;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 25px -5px rgba(0,0,0,0.05);
+}
+
+.stock-badge {
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+.stock-low { background: #fee2e2; color: #991b1b; }
+.stock-ok { background: #dcfce7; color: #166534; }
+
+/* Botones de acción en tarjeta */
+.card-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-top: 0.5rem;
+}
+
+.card-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 4px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    transition: all 0.2s;
+    background: #f9fafb;
+    color: #4b5563;
+    border: 1px solid #f3f4f6;
+}
+.card-action-btn:hover { background: #f3f4f6; color: #111827; }
+.card-action-btn svg { width: 14px; height: 14px; }
+
+/* ============================================= */
+/* HISTORIAL DE TRANSACCIONES */
+/* ============================================= */
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: #f9fafb;
+    border-left: 4px solid #d1d5db;
+    font-size: 0.85rem;
+}
+.history-type-in { border-left-color: #10b981; background: #ecfdf5; }
+.history-type-out { border-left-color: #ef4444; background: #fef2f2; }
+.history-type-adj { border-left-color: #3b82f6; background: #eff6ff; }
+
+/* ============================================= */
+/* MODALES (FIX PARA MÓVILES) */
 /* ============================================= */
 .modal {
     display: none;
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    z-index: 150;
-    animation: fadeIn 0.2s ease-out;
+    z-index: 2000;
+}
+.modal.is-open { display: flex; }
+
+.modal > div {
+    max-height: 92vh;
+    overflow-y: auto;
+    width: 100%;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.modal.is-open {
-    display: flex;
-}
+/* Ocultar barra de scroll en modales pero mantener funcionalidad */
+.modal > div::-webkit-scrollbar { display: none; }
+.modal > div { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* ============================================= */
-/* COMPONENTES DE RESERVA (CANCHA / HORARIOS) */
+/* COMPONENTES DE RESERVAS */
 /* ============================================= */
 .time-slot-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: 6px;
 }
-
 .time-slot {
-    padding: 10px 4px;
+    padding: 8px 2px;
     border: 2px solid #e5e7eb;
     border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.8rem;
+    font-weight: 800;
+    font-size: 0.7rem;
     text-align: center;
     cursor: pointer;
+    background: white;
     transition: all 0.2s;
 }
+.time-slot.selected { background: var(--emerald-primary); color: white; border-color: var(--emerald-dark); }
+.time-slot.disabled { background: #f3f4f6; color: #d1d5db; text-decoration: line-through; border-color: #f3f4f6; cursor: not-allowed; }
 
-.time-slot:hover:not(.disabled) {
-    border-color: var(--emerald-primary);
-    background-color: var(--emerald-light);
-}
-
-.time-slot.selected {
-    background-color: var(--emerald-primary);
-    color: white;
-    border-color: var(--emerald-dark);
-    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
-}
-
-.time-slot.disabled {
-    background-color: #f3f4f6;
-    color: #d1d5db;
-    text-decoration: line-through;
-    cursor: not-allowed;
-    border-color: #f3f4f6;
-}
+/* Switch de Recurrencia */
+.switch { position: relative; display: inline-block; width: 44px; height: 22px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #d1d5db; transition: .4s; border-radius: 20px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background: var(--emerald-primary); }
+input:checked + .slider:before { transform: translateX(22px); }
 
 /* ============================================= */
-/* INTERRUPTOR (SWITCH) */
+/* BOTONES MODERNOS Y UTILIDADES */
 /* ============================================= */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 48px;
-    height: 24px;
+.modern-btn {
+    border-radius: 16px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.85rem;
+}
+.modern-btn:active { transform: scale(0.95); }
+
+/* Para evitar superposición de datos largos */
+.truncate-custom {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #d1d5db;
-    transition: .4s;
-    border-radius: 24px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: var(--emerald-primary);
-}
-
-input:checked + .slider:before {
-    transform: translateX(24px);
-}
-
-/* ============================================= */
-/* RECURRENCIA (DÍAS Y MESES) */
-/* ============================================= */
-.day-selector-grid {
+/* Grillas de Recurrencia */
+.day-selector-grid, .month-selector-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
 }
-
-.month-selector-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-}
+.day-selector-grid { grid-template-columns: repeat(4, 1fr); }
+.month-selector-grid { grid-template-columns: repeat(3, 1fr); }
 
 .day-toggle-btn, .month-toggle-btn {
-    padding: 12px 6px;
-    font-size: 0.75rem;
+    padding: 10px 4px;
+    font-size: 0.7rem;
     font-weight: 800;
     border: 2px solid #e5e7eb;
     border-radius: 12px;
     background: white;
     transition: all 0.2s;
 }
-
 .day-toggle-btn.selected, .month-toggle-btn.selected {
     background-color: var(--emerald-primary);
     color: white;
     border-color: var(--emerald-dark);
 }
 
-/* ============================================= */
-/* INVENTARIO Y PRODUCTOS */
-/* ============================================= */
-.product-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 24px;
-    border: 1px solid #f3f4f6;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-    transition: all 0.3s;
+/* Mensajes de carga */
+#message-overlay div {
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-}
-
-.stock-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.stock-low { background-color: #fee2e2; color: #991b1b; }
-.stock-ok { background-color: #dcfce7; color: #166534; }
-
-/* ============================================= */
-/* BUSCADOR DE VENTAS */
-/* ============================================= */
-.sale-result-item {
-    padding: 12px 16px;
-    background-color: #f9fafb;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid transparent;
-}
-
-.sale-result-item:hover {
-    background-color: var(--emerald-light);
-    border-color: var(--emerald-primary);
-}
-
-/* ============================================= */
-/* BOTONES MODERNOS */
-/* ============================================= */
-.modern-btn {
-    border-radius: 16px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.modern-btn:active {
-    transform: scale(0.95);
-}
-
-/* ============================================= */
-/* CAJA Y LOGS */
-/* ============================================= */
-.data-card {
-    background-color: white;
-    border-radius: 20px;
-    padding: 1rem;
-    border: 1px solid #f3f4f6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s;
-}
-
-.data-card:hover {
-    transform: scale(1.01);
-    border-color: var(--emerald-primary);
-}
-
-/* Sugerencias de clientes */
-#teamName-suggestions {
-    display: none;
-    max-height: 200px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-}
-
-.suggestion-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.suggestion-item:hover {
-    background-color: var(--emerald-light);
-    color: var(--emerald-primary);
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
