@@ -14,7 +14,6 @@ import {
     doc, 
     setDoc, 
     addDoc,
-    updateDoc,
     deleteDoc, 
     collection, 
     query, 
@@ -24,8 +23,7 @@ import {
     documentId,
     Timestamp, 
     orderBy, 
-    getDoc,
-    writeBatch
+    getDoc 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // -----------------------------------------------------------------
@@ -44,10 +42,7 @@ const firebaseConfig = {
 const bookingsCollectionPath = "bookings"; 
 const customersCollectionPath = "customers";
 const logCollectionPath = "booking_log"; 
-const settingsDocPath = "app_settings/prices"; 
-const productsCollectionPath = "products"; // Kiosco
-const salesCollectionPath = "sales"; // Ventas Kiosco
-const transactionsCollectionPath = "product_transactions"; // Logs Kiosco
+const settingsDocPath = "app_settings/prices"; // Para Configuración
 
 // --- CONSTANTES DE LA APP ---
 const OPERATING_HOURS = [
@@ -61,8 +56,6 @@ let userEmail = null;
 let currentMonthDate = new Date();
 let currentBookingsUnsubscribe = null;
 let allMonthBookings = []; 
-let allProducts = [];
-let currentSelectedProduct = null;
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 // Precios por defecto (fallback)
@@ -85,8 +78,7 @@ const views = {
     caja: document.getElementById('caja-view'),
     stats: document.getElementById('stats-view'),
     historial: document.getElementById('historial-view'),
-    configuracion: document.getElementById('config-view'),
-    productos: document.getElementById('productos-view') 
+    configuracion: document.getElementById('config-view') 
 };
 
 // Calendario
@@ -106,18 +98,19 @@ const registerForm = document.getElementById('register-form');
 
 // Referencias de Caja
 const cajaDailyList = document.getElementById('caja-daily-list');
-const cajaTotalCombined = document.getElementById('caja-total-combined');
-const cajaTotalBookings = document.getElementById('caja-total-bookings');
-const cajaTotalSales = document.getElementById('caja-total-sales');
+const cajaTotal = document.getElementById('caja-total');
 const cajaDateFrom = document.getElementById('caja-date-from');
 const cajaDateTo = document.getElementById('caja-date-to');
 const cajaFilterBtn = document.getElementById('caja-filter-btn');
-
 // Referencias de Estadísticas
 const statsList = document.getElementById('stats-list');
+const statsDateFrom = document.getElementById('stats-date-from');
+const statsDateTo = document.getElementById('stats-date-to');
 const statsFilterBtn = document.getElementById('stats-filter-btn');
 // Referencias de Historial
 const historialList = document.getElementById('historial-list');
+const historialDateFrom = document.getElementById('historial-date-from');
+const historialDateTo = document.getElementById('historial-date-to');
 const historialFilterBtn = document.getElementById('historial-filter-btn');
 // Referencias de Modales
 const typeModal = document.getElementById('type-modal'); 
@@ -125,6 +118,7 @@ const bookingModal = document.getElementById('booking-modal');
 const eventModal = document.getElementById('event-modal'); 
 const optionsModal = document.getElementById('options-modal');
 const viewModal = document.getElementById('view-modal');
+const cajaDetailModal = document.getElementById('caja-detail-modal');
 const deleteReasonModal = document.getElementById('delete-reason-modal'); 
 const messageOverlay = document.getElementById('message-overlay');
 const messageText = document.getElementById('message-text');
@@ -141,6 +135,11 @@ const grillHoursList = document.getElementById('grill-hours-list');
 const bookingTotal = document.getElementById('booking-total');
 // Referencias de Formulario Evento
 const eventForm = document.getElementById('event-form');
+const eventBookingIdInput = document.getElementById('event-booking-id'); 
+const eventDateInput = document.getElementById('event-date'); 
+const eventNameInput = document.getElementById('eventName');
+const contactPersonInput = document.getElementById('contactPerson');
+const contactPhoneInput = document.getElementById('contactPhone');
 const eventCostPerHourInput = document.getElementById('eventCostPerHour');
 const eventHoursList = document.getElementById('event-hours-list');
 const eventTotal = document.getElementById('event-total');
@@ -155,18 +154,6 @@ const configCourt1Price = document.getElementById('config-court1-price');
 const configCourt2Price = document.getElementById('config-court2-price');
 const configGrillPrice = document.getElementById('config-grill-price');
 const configEventPrice = document.getElementById('config-event-price');
-
-// Referencias Kiosco (PRODUCTOS)
-const productForm = document.getElementById('product-form');
-const productList = document.getElementById('product-list');
-const inventorySearchInput = document.getElementById('inventory-search-input');
-const restockModal = document.getElementById('restock-modal');
-const restockForm = document.getElementById('restock-form');
-const saleModal = document.getElementById('sale-modal');
-const saleSearchInput = document.getElementById('sale-search-input');
-const saleSearchResults = document.getElementById('sale-search-results');
-const selectedProductInfo = document.getElementById('selected-product-info');
-const confirmSaleBtn = document.getElementById('confirm-sale-btn');
 
 
 // --- INICIALIZACIÓN ---
@@ -207,7 +194,6 @@ async function firebaseInit() {
                 userEmailDisplay.textContent = userEmail;
                 
                 await loadBookingsForMonth(); 
-                syncProducts(); // Inicia Kiosco
             } else {
                 console.log("Sin usuario, mostrando login.");
                 userId = null;
@@ -220,7 +206,6 @@ async function firebaseInit() {
                     currentBookingsUnsubscribe = null;
                 }
                 allMonthBookings = [];
-                hideMessage();
             }
         });
     } catch (error) {
@@ -291,11 +276,9 @@ function setupEventListeners() {
         showEventModal(dateStr);
     };
     document.getElementById('type-btn-cancel').onclick = closeModals;
-    
     cajaFilterBtn.onclick = loadCajaData;
     statsFilterBtn.onclick = loadStatsData; 
     historialFilterBtn.onclick = loadHistorialData; 
-    
     teamNameInput.oninput = handleTeamNameInput;
     teamNameInput.onblur = () => { setTimeout(() => { teamNameSuggestions.style.display = 'none'; }, 200); };
     teamNameInput.onfocus = handleTeamNameInput;
@@ -315,37 +298,7 @@ function setupEventListeners() {
     eventCostPerHourInput.oninput = updateEventTotalPrice;
     deleteReasonForm.onsubmit = handleConfirmDelete;
     document.getElementById('cancel-delete-btn').onclick = closeModals;
-
-    // --- NUEVOS LISTENERS PARA VENTA Y KIOSCO ---
-    document.getElementById('add-product-btn').onclick = () => {
-        document.getElementById('product-form-container').classList.toggle('is-hidden');
-    };
-    document.getElementById('cancel-product-btn').onclick = () => {
-        document.getElementById('product-form-container').classList.add('is-hidden');
-    };
-    if (productForm) productForm.onsubmit = handleSaveProduct;
-    if (inventorySearchInput) inventorySearchInput.oninput = (e) => renderProducts(e.target.value);
-    
-    // Cálculos dinámicos (Bulto y Márgenes)
-    ['prod-batch-cost', 'prod-batch-qty', 'prod-profit-pct'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.oninput = calculateProductPrices;
-    });
-
-    // Venta Rápida
-    document.getElementById('header-sale-btn').onclick = openSaleModal;
-    if (saleSearchInput) saleSearchInput.oninput = handleSaleSearch;
-    document.getElementById('sale-qty-minus').onclick = () => updateSaleQty(-1);
-    document.getElementById('sale-qty-plus').onclick = () => updateSaleQty(1);
-    if (confirmSaleBtn) confirmSaleBtn.onclick = handleConfirmSale;
-    document.getElementById('close-sale-modal-btn').onclick = closeModals;
-
-    // Reposición y Edición
-    if (restockForm) restockForm.onsubmit = handleConfirmRestock;
-    document.getElementById('edit-product-form').onsubmit = handleConfirmEditProduct;
-
-    // Cierre de modales por fondo
-    [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, restockModal, saleModal].forEach(modal => {
+    [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal].forEach(modal => {
         if(modal) { 
             modal.onclick = (e) => {
                 if (e.target === modal) closeModals();
@@ -365,28 +318,33 @@ function showView(viewName) {
     for (const key in views) {
         if (views[key]) views[key].classList.add('is-hidden');
     }
+    
     const viewToShow = views[viewName];
     if (viewToShow) {
         viewToShow.classList.remove('is-hidden');
+        
         if (viewName === 'caja') loadCajaData();
         else if (viewName === 'stats') loadStatsData();
         else if (viewName === 'historial') loadHistorialData();
         else if (viewName === 'configuracion') loadConfigDataIntoForm(); 
-        else if (viewName === 'productos') syncProducts();
+    } else {
+        console.warn(`Vista "${viewName}" no encontrada.`);
     }
 }
 
-// --- LÓGICA DE AUTENTICACIÓN (ORIGINAL) ---
+// --- LÓGICA DE AUTENTICACIÓN ---
 
 async function handleLogin(e) {
     e.preventDefault();
     showMessage("Ingresando...");
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+    
     try {
         await signInWithEmailAndPassword(auth, email, password);
         hideMessage();
     } catch (error) {
+        console.error("Error de login:", error.code, error.message);
         showMessage(`Error: ${error.message}`, true);
         setTimeout(hideMessage, 3000);
     }
@@ -397,10 +355,12 @@ async function handleRegister(e) {
     showMessage("Creando cuenta...");
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
+    
     try {
         await createUserWithEmailAndPassword(auth, email, password);
         hideMessage();
     } catch (error) {
+        console.error("Error de registro:", error.code, error.message);
         showMessage(`Error: ${error.message}`, true);
         setTimeout(hideMessage, 3000);
     }
@@ -409,6 +369,7 @@ async function handleRegister(e) {
 async function handleLogout() {
     try {
         await signOut(auth);
+        console.log("Usuario cerró sesión");
     } catch (error) {
         console.error("Error al cerrar sesión:", error);
     }
@@ -421,18 +382,24 @@ async function loadAppSettings() {
     try {
         const docRef = doc(db, settingsDocPath);
         const docSnap = await getDoc(docRef);
+
         if (docSnap.exists()) {
+            console.log("Configuración de precios cargada desde Firestore.");
             appSettings = docSnap.data();
         } else {
+            console.warn("No se encontró config de precios. Creando una nueva...");
             await setDoc(docRef, appSettings); 
         }
     } catch (error) {
-        console.error("Error al cargar configuración:", error);
+        console.error("Error al cargar la configuración de precios:", error);
     }
 }
 
 function loadConfigDataIntoForm() {
-    if (!configCourt1Price) return;
+    if (!configCourt1Price) {
+        console.warn("Formulario de configuración no encontrado en el HTML.");
+        return;
+    }
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
     configGrillPrice.value = appSettings.grillPrice;
@@ -442,194 +409,31 @@ function loadConfigDataIntoForm() {
 async function handleSaveConfig(e) {
     e.preventDefault();
     showMessage("Guardando configuración...");
+    
     const newSettings = {
         court1Price: parseFloat(configCourt1Price.value) || 0,
         court2Price: parseFloat(configCourt2Price.value) || 0,
         grillPrice: parseFloat(configGrillPrice.value) || 0,
         eventPrice: parseFloat(configEventPrice.value) || 0
     };
+
     try {
-        await setDoc(doc(db, settingsDocPath), newSettings);
+        const docRef = doc(db, settingsDocPath);
+        await setDoc(docRef, newSettings);
+        
         appSettings = newSettings;
+        
         showMessage("¡Precios actualizados!", false);
         setTimeout(hideMessage, 1500);
+
     } catch (error) {
+        console.error("Error al guardar configuración:", error);
         showMessage(`Error: ${error.message}`, true);
     }
 }
 
-// --- LÓGICA DE KIOSCO (NUEVA) ---
 
-/**
- * REPOSICIÓN DIRECTA: Actualiza todo el stock (viejo + nuevo) al último precio cargado.
- */
-async function handleConfirmRestock(e) {
-    e.preventDefault();
-    const id = document.getElementById('restock-prod-id').value;
-    const addQty = parseInt(document.getElementById('restock-qty').value);
-    const batchCost = parseFloat(document.getElementById('restock-batch-cost').value);
-    
-    // Nuevo costo unitario del lote
-    const newUnitCost = batchCost / addQty;
-    
-    const product = allProducts.find(x => x.id === id);
-    const newTotalStock = product.stock + addQty;
-
-    // Recalcular precio sugerido con el margen actual del producto
-    const currentMargin = product.salePrice / product.unitCost;
-    const newSalePrice = Math.ceil(newUnitCost * currentMargin);
-
-    try {
-        showMessage("Actualizando precios de todo el stock...");
-        await updateDoc(doc(db, productsCollectionPath, id), {
-            stock: newTotalStock,
-            unitCost: newUnitCost, // Se actualiza todo al último costo
-            salePrice: newSalePrice
-        });
-
-        await logKioscoTransaction(id, `Reposición (+${addQty})`, addQty, newUnitCost, 'in');
-        closeModals();
-        showMessage("Inventario actualizado.");
-        setTimeout(hideMessage, 1500);
-    } catch (err) { alert(err.message); }
-}
-
-async function logKioscoTransaction(productId, desc, qty, cost, type) {
-    await addDoc(collection(db, transactionsCollectionPath), {
-        productId, desc, qty, cost, type, timestamp: Timestamp.now()
-    });
-}
-
-function calculateProductPrices() {
-    const cost = parseFloat(document.getElementById('prod-batch-cost')?.value) || 0;
-    const qty = parseInt(document.getElementById('prod-batch-qty')?.value) || 1;
-    const profitPct = parseFloat(document.getElementById('prod-profit-pct')?.value) || 40;
-    
-    const unit = cost / qty;
-    const sale = Math.ceil(unit * (1 + (profitPct / 100)));
-    
-    const suggestedPriceEl = document.getElementById('prod-suggested-price');
-    if (suggestedPriceEl) suggestedPriceEl.textContent = `$${sale}`;
-    const unitCostHidden = document.getElementById('prod-unit-cost');
-    if (unitCostHidden) unitCostHidden.value = unit;
-}
-
-async function handleSaveProduct(e) {
-    e.preventDefault();
-    const name = document.getElementById('prod-name').value.trim();
-    const stock = parseInt(document.getElementById('prod-stock').value);
-    const unitCost = parseFloat(document.getElementById('prod-unit-cost').value);
-    const salePrice = parseFloat(document.getElementById('prod-suggested-price').textContent.replace('$', ''));
-
-    try {
-        const ref = await addDoc(collection(db, productsCollectionPath), {
-            name, stock, unitCost, salePrice, createdAt: Timestamp.now()
-        });
-        await logKioscoTransaction(ref.id, 'Alta Inicial', stock, unitCost, 'in');
-        e.target.reset();
-        document.getElementById('product-form-container').classList.add('is-hidden');
-        showMessage("Producto guardado.");
-        setTimeout(hideMessage, 1000);
-    } catch (err) { alert(err.message); }
-}
-
-function syncProducts() {
-    onSnapshot(collection(db, productsCollectionPath), (snap) => {
-        allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderProducts(inventorySearchInput?.value || "");
-    });
-}
-
-function renderProducts(filter = "") {
-    if (!productList) return;
-    productList.innerHTML = '';
-    const filtered = allProducts.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
-    
-    filtered.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'product-card bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col gap-4';
-        div.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div><h4 class="font-black text-xl leading-tight">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} mt-1 inline-block">Stock: ${p.stock}</span></div>
-                <div class="text-right"><p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Venta</p><p class="text-2xl font-black text-emerald-600 tracking-tighter">$${p.salePrice}</p></div>
-            </div>
-            <div class="card-actions-grid grid grid-cols-2 gap-2 mt-2">
-                <button class="card-action-btn p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-xs" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                <button class="card-action-btn p-3 bg-gray-50 text-gray-700 rounded-xl font-bold text-xs" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                <button class="card-action-btn p-3 bg-gray-50 text-gray-700 rounded-xl font-bold text-xs" onclick="window.openEditProduct('${p.id}')">✏️ EDITAR</button>
-                <button class="card-action-btn p-3 bg-red-50 text-red-500 rounded-xl font-bold text-xs" onclick="window.deleteProduct('${p.id}')">🗑️</button>
-            </div>
-        `;
-        productList.appendChild(div);
-    });
-}
-
-// --- VENTA RÁPIDA KIOSCO ---
-
-function openSaleModal() {
-    saleSearchInput.value = '';
-    saleSearchResults.innerHTML = '';
-    selectedProductInfo.classList.add('is-hidden');
-    confirmSaleBtn.disabled = true;
-    saleModal.classList.add('is-open');
-    setTimeout(() => saleSearchInput.focus(), 100);
-}
-
-function handleSaleSearch() {
-    const val = saleSearchInput.value.toLowerCase();
-    if (val.length < 2) { saleSearchResults.innerHTML = ''; return; }
-    saleSearchResults.innerHTML = '';
-    allProducts.filter(p => p.name.toLowerCase().includes(val)).forEach(p => {
-        const item = document.createElement('div');
-        item.className = 'p-4 bg-gray-50 rounded-2xl flex justify-between cursor-pointer hover:bg-emerald-50 mb-2 transition-all';
-        item.innerHTML = `<div><span class="font-black text-gray-800">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase">STOCK: ${p.stock}</p></div><strong class="text-emerald-600">$${p.salePrice}</strong>`;
-        item.onclick = () => {
-            currentSelectedProduct = p;
-            document.getElementById('sel-prod-name').textContent = p.name;
-            document.getElementById('sel-prod-stock').textContent = p.stock;
-            document.getElementById('sel-prod-price').textContent = `$${p.salePrice}`;
-            document.getElementById('sale-qty-input').value = 1;
-            selectedProductInfo.classList.remove('is-hidden');
-            confirmSaleBtn.disabled = (p.stock <= 0);
-            updateSaleTotal();
-        };
-        saleSearchResults.appendChild(item);
-    });
-}
-
-function updateSaleQty(d) {
-    const input = document.getElementById('sale-qty-input');
-    let val = parseInt(input.value) + d;
-    if (val < 1) val = 1;
-    if (val > currentSelectedProduct.stock) val = currentSelectedProduct.stock;
-    input.value = val;
-    updateSaleTotal();
-}
-
-function updateSaleTotal() {
-    const qty = parseInt(document.getElementById('sale-qty-input').value);
-    const total = qty * currentSelectedProduct.salePrice;
-    document.getElementById('sale-total-display').textContent = `$${total.toLocaleString('es-AR')}`;
-}
-
-async function handleConfirmSale() {
-    const qty = parseInt(document.getElementById('sale-qty-input').value);
-    const total = qty * currentSelectedProduct.salePrice;
-    try {
-        showMessage("Registrando cobro...");
-        await addDoc(collection(db, salesCollectionPath), {
-            name: currentSelectedProduct.name, qty, total, day: new Date().toISOString().split('T')[0], monthYear: new Date().toISOString().substring(0, 7), timestamp: Timestamp.now()
-        });
-        await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
-        await logKioscoTransaction(currentSelectedProduct.id, 'Venta Kiosco', qty, currentSelectedProduct.unitCost, 'out');
-        closeModals();
-        showMessage("¡Venta completada!");
-        setTimeout(hideMessage, 1500);
-    } catch (err) { alert(err.message); }
-}
-
-
-// --- LÓGICA DE FIREBASE (LOGGING ORIGINAL) ---
+// --- LÓGICA DE FIREBASE (LOGGING) ---
 
 async function logBookingEvent(action, bookingData, reason = null) {
     try {
@@ -648,13 +452,15 @@ async function logBookingEvent(action, bookingData, reason = null) {
         }
 
         await addDoc(collection(db, logCollectionPath), logData);
+        console.log(`Evento '${action}' (${logData.type}) registrado por ${userEmail}.`);
+        
     } catch (error) {
-        console.error("Error al registrar historial:", error);
+        console.error("Error al registrar evento en historial:", error);
     }
 }
 
 
-// --- LÓGICA DE FIREBASE (RESERVAS ORIGINAL) ---
+// --- LÓGICA DE FIREBASE (RESERVAS) ---
 
 async function loadBookingsForMonth() {
     if (!db || !userId) return; 
@@ -669,8 +475,12 @@ async function loadBookingsForMonth() {
         renderCalendar();
         hideMessage();
     }, (error) => {
-        console.error("Error onSnapshot:", error);
-        hideMessage();
+        console.error("Error al obtener reservas (onSnapshot):", error);
+        if (error.code === 'permission-denied' || error.code === 'unauthenticated') {
+             console.warn("Permiso denegado. Probablemente el usuario cerró sesión.");
+        } else {
+             showMessage(`Error al cargar datos: ${error.message}`, true);
+        }
     });
 }
 
@@ -678,6 +488,7 @@ async function handleSaveBooking(event) {
     event.preventDefault();
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
+    saveButton.textContent = "Guardando...";
     showMessage("Guardando Cancha...");
 
     const bookingId = document.getElementById('booking-id').value;
@@ -688,9 +499,10 @@ async function handleSaveBooking(event) {
     const selectedGrillHours = Array.from(grillHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
     if (selectedCourtHours.length === 0) {
-        showMessage("Elegí al menos un horario.", true);
+        showMessage("Debes seleccionar al menos un horario de cancha.", true);
         setTimeout(hideMessage, 2000); 
         saveButton.disabled = false;
+        saveButton.textContent = "Guardar";
         return;
     }
 
@@ -712,19 +524,21 @@ async function handleSaveBooking(event) {
 
     try {
         let action = '';
-        let finalData; 
+        let finalBookingDataForLog; 
 
         if (bookingId) {
             await setDoc(doc(db, bookingsCollectionPath, bookingId), bookingDataBase, { merge: true });
             action = 'updated';
-            finalData = { id: bookingId, ...bookingDataBase }; 
+            finalBookingDataForLog = { id: bookingId, ...bookingDataBase }; 
+            console.log("Reserva (cancha) actualizada:", bookingId);
         } else {
             const docRef = await addDoc(collection(db, bookingsCollectionPath), bookingDataBase);
             action = 'created';
-            finalData = { id: docRef.id, ...bookingDataBase }; 
+            finalBookingDataForLog = { id: docRef.id, ...bookingDataBase }; 
+            console.log("Reserva (cancha) creada:", docRef.id);
         }
         
-        await logBookingEvent(action, finalData);
+        await logBookingEvent(action, finalBookingDataForLog);
         await saveCustomer(teamName); 
         
         showMessage("¡Reserva Guardada!", false);
@@ -732,9 +546,11 @@ async function handleSaveBooking(event) {
         setTimeout(hideMessage, 1500); 
 
     } catch (error) {
+        console.error("Error al guardar reserva (cancha):", error);
         showMessage(`Error al guardar: ${error.message}`, true);
     } finally {
         saveButton.disabled = false;
+        saveButton.textContent = "Guardar";
     }
 }
 
@@ -742,29 +558,31 @@ async function handleSaveEvent(event) {
     event.preventDefault();
     const saveButton = eventForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
+    saveButton.textContent = "Guardando...";
     showMessage("Guardando Evento...");
 
-    const bookingId = document.getElementById('event-booking-id')?.value || ''; 
-    const dateStr = document.getElementById('event-date')?.value || '';
+    const bookingId = eventBookingIdInput.value; 
+    const dateStr = eventDateInput.value;
 
-    const selectedEventHours = Array.from(document.getElementById('event-hours-list').querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
+    const selectedEventHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
     
     if (selectedEventHours.length === 0) {
-        showMessage("Elegí al menos un horario.", true);
+        showMessage("Debes seleccionar al menos un horario para el evento.", true);
         setTimeout(hideMessage, 2000); 
         saveButton.disabled = false; 
+        saveButton.textContent = "Guardar Evento";
         return;
     }
 
     const eventDataBase = {
         type: 'event', 
-        teamName: document.getElementById('eventName').value.trim(), 
-        contactPerson: document.getElementById('contactPerson').value.trim(),
-        contactPhone: document.getElementById('contactPhone').value.trim(),
-        costPerHour: parseFloat(document.getElementById('eventCostPerHour')?.value || 10000), 
+        teamName: eventNameInput.value.trim(), 
+        contactPerson: contactPersonInput.value.trim(),
+        contactPhone: contactPhoneInput.value.trim(),
+        costPerHour: parseFloat(eventCostPerHourInput.value), 
         day: dateStr,
         monthYear: dateStr.substring(0, 7),
-        paymentMethod: document.querySelector('input[name="eventPaymentMethod"]:checked')?.value || 'efectivo',
+        paymentMethod: document.querySelector('input[name="eventPaymentMethod"]:checked').value,
         courtHours: selectedEventHours, 
         totalPrice: updateEventTotalPrice(), 
         peopleCount: 0,
@@ -776,19 +594,21 @@ async function handleSaveEvent(event) {
 
     try {
         let action = '';
-        let finalData; 
+        let finalBookingDataForLog; 
 
         if (bookingId) {
             await setDoc(doc(db, bookingsCollectionPath, bookingId), eventDataBase, { merge: true });
             action = 'updated';
-            finalData = { id: bookingId, ...eventDataBase };
+            finalBookingDataForLog = { id: bookingId, ...eventDataBase };
+            console.log("Reserva (evento) actualizada:", bookingId);
         } else {
             const docRef = await addDoc(collection(db, bookingsCollectionPath), eventDataBase);
             action = 'created';
-            finalData = { id: docRef.id, ...eventDataBase };
+            finalBookingDataForLog = { id: docRef.id, ...eventDataBase };
+            console.log("Reserva (evento) creada:", docRef.id);
         }
         
-        await logBookingEvent(action, finalData);
+        await logBookingEvent(action, finalBookingDataForLog);
         await saveCustomer(eventDataBase.teamName); 
         
         showMessage("¡Evento Guardado!", false);
@@ -796,9 +616,11 @@ async function handleSaveEvent(event) {
         setTimeout(hideMessage, 1500);
         
     } catch (error) {
+        console.error("Error al guardar reserva (evento):", error);
         showMessage(`Error al guardar: ${error.message}`, true);
     } finally {
         saveButton.disabled = false;
+        saveButton.textContent = "Guardar Evento";
     }
 }
 
@@ -807,6 +629,7 @@ function handleDeleteBooking(bookingId) {
     deleteBookingIdInput.value = bookingId; 
     deleteReasonText.value = ''; 
     deleteReasonModal.classList.add('is-open'); 
+    console.log("Solicitando motivo para eliminar:", bookingId);
 }
 
 
@@ -815,7 +638,11 @@ async function handleConfirmDelete(event) {
     const bookingId = deleteBookingIdInput.value;
     const reason = deleteReasonText.value.trim();
 
-    if (!bookingId || !reason) return;
+    if (!bookingId) return;
+    if (!reason) {
+        alert("Por favor, ingresa un motivo para eliminar."); 
+        return;
+    }
 
     showMessage("Eliminando...");
 
@@ -823,38 +650,44 @@ async function handleConfirmDelete(event) {
         const bookingRef = doc(db, bookingsCollectionPath, bookingId);
         const bookingSnapshot = await getDoc(bookingRef); 
         
-        let dataToLog = null;
+        let bookingDataToLog = null;
         if (bookingSnapshot.exists()) { 
-             dataToLog = { id: bookingSnapshot.id, ...bookingSnapshot.data() };
+             bookingDataToLog = { id: bookingSnapshot.id, ...bookingSnapshot.data() };
         } else {
-            dataToLog = allMonthBookings.find(b => b.id === bookingId);
+            bookingDataToLog = allMonthBookings.find(b => b.id === bookingId);
+            if (!bookingDataToLog) throw new Error("No se encontró la reserva para registrar.");
         }
 
-        await logBookingEvent('deleted', dataToLog, reason);
+        await logBookingEvent('deleted', bookingDataToLog, reason);
         await deleteDoc(bookingRef);
+        console.log("Reserva eliminada:", bookingId);
 
         closeModals();
-        showMessage("¡Eliminado!", false); 
+        showMessage("¡Reserva Eliminada!", false); 
         setTimeout(hideMessage, 1500); 
 
     } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
+        console.error("Error al confirmar eliminación:", error);
+        showMessage(`Error al eliminar: ${error.message}`, true);
         closeModals(); 
     }
 }
 
 
-// --- LÓGICA DE FIREBASE (CLIENTES ORIGINAL) ---
+// --- LÓGICA DE FIREBASE (CLIENTES) ---
 async function saveCustomer(name) {
     if (!name) return;
     try {
         const customerId = name.trim().toLowerCase();
+        if (!customerId) return; 
         const docRef = doc(db, customersCollectionPath, customerId);
         await setDoc(docRef, { 
             name: name.trim(),
             lastBooked: new Date().toISOString()
         }, { merge: true });
-    } catch (error) { console.error(error); }
+    } catch (error) {
+        console.error("Error al guardar cliente:", error);
+    }
 }
 
 async function handleTeamNameInput() {
@@ -872,12 +705,17 @@ async function handleTeamNameInput() {
         const snapshot = await getDocs(q);
         const suggestions = snapshot.docs.map(doc => doc.data().name);
         renderSuggestions(suggestions);
-    } catch (error) { console.error(error); }
+    } catch (error) {
+        console.error("Error al buscar clientes:", error);
+    }
 }
 
 function renderSuggestions(suggestions) {
     teamNameSuggestions.innerHTML = '';
-    if (suggestions.length === 0) { teamNameSuggestions.style.display = 'none'; return; }
+    if (suggestions.length === 0) {
+        teamNameSuggestions.style.display = 'none';
+        return;
+    }
     suggestions.forEach(name => {
         const item = document.createElement('div');
         item.className = 'suggestion-item';
@@ -908,162 +746,673 @@ function renderCalendar() {
     const bookingsByDay = {};
     allMonthBookings.forEach(booking => {
         const day = parseInt(booking.day.split('-')[2], 10);
-        if (!bookingsByDay[day]) bookingsByDay[day] = { court: 0, event: 0 };
-        booking.type === 'event' ? bookingsByDay[day].event++ : bookingsByDay[day].court++;
+        if (!bookingsByDay[day]) {
+            bookingsByDay[day] = { court: 0, event: 0 };
+        }
+        if (booking.type === 'event') {
+            bookingsByDay[day].event++;
+        } else {
+            bookingsByDay[day].court++;
+        }
     });
 
     const daysInPrevMonth = new Date(year, month, 0).getDate();
     for (let i = 0; i < firstDayOfMonth; i++) calendarGrid.appendChild(createDayCell(daysInPrevMonth - firstDayOfMonth + 1 + i, false));
     for (let i = 1; i <= daysInMonth; i++) {
-        const data = bookingsByDay[i] || { court: 0, event: 0 };
-        calendarGrid.appendChild(createDayCell(i, true, data.court, data.event));
+        const dayData = bookingsByDay[i] || { court: 0, event: 0 };
+        calendarGrid.appendChild(createDayCell(i, true, dayData.court, dayData.event));
     }
+    const totalCells = firstDayOfMonth + daysInMonth;
+    const remainingCells = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
+    for (let i = 1; i <= remainingCells; i++) calendarGrid.appendChild(createDayCell(i, false));
 }
 
 function createDayCell(dayNum, isCurrentMonth, courtCount = 0, eventCount = 0) {
     const dayCell = document.createElement('div');
-    dayCell.className = `relative h-20 md:h-28 border border-gray-200 p-2 day-cell`;
+    dayCell.className = `relative h-20 md:h-28 border border-gray-200 p-2 shadow-sm transition-all duration-200 day-cell`;
     
     if (isCurrentMonth) {
         const dateStr = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+        dayCell.dataset.date = dateStr;
         dayCell.onclick = () => handleDayClick(dateStr);
-        dayCell.innerHTML = `<span class="text-sm font-black text-gray-700">${dayNum}</span>`;
 
         if (eventCount > 0) {
+            dayCell.classList.add('day-cell-locked');
+            dayCell.innerHTML = `<span class="text-sm font-medium text-amber-800">${dayNum}</span>`;
             const countBadge = document.createElement('span');
             countBadge.textContent = eventCount;
             countBadge.className = 'booking-count event'; 
             dayCell.appendChild(countBadge);
         } else if (courtCount > 0) {
+            dayCell.classList.add('bg-white', 'cursor-pointer');
+            dayCell.innerHTML = `<span class="text-sm font-medium text-gray-700">${dayNum}</span>`;
             const countBadge = document.createElement('span');
             countBadge.textContent = courtCount;
             countBadge.className = 'booking-count'; 
             dayCell.appendChild(countBadge);
+        } else {
+            dayCell.classList.add('bg-white', 'cursor-pointer');
+            dayCell.innerHTML = `<span class="text-sm font-medium text-gray-700">${dayNum}</span>`;
         }
     } else {
-        dayCell.classList.add('other-month-day', 'opacity-20');
+        dayCell.classList.add('other-month-day');
         dayCell.innerHTML = `<span class="text-sm">${dayNum}</span>`;
     }
     return dayCell;
 }
 
 function handleDayClick(dateStr) {
-    const dayBks = allMonthBookings.filter(b => b.day === dateStr);
-    const ev = dayBks.find(b => b.type === 'event'); 
-    const courts = dayBks.filter(b => b.type === 'court');
+    const bookingsOnDay = allMonthBookings.filter(b => b.day === dateStr);
+    const eventOnDay = bookingsOnDay.find(b => b.type === 'event'); 
+    const courtBookings = bookingsOnDay.filter(b => b.type === 'court');
 
-    if (ev) showEventOptionsModal(ev);
-    else if (courts.length > 0) showOptionsModal(dateStr, courts);
-    else { typeModal.dataset.date = dateStr; typeModal.classList.add('is-open'); }
-}
-
-
-// --- LÓGICA DE CAJA UNIFICADA ---
-
-async function loadCajaData() {
-    if (!db) return;
-    showMessage("Consultando balance unificado...");
-    const from = cajaDateFrom.value;
-    const to = cajaDateTo.value;
-    if (!from || !to) return;
-    try {
-        const qB = query(collection(db, bookingsCollectionPath), where("day", ">=", from), where("day", "<=", to));
-        const qS = query(collection(db, salesCollectionPath), where("day", ">=", from), where("day", "<=", to));
-        
-        const [snapB, snapS] = await Promise.all([getDocs(qB), getDocs(qS)]);
-        
-        let totalB = 0; snapB.forEach(d => totalB += (d.data().totalPrice || 0));
-        let totalS = 0; snapS.forEach(d => totalS += (d.data().total || 0));
-
-        cajaTotalBookings.textContent = `$${totalB.toLocaleString('es-AR')}`;
-        cajaTotalSales.textContent = `$${totalS.toLocaleString('es-AR')}`;
-        cajaTotalCombined.textContent = `$${(totalB + totalS).toLocaleString('es-AR')}`;
-        
-        hideMessage();
-    } catch (error) { console.error(error); hideMessage(); }
-}
-
-// Inyecciones Globales para botones dinámicos
-window.viewBooking = async (id) => {
-    const s = await getDoc(doc(db, bookingsCollectionPath, id));
-    if (s.exists()) {
-        const b = s.data();
-        document.getElementById('view-booking-details').innerHTML = `
-            <h4 class="text-2xl font-black text-emerald-800">${b.teamName}</h4>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${b.courtId || 'Evento'}</p>
-            <div class="mt-4 border-t pt-4 space-y-1">
-                <p>Pago: <strong>${b.paymentMethod}</strong></p>
-                <p class="text-xl font-black text-emerald-600">Total: $${b.totalPrice?.toLocaleString()}</p>
-            </div>`;
-        viewModal.classList.add('is-open');
+    if (eventOnDay) {
+        showEventOptionsModal(eventOnDay);
+    } else if (courtBookings.length > 0) {
+        showOptionsModal(dateStr, courtBookings);
+    } else {
+        typeModal.dataset.date = dateStr; 
+        typeModal.classList.add('is-open');
     }
-};
-
-window.deleteBooking = (id) => handleDeleteBooking(id);
-window.deleteProduct = async (id) => { if (confirm("¿Eliminar de inventario?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
-
-window.openRestock = (id) => {
-    const p = allProducts.find(x => x.id === id);
-    document.getElementById('restock-prod-id').value = id;
-    document.getElementById('restock-name').textContent = p.name;
-    document.getElementById('restock-current-stock').textContent = p.stock;
-    restockModal.classList.add('is-open');
-};
-
-window.openHistory = async (id) => {
-    const p = allProducts.find(x => x.id === id);
-    document.getElementById('history-product-name').textContent = p.name;
-    const s = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
-    const list = document.getElementById('product-history-list'); list.innerHTML = '';
-    s.forEach(d => {
-        const t = d.data();
-        const date = t.timestamp.toDate().toLocaleString();
-        const item = document.createElement('div');
-        item.className = 'p-3 bg-gray-50 rounded-xl mb-2 flex justify-between items-center';
-        item.innerHTML = `<div><p class="font-bold text-sm">${t.desc}</p><p class="text-[9px] uppercase">${date}</p></div><p class="font-black ${t.type==='in'?'text-emerald-600':'text-red-500'}">${t.type==='in'?'+':'-'}${t.qty}</p>`;
-        list.appendChild(item);
-    });
-    document.getElementById('product-history-modal').classList.add('is-open');
-};
-
-window.openEditProduct = (id) => {
-    const p = allProducts.find(x => x.id === id);
-    document.getElementById('edit-prod-id').value = id;
-    document.getElementById('edit-prod-name').value = p.name;
-    document.getElementById('edit-prod-cost').value = p.unitCost;
-    document.getElementById('edit-prod-price').value = p.salePrice;
-    document.getElementById('edit-prod-stock').value = p.stock;
-    document.getElementById('edit-product-modal').classList.add('is-open');
-};
-
-async function handleConfirmEditProduct(e) {
-    e.preventDefault();
-    const id = document.getElementById('edit-prod-id').value;
-    const data = {
-        name: document.getElementById('edit-prod-name').value,
-        unitCost: parseFloat(document.getElementById('edit-prod-cost').value),
-        salePrice: parseFloat(document.getElementById('edit-prod-price').value),
-        stock: parseInt(document.getElementById('edit-prod-stock').value)
-    };
-    await updateDoc(doc(db, productsCollectionPath, id), data);
-    await logKioscoTransaction(id, 'Ajuste Manual', 0, data.unitCost, 'adj');
-    closeModals();
 }
 
 
-// --- OTROS AUXILIARES (NO TOCADOS) ---
-function prevMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() - 1); loadBookingsForMonth(); }
-function nextMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); loadBookingsForMonth(); }
-function showMessage(m) { messageText.textContent = m; messageOverlay.classList.add('is-open'); }
-function hideMessage() { messageOverlay.classList.remove('is-open'); }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-open')); }
-window.hideMessage = hideMessage; window.closeModals = closeModals;
+// --- LÓGICA DE MODALES (RESERVAS) ---
+
+async function showBookingModal(dateStr, bookingToEdit = null) {
+    closeModals();
+    bookingForm.reset();
+    
+    const bookingIdToEdit = bookingToEdit ? bookingToEdit.id : null;
+    bookingForm.dataset.editingId = bookingIdToEdit || ''; 
+
+    document.getElementById('booking-date').value = dateStr;
+    document.querySelector('input[name="paymentMethod"][value="efectivo"]').checked = true;
+    
+    let initialCourtId = 'cancha1';
+    let selectedGrillHours = [];
+
+    if (bookingToEdit) {
+        document.getElementById('booking-modal-title').textContent = "Editar Reserva (Cancha)";
+        document.getElementById('booking-id').value = bookingToEdit.id;
+        document.getElementById('teamName').value = bookingToEdit.teamName;
+        document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
+        costPerHourInput.value = bookingToEdit.costPerHour;
+        rentGrillCheckbox.checked = bookingToEdit.rentGrill;
+        grillCostInput.value = bookingToEdit.grillCost;
+        initialCourtId = bookingToEdit.courtId || 'cancha1'; 
+        const paymentMethod = bookingToEdit.paymentMethod || 'efectivo';
+        document.querySelector(`input[name="paymentMethod"][value="${paymentMethod}"]`).checked = true;
+        selectedGrillHours = bookingToEdit.grillHours || [];
+    } else {
+        document.getElementById('booking-modal-title').textContent = `Reservar Cancha (${dateStr})`;
+        document.getElementById('booking-id').value = '';
+        // Cargar precios desde la config global
+        costPerHourInput.value = appSettings.court1Price; 
+        grillCostInput.value = appSettings.grillPrice; 
+        rentGrillCheckbox.checked = false;
+    }
+
+    document.querySelector(`input[name="courtSelection"][value="${initialCourtId}"]`).checked = true;
+
+    updateCourtAvailability(); 
+    
+    const occupiedGrillHours = new Set();
+    allMonthBookings.filter(
+        b => b.day === dateStr && b.id !== bookingIdToEdit && b.rentGrill
+    ).forEach(booking => booking.grillHours.forEach(hour => occupiedGrillHours.add(hour)));
+
+    const initialGrillHours = bookingToEdit ? selectedGrillHours : getCurrentlySelectedHours(courtHoursList);
+    renderTimeSlots(grillHoursList, occupiedGrillHours, initialGrillHours);
+    
+    grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
+    updateTotalPrice();
+    bookingModal.classList.add('is-open');
+}
+
+function getCurrentlySelectedHours(containerEl) {
+    return Array.from(containerEl.querySelectorAll('.time-slot.selected'))
+                .map(el => parseInt(el.dataset.hour, 10));
+}
 
 function updateCourtAvailability() {
-    const ds = document.getElementById('booking-date').value; const ci = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    costPerHourInput.value = ci === 'cancha1' ? appSettings.court1Price : appSettings.court2Price;
-    const occ = new Set(); allMonthBookings.filter(b => b.day === ds && b.courtId === ci).forEach(b => b.courtHours?.forEach(h => occ.add(h)));
-    renderTimeSlots(courtHoursList, occ, []); updateTotalPrice();
+    const dateStr = document.getElementById('booking-date').value;
+    const bookingIdToEdit = bookingForm.dataset.editingId;
+    const selectedCourt = document.querySelector('input[name="courtSelection"]:checked').value;
+    
+    if (selectedCourt === 'cancha1') {
+        costPerHourInput.value = appSettings.court1Price;
+    } else {
+        costPerHourInput.value = appSettings.court2Price;
+    }
+
+    const currentlySelectedHours = getCurrentlySelectedHours(courtHoursList);
+    
+    const occupiedCourtHours = new Set();
+    allMonthBookings.filter(
+        b => b.day === dateStr &&
+             b.id !== bookingIdToEdit &&
+             b.type === 'court' &&
+             b.courtId === selectedCourt
+    ).forEach(booking => booking.courtHours.forEach(hour => occupiedCourtHours.add(hour)));
+
+    renderTimeSlots(courtHoursList, occupiedCourtHours, currentlySelectedHours);
+    updateTotalPrice();
 }
 
-console.log("Sistema cargado al 100%.");
+
+function showEventModal(dateStr, eventToEdit = null) {
+    closeModals();
+    eventForm.reset();
+    
+    const occupiedHours = new Set(); 
+    let selectedHours = [];
+    
+    eventDateInput.value = dateStr;
+    document.querySelector('input[name="eventPaymentMethod"][value="efectivo"]').checked = true;
+    
+    if (eventToEdit) {
+        document.getElementById('event-modal-title').textContent = `Editar Evento (${dateStr})`;
+        eventBookingIdInput.value = eventToEdit.id;
+        eventNameInput.value = eventToEdit.teamName; 
+        contactPersonInput.value = eventToEdit.contactPerson;
+        contactPhoneInput.value = eventToEdit.contactPhone;
+        eventCostPerHourInput.value = eventToEdit.costPerHour; 
+        const paymentMethod = eventToEdit.paymentMethod || 'efectivo';
+        document.querySelector(`input[name="eventPaymentMethod"][value="${paymentMethod}"]`).checked = true;
+        selectedHours = eventToEdit.courtHours || []; 
+    } else {
+        document.getElementById('event-modal-title').textContent = `Reservar Evento (${dateStr})`;
+        eventBookingIdInput.value = '';
+        eventCostPerHourInput.value = appSettings.eventPrice; // Cargar precio desde config
+    }
+
+    renderTimeSlots(eventHoursList, occupiedHours, selectedHours);
+    updateEventTotalPrice();
+    eventModal.classList.add('is-open');
+}
+
+
+function renderTimeSlots(containerEl, occupiedHours, selectedHours) {
+    containerEl.innerHTML = '';
+    OPERATING_HOURS.forEach(hour => {
+        const slot = document.createElement('button');
+        slot.type = "button"; 
+        slot.className = 'time-slot';
+        slot.textContent = `${hour}:00`;
+        slot.dataset.hour = hour;
+        if (occupiedHours.has(hour)) {
+            slot.classList.add('disabled');
+            slot.disabled = true;
+        } else if (selectedHours.includes(hour)) {
+            slot.classList.add('selected');
+        }
+        if (!slot.disabled) {
+            slot.onclick = (e) => {
+                e.preventDefault();
+                e.target.classList.toggle('selected');
+                if (bookingModal.classList.contains('is-open')) {
+                    updateTotalPrice();
+                } else if (eventModal.classList.contains('is-open')) {
+                    updateEventTotalPrice();
+                }
+            };
+        }
+        containerEl.appendChild(slot);
+    });
+}
+
+function updateTotalPrice() {
+    const costCancha = parseFloat(costPerHourInput.value) || 0;
+    const costParrilla = parseFloat(grillCostInput.value) || 0;
+    const selectedCourtHours = courtHoursList.querySelectorAll('.time-slot.selected').length;
+    const selectedGrillHours = grillHoursList.querySelectorAll('.time-slot.selected').length;
+    const isGrillRented = rentGrillCheckbox.checked;
+    const totalCancha = selectedCourtHours * costCancha;
+    const totalParrilla = isGrillRented ? (selectedGrillHours * costParrilla) : 0;
+    const totalFinal = totalCancha + totalParrilla;
+    bookingTotal.textContent = `$${totalFinal.toLocaleString('es-AR')}`;
+    return totalFinal; 
+}
+
+function updateEventTotalPrice() {
+    const costEvento = parseFloat(eventCostPerHourInput.value) || 0;
+    const selectedEventHours = eventHoursList.querySelectorAll('.time-slot.selected').length;
+    const totalFinal = selectedEventHours * costEvento;
+    eventTotal.textContent = `$${totalFinal.toLocaleString('es-AR')}`;
+    return totalFinal; 
+}
+
+
+function showOptionsModal(dateStr, courtBookings) {
+    closeModals();
+    optionsModal.dataset.date = dateStr;
+    const listEl = document.getElementById('daily-bookings-list');
+    listEl.innerHTML = '';
+    
+    if (courtBookings.length === 0) {
+        listEl.innerHTML = '<p class="text-gray-500">No hay reservas de cancha para este día.</p>';
+    }
+    
+    courtBookings.forEach(booking => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'p-3 bg-gray-50 rounded-lg border flex justify-between items-center';
+        const courtName = booking.courtId === 'cancha2' ? ' (Cancha 2)' : ' (Cancha 1)';
+        itemEl.innerHTML = `<span class="font-medium">${booking.teamName}${courtName}</span>`;
+        
+        const buttonsEl = document.createElement('div');
+        buttonsEl.className = 'flex gap-2';
+        buttonsEl.innerHTML = `
+            <button class="btn-view px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-md">Ver</button>
+            <button class="btn-edit px-3 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-md">Editar</button>
+            <button class="btn-delete px-3 py-1 text-xs bg-red-100 text-red-800 rounded-md">Eliminar</button>
+        `;
+        buttonsEl.querySelector('.btn-view').onclick = () => showViewModal(booking);
+        buttonsEl.querySelector('.btn-edit').onclick = () => showBookingModal(dateStr, booking); 
+        buttonsEl.querySelector('.btn-delete').onclick = () => handleDeleteBooking(booking.id); 
+        itemEl.appendChild(buttonsEl);
+        listEl.appendChild(itemEl);
+    });
+    
+    document.getElementById('add-new-booking-btn').style.display = 'block';
+    optionsModal.classList.add('is-open');
+}
+
+function showEventOptionsModal(eventObject) {
+    closeModals();
+    optionsModal.dataset.date = eventObject.day;
+    const listEl = document.getElementById('daily-bookings-list');
+    listEl.innerHTML = ''; 
+
+    const itemEl = document.createElement('div');
+    itemEl.className = 'p-3 bg-amber-50 rounded-lg border border-amber-200 flex justify-between items-center';
+    itemEl.innerHTML = `<span class="font-medium text-amber-800">(EVENTO) ${eventObject.teamName}</span>`;
+    
+    const buttonsEl = document.createElement('div');
+    buttonsEl.className = 'flex gap-2';
+    buttonsEl.innerHTML = `
+        <button class="btn-view px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-md">Ver</button>
+        <button class="btn-edit px-3 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-md">Editar</button>
+        <button class="btn-delete px-3 py-1 text-xs bg-red-100 text-red-800 rounded-md">Eliminar</button>
+    `;
+    buttonsEl.querySelector('.btn-view').onclick = () => showViewModal(eventObject);
+    buttonsEl.querySelector('.btn-edit').onclick = () => showEventModal(eventObject.day, eventObject); 
+    buttonsEl.querySelector('.btn-delete').onclick = () => handleDeleteBooking(eventObject.id); 
+    
+    itemEl.appendChild(buttonsEl);
+    listEl.appendChild(itemEl);
+
+    document.getElementById('add-new-booking-btn').style.display = 'none';
+
+    optionsModal.classList.add('is-open');
+}
+
+function showViewModal(booking) {
+    closeModals();
+    const detailsEl = document.getElementById('view-booking-details');
+    const totalFinal = booking.totalPrice || 0;
+    const courtHoursStr = booking.courtHours?.map(h => `${h}:00`).join(', ') || 'N/A';
+    
+    let html = '';
+    
+    if (booking.type === 'event') {
+        html = `
+            <div class="flex items-center mb-4">
+                <span class="p-3 rounded-xl bg-amber-100 text-amber-600 mr-4">
+                    <svg class="w-6 h-6 icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </span>
+                <div>
+                    <h3 class="text-2xl font-bold text-amber-700">Evento</h3>
+                    <p class="text-lg text-gray-600">${booking.teamName}</p>
+                </div>
+            </div>
+            <div class="space-y-3 text-gray-700">
+                <div class="flex items-center"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> <span>Contacto: ${booking.contactPerson || 'N/A'}</span></div>
+                <div class="flex items-center"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg> <span>Celular: ${booking.contactPhone || 'N/A'}</span></div>
+                <div class="flex items-center"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> <span>Horas: ${courtHoursStr}</span></div>
+                <div class="flex items-center"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> <span>Pago: ${booking.paymentMethod || 'N/A'}</span></div>
+                <hr class="my-3">
+                <div class="flex items-center text-xl font-bold"><svg class="w-6 h-6 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01"></path></svg> <span>Total Pagado: $${totalFinal.toLocaleString('es-AR')}</span></div>
+            </div>
+        `;
+    } else {
+        const courtName = booking.courtId === 'cancha2' ? 'Cancha 2' : 'Cancha 1';
+        const grillHoursStr = booking.rentGrill ? (booking.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : 'No alquilada';
+        
+        html = `
+            <div class="flex items-center mb-4">
+                <span class="p-3 rounded-xl bg-emerald-100 text-emerald-600 mr-4">
+                    <svg class="w-6 h-6 icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1.002c-5.514 0-10 4.02-10 8.996 0 4.975 4.486 8.995 10 8.995s10-4.02 10-8.995c0-4.976-4.486-8.996-10-8.996zm0 16.99c-4.411 0-8-3.585-8-7.995s3.589-7.996 8-7.996 8 3.585 8 7.996-3.589 7.995-8 7.995z"></path><path d="M12 6.002c-3.309 0-6 2.687-6 5.996 0 3.31 2.691 5.995 6 5.995s6-2.685 6-5.995c0-3.309-2.691-5.996-6-5.996zm0 10.99c-2.757 0-5-2.24-5-4.995s2.243-4.996 5-4.996 5 2.24 5 4.996-2.243 4.995-5 4.995z"></path><path d="M11 1.011h2v3.011h-2zM11 17.978h2v3.011h-2zM1.01 11v2h3.01v-2zM17.98 11v2h3.01v-2zM3.52 3.511l1.414 1.414 2.129-2.129-1.414-1.414zM16.93 16.921l1.414 1.414 2.129-2.129-1.414-1.414zM3.51 16.921l2.129 2.129 1.414-1.414-2.129-2.129zM16.92 3.511l2.129 2.129 1.414-1.414-2.129-2.129z"></path></svg>
+                </span>
+                <div>
+                    <h3 class="text-2xl font-bold text-emerald-700">Reserva de Cancha</h3>
+                    <p class="text-lg text-gray-600">${booking.teamName} (${courtName})</p>
+                </div>
+            </div>
+            <div class="space-y-3 text-gray-700">
+                <div class="flex items-center"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-2.39M12 12a3 3 0 100-6 3 3 0 000 6zM6 20h2v-2a3 3 0 015.356-2.39M12 12a3 3 0 100-6 3 3 0 000 6z"></path></svg> <span>Personas: ${booking.peopleCount}</span></div>
+                <div class="flex items-center"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> <span>Horas Cancha: ${courtHoursStr}</span></div>
+                <div class="flex items-center"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7.657 5 12 5s5.657 2.343 5.657 2.343a8 8 0 010 11.314zM12 12v.01"></path></svg> <span>Parrilla: ${grillHoursStr}</span></div>
+                <div class="flex items-center"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> <span>Pago: ${booking.paymentMethod || 'N/A'}</span></div>
+                <hr class="my-3">
+                <div class="flex items-center text-xl font-bold"><svg class="w-6 h-6 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01"></path></svg> <span>Total Pagado: $${totalFinal.toLocaleString('es-AR')}</span></div>
+            </div>
+        `;
+    }
+    detailsEl.innerHTML = html;
+    viewModal.classList.add('is-open');
+}
+
+
+function closeModals() {
+    typeModal.classList.remove('is-open');
+    bookingModal.classList.remove('is-open');
+    eventModal.classList.remove('is-open');
+    optionsModal.classList.remove('is-open');
+    viewModal.classList.remove('is-open');
+    cajaDetailModal.classList.remove('is-open');
+    deleteReasonModal.classList.remove('is-open'); 
+}
+
+
+// --- LÓGICA DE NAVEGACIÓN (CALENDARIO) ---
+function prevMonth() {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+    loadBookingsForMonth();
+}
+function nextMonth() {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+    loadBookingsForMonth();
+}
+
+
+// --- LÓGICA DE VISTA DE CAJA ---
+async function loadCajaData() {
+    if (!db) return;
+    showMessage("Cargando datos de caja...");
+    try {
+        let q = query(collection(db, bookingsCollectionPath));
+        const from = cajaDateFrom.value;
+        const to = cajaDateTo.value;
+        if (from) q = query(q, where("day", ">=", from));
+        if (to) q = query(q, where("day", "<=", to));
+        const snapshot = await getDocs(q);
+        
+        let grandTotal = 0;
+        const dailyTotals = {};
+        
+        snapshot.docs.forEach(doc => {
+            const booking = { id: doc.id, ...doc.data() };
+            const total = booking.totalPrice || 0; 
+            grandTotal += total;
+            const day = booking.day;
+            const paymentMethod = booking.paymentMethod || 'efectivo';
+            if (!dailyTotals[day]) {
+                dailyTotals[day] = { total: 0, efectivo: 0, transferencia: 0, mercadopago: 0, bookings: [] };
+            }
+            dailyTotals[day].total += total;
+            if (dailyTotals[day][paymentMethod] !== undefined) {
+                dailyTotals[day][paymentMethod] += total;
+            }
+            dailyTotals[day].bookings.push(booking); 
+        });
+        
+        cajaTotal.textContent = `$${grandTotal.toLocaleString('es-AR')}`;
+        renderCajaList(dailyTotals);
+        hideMessage();
+    } catch (error) {
+        console.error("Error al cargar datos de caja:", error);
+        showMessage(`Error: ${error.message}. ¿Creaste el índice en Firestore?`, true);
+    }
+}
+
+function renderCajaList(dailyTotals) {
+    cajaDailyList.innerHTML = '';
+    const sortedDays = Object.keys(dailyTotals).sort((a, b) => b.localeCompare(a));
+    if (sortedDays.length === 0) {
+        cajaDailyList.innerHTML = '<p class="text-gray-500 text-center">No hay reservas en el rango.</p>';
+        return;
+    }
+    sortedDays.forEach(day => {
+        const data = dailyTotals[day];
+        const [year, month, dayNum] = day.split('-');
+        const displayDate = `${dayNum}/${month}/${year}`;
+        
+        const item = document.createElement('div');
+        item.className = 'caja-day-item data-card'; // Clase de tarjeta
+        item.innerHTML = `
+            <div class="flex items-center">
+                <div class="data-card-icon bg-emerald-100 text-emerald-600">
+                    <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <strong class="font-semibold text-lg text-gray-800">${displayDate}</strong>
+                    <div class="text-sm text-gray-500">${data.bookings.length} reserva(s)</div>
+                </div>
+            </div>
+            <strong class="text-xl font-bold text-emerald-600">$${data.total.toLocaleString('es-AR')}</strong>
+        `;
+        item.onclick = () => showCajaDetail(displayDate, data);
+        cajaDailyList.appendChild(item);
+    });
+}
+
+function showCajaDetail(displayDate, data) {
+    cajaDetailModal.classList.add('is-open');
+    document.getElementById('caja-detail-title').textContent = `Detalle: ${displayDate}`;
+    const summaryEl = document.getElementById('caja-detail-summary');
+    summaryEl.innerHTML = `
+        <p class="flex justify-between"><span>Efectivo:</span> <strong>$${data.efectivo.toLocaleString('es-AR')}</strong></p>
+        <p class="flex justify-between"><span>Transferencia:</span> <strong>$${data.transferencia.toLocaleString('es-AR')}</strong></p>
+        <p class="flex justify-between"><span>Mercado Pago:</span> <strong>$${data.mercadopago.toLocaleString('es-AR')}</strong></p>
+        <hr class="my-2">
+        <p class="flex justify-between text-lg font-bold"><span>Total Día:</span> <strong>$${data.total.toLocaleString('es-AR')}</strong></p>
+    `;
+    const listEl = document.getElementById('caja-detail-booking-list');
+    listEl.innerHTML = '';
+    if (data.bookings.length === 0) {
+        listEl.innerHTML = '<p class="text-gray-500">No hay detalles de reservas.</p>';
+    } else {
+        data.bookings.forEach(booking => {
+            const total = booking.totalPrice || 0;
+            const item = document.createElement('div');
+            item.className = 'caja-booking-item';
+            let displayName = '';
+            if (booking.type === 'event') {
+                displayName = `(EVENTO) ${booking.teamName}`;
+            } else {
+                const courtName = booking.courtId === 'cancha2' ? ' (C2)' : ' (C1)';
+                displayName = `${booking.teamName}${courtName}`;
+            }
+            item.innerHTML = `
+                <span>${displayName}</span>
+                <span class="font-medium text-gray-600">$${total.toLocaleString('es-AR')} (${booking.paymentMethod})</span>
+            `;
+            listEl.appendChild(item);
+        });
+    }
+}
+
+
+// --- LÓGICA DE VISTA DE ESTADÍSTICAS ---
+async function loadStatsData() {
+    if (!db) return;
+    showMessage("Calculando estadísticas...");
+    try {
+        let q = query(collection(db, bookingsCollectionPath));
+        const from = statsDateFrom.value;
+        const to = statsDateTo.value;
+        if (from) q = query(q, where("day", ">=", from));
+        if (to) q = query(q, where("day", "<=", to));
+        
+        const snapshot = await getDocs(q);
+        const stats = {};
+        
+        snapshot.docs.forEach(doc => {
+            const booking = doc.data();
+            const total = booking.totalPrice || 0;
+            const normalizedName = booking.teamName.trim().toLowerCase();
+            if (normalizedName) { 
+                if (!stats[normalizedName]) {
+                    stats[normalizedName] = { 
+                        name: booking.teamName.trim(), 
+                        count: 0, 
+                        totalSpent: 0 
+                    };
+                }
+                stats[normalizedName].count++;
+                stats[normalizedName].totalSpent += total;
+            }
+        });
+        
+        renderStatsList(stats);
+        hideMessage();
+    } catch (error) {
+        console.error("Error al cargar estadísticas:", error);
+        showMessage(`Error: ${error.message}.`, true);
+    }
+}
+
+function renderStatsList(stats) {
+    statsList.innerHTML = '';
+    const statsArray = Object.values(stats);
+    statsArray.sort((a, b) => b.count - a.count);
+    if (statsArray.length === 0) {
+        statsList.innerHTML = '<p class="text-gray-500 text-center">No hay reservas en el rango.</p>';
+        return;
+    }
+    statsArray.forEach((client, index) => {
+        const item = document.createElement('div');
+        item.className = 'stats-item data-card'; // Clase de tarjeta
+        
+        let iconHtml = '';
+        if (index === 0) { // Primer puesto
+            iconHtml = `<div class="data-card-icon bg-amber-100 text-amber-600"><svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg></div>`;
+        } else {
+            iconHtml = `<div class="data-card-icon bg-gray-100 text-gray-600"><svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`;
+        }
+        
+        item.innerHTML = `
+            <div class="flex items-center">
+                ${iconHtml}
+                <div>
+                    <div class="client-name">${client.name}</div>
+                    <div class="client-count">${client.count} reserva(s)</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="client-total">$${client.totalSpent.toLocaleString('es-AR')}</div>
+                <div class="text-sm text-gray-500">Gastado</div>
+            </div>
+        `;
+        statsList.appendChild(item);
+    });
+}
+
+// --- LÓGICA DE VISTA DE HISTORIAL ---
+
+async function loadHistorialData() {
+    if (!db) return;
+    showMessage("Cargando historial...");
+    try {
+        let q = query(collection(db, logCollectionPath), orderBy("timestamp", "desc")); 
+        const fromDateStr = historialDateFrom.value;
+        const toDateStr = historialDateTo.value;
+        if (fromDateStr) {
+            const fromTimestamp = Timestamp.fromDate(new Date(fromDateStr + "T00:00:00")); 
+            q = query(q, where("timestamp", ">=", fromTimestamp));
+        }
+        if (toDateStr) {
+             const toTimestamp = Timestamp.fromDate(new Date(toDateStr + "T23:59:59")); 
+            q = query(q, where("timestamp", "<=", toTimestamp));
+        }
+        const snapshot = await getDocs(q);
+        const logEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderHistorialList(logEntries);
+        hideMessage();
+    } catch (error) {
+        console.error("Error al cargar historial:", error);
+        showMessage(`Error al cargar historial: ${error.message}. ¿Creaste el índice en Firestore?`, true);
+    }
+}
+
+function renderHistorialList(logEntries) {
+    historialList.innerHTML = '';
+    if (logEntries.length === 0) {
+        historialList.innerHTML = '<p class="text-gray-500 text-center">No hay eventos en el rango seleccionado.</p>';
+        return;
+    }
+    logEntries.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'historial-item data-card'; // Clase de tarjeta
+        const eventDate = entry.timestamp.toDate();
+        const formattedTimestamp = eventDate.toLocaleString('es-AR', { 
+            day: '2-digit', month: '2-digit', year: 'numeric', 
+            hour: '2-digit', minute: '2-digit' 
+        });
+        
+        let statusClass = '', statusText = '', statusIcon = '';
+        switch(entry.action) {
+            case 'created': 
+                statusClass = entry.type === 'event' ? 'event-created' : 'created'; 
+                statusText = entry.type === 'event' ? 'Evento Creado' : 'Reserva Creada';
+                statusIcon = `<svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                break;
+            case 'updated': 
+                statusClass = 'updated'; 
+                statusText = entry.type === 'event' ? 'Evento Actualizado' : 'Reserva Actualizada';
+                statusIcon = `<svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11.418 0a8.001 8.001 0 00-15.356-2H4"></path></svg>`;
+                break;
+            case 'deleted': 
+                statusClass = 'deleted'; 
+                statusText = entry.type === 'event' ? 'Evento Eliminado' : 'Reserva Eliminada';
+                statusIcon = `<svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+                break;
+            default: statusText = entry.action;
+        }
+        
+        const courtName = entry.type === 'court' ? ` (${entry.courtId || 'C1'})` : '';
+        const courtHoursStr = entry.courtHours?.map(h => `${h}:00`).join(', ') || '-';
+        const grillHoursStr = (entry.type === 'court' && entry.rentGrill) ? (entry.grillHours?.map(h => `${h}:00`).join(', ') || 'No usó') : '';
+        const total = entry.totalPrice || 0;
+
+        item.innerHTML = `
+            <div class="flex items-start">
+                <div class="data-card-icon ${statusClass} ${statusClass.replace('-created', '-100').replace('created', 'green-100').replace('updated', 'blue-100').replace('deleted', 'red-100')}">
+                    ${statusIcon}
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <strong class="text-lg text-gray-800">${entry.teamName}${courtName}</strong>
+                            <div class="text-sm text-gray-500">Día: ${entry.day}</div>
+                        </div>
+                        <span class="status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="mt-4 pl-4 border-l-2 border-gray-100">
+                        <div class="text-sm text-gray-700 space-y-2">
+                            <p><strong>Total:</strong> $${total.toLocaleString('es-AR')} (${entry.paymentMethod})</p>
+                            <p><strong>Horas:</strong> ${courtHoursStr}</p>
+                            ${grillHoursStr ? `<p><strong>Horas Parrilla:</strong> ${grillHoursStr}</p>` : ''}
+                            ${entry.type === 'event' ? `<p><strong>Contacto:</strong> ${entry.contactPerson || ''} (${entry.contactPhone || ''})</p>` : ''}
+                             <p class="text-xs text-gray-500">Por: ${entry.loggedByEmail || 'Sistema'}</p> 
+                        </div>
+                        ${entry.action === 'deleted' && entry.reason ? `<div class="reason mt-2">Motivo: ${entry.reason}</div>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        historialList.appendChild(item);
+    });
+}
+
+
+// --- UTILIDADES (MENSAJES) ---
+function showMessage(msg, isError = false) {
+    messageText.textContent = msg;
+    messageText.className = isError ? 'text-xl font-semibold text-red-600' : 'text-xl font-semibold text-gray-700';
+    messageOverlay.classList.add('is-open');
+}
+function hideMessage() {
+    messageOverlay.classList.remove('is-open');
+}
