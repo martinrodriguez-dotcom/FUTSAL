@@ -187,6 +187,7 @@ async function firebaseInit() {
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                console.log("Acceso autorizado para:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
                 await loadAppSettings(); 
@@ -218,7 +219,7 @@ async function firebaseInit() {
 }
 
 // -----------------------------------------------------------------
-// 2. CONFIGURACIÓN DE EVENT LISTENERS (SIN REPETICIONES)
+// 2. CONFIGURACIÓN DE EVENT LISTENERS (SIN REPETICIONES Y EXPLÍCITO)
 // -----------------------------------------------------------------
 
 function setupEventListeners() {
@@ -473,7 +474,7 @@ async function handleLogout() {
 }
 
 // -----------------------------------------------------------------
-// 5. CONFIGURACIÓN Y PRECIOS
+// 5. CONFIGURACIÓN Y PRECIOS (CORREGIDO ERROR CONST)
 // -----------------------------------------------------------------
 
 async function loadAppSettings() {
@@ -494,10 +495,13 @@ function loadConfigDataIntoForm() {
     if (!configCourt1Price) return;
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
-    configGrillPrice = document.getElementById('config-grill-price');
-    if(configGrillPrice) configGrillPrice.value = appSettings.grillPrice;
-    configEventPrice = document.getElementById('config-event-price');
-    if(configEventPrice) configEventPrice.value = appSettings.eventPrice;
+    
+    // CORRECCIÓN: Acceso directo a .value de los elementos DOM existentes
+    const grillEl = document.getElementById('config-grill-price');
+    if(grillEl) grillEl.value = appSettings.grillPrice;
+    
+    const eventEl = document.getElementById('config-event-price');
+    if(eventEl) eventEl.value = appSettings.eventPrice;
 }
 
 async function handleSaveConfig(e) {
@@ -616,7 +620,7 @@ function renderTimeSlots(container, occupied, selected) {
 }
 
 // -----------------------------------------------------------------
-// 7. PERSISTENCIA DE RESERVAS
+// 7. CARGA DE DATOS Y GUARDADO DE RESERVAS (FULL LOGIC)
 // -----------------------------------------------------------------
 
 async function loadBookingsForMonth() {
@@ -718,7 +722,7 @@ async function handleSaveEvent(event) {
 async function handleSaveRecurringBooking(event) {
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
-    showMessage("Generando serie...");
+    showMessage("Generando serie de turnos...");
 
     const teamName = document.getElementById('teamName').value.trim();
     const courtId = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
@@ -766,7 +770,7 @@ async function handleConfirmDelete(event) {
         if (snap.exists()) {
             await logBookingEvent('deleted', { id: snap.id, ...snap.data() }, reason);
             await deleteDoc(ref);
-            showMessage("Anulado con éxito.");
+            showMessage("Reserva anulada.");
         }
         closeModals(); setTimeout(hideMessage, 1500); 
     } catch (error) { showMessage(error.message, true); }
@@ -800,7 +804,7 @@ async function handleConfirmSale() {
         });
         await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
         await logKioscoTransaction(currentSelectedProduct.id, `Venta (${method})`, qty, currentSelectedProduct.unitCost, 'out');
-        closeModals(); showMessage("¡Operación Exitosa!"); setTimeout(hideMessage, 1500);
+        closeModals(); showMessage("¡Venta completada!"); setTimeout(hideMessage, 1500);
     } catch (e) { alert(e.message); }
 }
 
@@ -811,15 +815,13 @@ async function handleConfirmRestock(e) {
     const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
     const nUnit = bCost / addQ;
     const p = allProducts.find(x => x.id === id);
-    const nSale = Math.ceil(nUnit * 1.40);
+    const nSale = Math.ceil(nUnit * 1.40); // 40% margen sobre reposición
 
     try {
-        showMessage("Sincronizando costos...");
-        await updateDoc(doc(db, productsCollectionPath, id), { 
-            stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale 
-        });
+        showMessage("Sincronizando precios...");
+        await updateDoc(doc(db, productsCollectionPath, id), { stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale });
         await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnit, 'in');
-        closeModals(); showMessage("¡Todo el inventario actualizado!"); setTimeout(hideMessage, 2000);
+        closeModals(); showMessage("¡Todo el stock actualizado!"); setTimeout(hideMessage, 2000);
     } catch (err) { alert(err.message); }
 }
 
@@ -830,12 +832,10 @@ async function handleSaveProduct(e) {
     const uc = parseFloat(document.getElementById('prod-unit-cost').value);
     const sp = parseFloat(document.getElementById('prod-suggested-price').textContent.replace('$', ''));
     try {
-        const r = await addDoc(collection(db, productsCollectionPath), { 
-            name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail
-        });
+        const r = await addDoc(collection(db, productsCollectionPath), { name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail });
         await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
         e.target.reset(); document.getElementById('product-form-container')?.classList.add('is-hidden');
-        showMessage("Ficha guardada."); setTimeout(hideMessage, 1500);
+        showMessage("Ficha creada."); setTimeout(hideMessage, 1500);
     } catch (err) { alert(err.message); }
 }
 
@@ -845,8 +845,8 @@ function calculateProductPrices() {
     const margin = parseFloat(document.getElementById('prod-profit-pct').value) || 40;
     const u = cost / qty;
     const s = Math.ceil(u * (1 + (margin / 100)));
-    const disp = document.getElementById('prod-suggested-price'); if(disp) disp.textContent = `$${s}`;
-    const hidden = document.getElementById('prod-unit-cost'); if(hidden) hidden.value = u;
+    document.getElementById('prod-suggested-price').textContent = `$${s}`;
+    document.getElementById('prod-unit-cost').value = u;
 }
 
 function syncProducts() {
@@ -860,25 +860,14 @@ function renderProducts(f = "") {
     if (!productList) return;
     productList.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
-        const d = document.createElement('div');
-        d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
-        d.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4>
-                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Stock: ${p.stock} un.</span>
-                </div>
-                <div class="text-right">
-                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Precio</p>
-                    <p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mt-2">
-                <button class="p-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
-                <button class="p-3 bg-red-50 text-red-500 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
-            </div>`;
+        const d = document.createElement('div'); d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4';
+        d.innerHTML = `<div class="flex justify-between items-start"><div><h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase">Stock: ${p.stock} un.</span></div><div class="text-right"><p class="text-[8px] font-bold text-gray-400">P. Venta</p><p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic tracking-tighter">$${p.salePrice}</p></div></div>
+                       <div class="grid grid-cols-2 gap-2 mt-2">
+                           <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
+                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
+                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
+                           <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
+                       </div>`;
         productList.appendChild(d);
     });
 }
@@ -897,8 +886,7 @@ function handleSaleSearch() {
     if(!saleSearchResults) return;
     saleSearchResults.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
-        const i = document.createElement('div');
-        i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
+        const i = document.createElement('div'); i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
         i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
         i.onclick = () => {
             currentSelectedProduct = p; 
@@ -929,9 +917,7 @@ function updateSaleTotal() {
 }
 
 async function logKioscoTransaction(productId, desc, qty, cost, type) {
-    await addDoc(collection(db, transactionsCollectionPath), { 
-        productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail 
-    });
+    await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail });
 }
 
 // -----------------------------------------------------------------
@@ -1063,7 +1049,7 @@ function renderCalendar() {
         const cell = document.createElement('div');
         cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
         
-        // Número de día en negro sólido para visibilidad (REPARADO)
+        // Número de día en negro sólido e itálico para visibilidad máxima (RESTAURADO)
         cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter'>${i}</span>`;
         
         if (bks.length > 0) {
@@ -1250,16 +1236,16 @@ function renderRecurringModal() {
 }
 
 function selectRecurringDay(btn) { 
-    const grid = document.querySelector('.day-selector-grid');
-    if(!grid) return;
-    grid.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); 
+    const dayGrid = document.querySelector('.day-selector-grid');
+    if(!dayGrid) return;
+    dayGrid.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); 
     btn.classList.add('selected'); 
 }
 
 function saveRecurringSettings() {
     const dBtn = document.querySelector('.day-toggle-btn.selected'); 
     const mBtns = document.querySelectorAll('.month-toggle-btn.selected');
-    if (!dBtn || !mBtns || mBtns.length === 0) return alert("Elige día y meses.");
+    if (!dBtn || !mBtns || mBtns.length === 0) return alert("Selecciona día y meses.");
     recurringSettings.dayOfWeek = parseInt(dBtn.dataset.day, 10);
     recurringSettings.months = Array.from(mBtns).map(b => ({ month: b.dataset.month, year: b.dataset.year, name: b.textContent }));
     if(recurringSummary) { recurringSummary.textContent = `Serie activa: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]}.`; recurringSummary.classList.remove('is-hidden'); }
