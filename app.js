@@ -66,108 +66,100 @@ let appSettings = { court1Price: 5000, court2Price: 5000, grillPrice: 2000, even
 let recurringSettings = { dayOfWeek: null, months: [] };
 
 // --- REFERENCIAS AL DOM ---
-const loginView = document.getElementById('login-view');
-const registerView = document.getElementById('register-view');
-const appContainer = document.getElementById('app-container');
+const getEl = (id) => document.getElementById(id);
+
+const loginView = getEl('login-view');
+const registerView = getEl('register-view');
+const appContainer = getEl('app-container');
 
 const views = {
-    calendar: document.getElementById('calendar-view'),
-    caja: document.getElementById('caja-view'),
-    stats: document.getElementById('stats-view'),
-    historial: document.getElementById('historial-view'),
-    configuracion: document.getElementById('config-view'),
-    productos: document.getElementById('productos-view') 
+    calendar: getEl('calendar-view'),
+    caja: getEl('caja-view'),
+    stats: getEl('stats-view'),
+    historial: getEl('historial-view'),
+    configuracion: getEl('config-view'),
+    productos: getEl('productos-view') 
 };
 
-const calendarGrid = document.getElementById('calendar-grid');
-const currentMonthYearEl = document.getElementById('current-month-year');
-const menuBtn = document.getElementById('menu-btn');
-const mainMenu = document.getElementById('main-menu');
-const menuOverlay = document.getElementById('menu-overlay');
-const userEmailDisplay = document.getElementById('user-email-display'); 
-const logoutBtn = document.getElementById('logout-btn'); 
+const calendarGrid = getEl('calendar-grid');
+const currentMonthYearEl = getEl('current-month-year');
+const menuBtn = getEl('menu-btn');
+const mainMenu = getEl('main-menu');
+const menuOverlay = getEl('menu-overlay');
+const userEmailDisplay = getEl('user-email-display'); 
+const logoutBtn = getEl('logout-btn'); 
 
-const loginForm = document.getElementById('login-form');
-const registerForm = document.getElementById('register-form');
+const loginForm = getEl('login-form');
+const registerForm = getEl('register-form');
 
-const cajaDailyList = document.getElementById('caja-daily-list');
-const cajaTotalCombined = document.getElementById('caja-total-combined');
-const cajaTotalBookings = document.getElementById('caja-total-bookings');
-const cajaTotalSales = document.getElementById('caja-total-sales');
-const cajaDateFrom = document.getElementById('caja-date-from');
-const cajaDateTo = document.getElementById('caja-date-to');
-const cajaFilterBtn = document.getElementById('caja-filter-btn');
+const cajaDailyList = getEl('caja-daily-list');
+const cajaTotalCombined = getEl('caja-total-combined');
+const cajaTotalBookings = getEl('caja-total-bookings');
+const cajaTotalSales = getEl('caja-total-sales');
+const cajaDateFrom = getEl('caja-date-from');
+const cajaDateTo = getEl('caja-date-to');
+const cajaFilterBtn = getEl('caja-filter-btn');
 
-const statsList = document.getElementById('stats-list');
-const statsDateFrom = document.getElementById('stats-date-from');
-const statsDateTo = document.getElementById('stats-date-to');
-const statsFilterBtn = document.getElementById('stats-filter-btn');
+const statsList = getEl('stats-list');
+const historialList = getEl('historial-list');
 
-const historialList = document.getElementById('historial-list');
-const historialDateFrom = document.getElementById('historial-date-from');
-const historialDateTo = document.getElementById('historial-date-to');
-const historialFilterBtn = document.getElementById('historial-filter-btn');
+const typeModal = getEl('type-modal'); 
+const bookingModal = getEl('booking-modal');
+const eventModal = getEl('event-modal'); 
+const optionsModal = getEl('options-modal');
+const viewModal = getEl('view-modal');
+const cajaDetailModal = getEl('caja-detail-modal');
+const deleteReasonModal = getEl('delete-reason-modal'); 
+const recurringModal = getEl('recurring-modal'); 
+const messageOverlay = getEl('message-overlay');
 
-const typeModal = document.getElementById('type-modal'); 
-const bookingModal = document.getElementById('booking-modal');
-const eventModal = document.getElementById('event-modal'); 
-const optionsModal = document.getElementById('options-modal');
-const viewModal = document.getElementById('view-modal');
-const cajaDetailModal = document.getElementById('caja-detail-modal');
-const deleteReasonModal = document.getElementById('delete-reason-modal'); 
-const recurringModal = document.getElementById('recurring-modal'); 
-const messageOverlay = document.getElementById('message-overlay');
+const bookingForm = getEl('booking-form');
+const teamNameInput = getEl('teamName');
+const teamNameSuggestions = getEl('teamName-suggestions');
+const costPerHourInput = getEl('costPerHour');
+const grillCostInput = getEl('grillCost');
+const rentGrillCheckbox = getEl('rentGrill');
+const grillHoursSection = getEl('grill-hours-section');
+const courtHoursList = getEl('court-hours-list');
+const grillHoursList = getEl('grill-hours-list');
+const bookingTotal = getEl('booking-total');
+const recurringToggle = getEl('recurring-toggle'); 
+const recurringSummary = getEl('recurring-summary'); 
 
-const bookingForm = document.getElementById('booking-form');
-const teamNameInput = document.getElementById('teamName');
-const teamNameSuggestions = document.getElementById('teamName-suggestions');
-const costPerHourInput = document.getElementById('costPerHour');
-const grillCostInput = document.getElementById('grillCost');
-const rentGrillCheckbox = document.getElementById('rentGrill');
-const grillHoursSection = document.getElementById('grill-hours-section');
-const courtHoursList = document.getElementById('court-hours-list');
-const grillHoursList = document.getElementById('grill-hours-list');
-const bookingTotal = document.getElementById('booking-total');
-const recurringToggle = document.getElementById('recurring-toggle'); 
-const recurringSummary = document.getElementById('recurring-summary'); 
+const eventForm = getEl('event-form');
+const eventBookingIdInput = getEl('event-booking-id'); 
+const eventDateInput = getEl('event-date'); 
+const eventNameInput = getEl('eventName');
+const contactPersonInput = getEl('contactPerson');
+const contactPhoneInput = getEl('contactPhone');
+const eventCostPerHourInput = getEl('eventCostPerHour');
+const eventHoursList = getEl('event-hours-list');
+const eventTotal = getEl('event-total');
 
-const eventForm = document.getElementById('event-form');
-const eventBookingIdInput = document.getElementById('event-booking-id'); 
-const eventDateInput = document.getElementById('event-date'); 
-const eventNameInput = document.getElementById('eventName');
-const contactPersonInput = document.getElementById('contactPerson');
-const contactPhoneInput = document.getElementById('contactPhone');
-const eventCostPerHourInput = document.getElementById('eventCostPerHour');
-const eventHoursList = document.getElementById('event-hours-list');
-const eventTotal = document.getElementById('event-total');
+const deleteReasonForm = getEl('delete-reason-form');
+const deleteReasonText = getEl('delete-reason-text');
+const deleteBookingIdInput = getEl('delete-booking-id');
 
-const deleteReasonForm = document.getElementById('delete-reason-form');
-const deleteReasonText = document.getElementById('delete-reason-text');
-const deleteBookingIdInput = document.getElementById('delete-booking-id');
+const configForm = getEl('config-form');
+const configCourt1Price = getEl('config-court1-price');
+const configCourt2Price = getEl('config-court2-price');
+const configGrillPrice = getEl('config-grill-price');
+const configEventPrice = getEl('config-event-price');
 
-const configForm = document.getElementById('config-form');
-const configCourt1Price = document.getElementById('config-court1-price');
-const configCourt2Price = document.getElementById('config-court2-price');
-const configGrillPrice = document.getElementById('config-grill-price');
-const configEventPrice = document.getElementById('config-event-price');
-
-const recurringDayGrid = document.querySelector('.day-selector-grid');
-const recurringMonthList = document.getElementById('recurring-month-list');
-
-const productForm = document.getElementById('product-form');
-const productList = document.getElementById('product-list');
-const inventorySearchInput = document.getElementById('inventory-search-input');
-const restockForm = document.getElementById('restock-form');
-const saleModal = document.getElementById('sale-modal');
-const saleSearchInput = document.getElementById('sale-search-input');
-const saleSearchResults = document.getElementById('sale-search-results');
-const selectedProductInfo = document.getElementById('selected-product-info');
-const confirmSaleBtn = document.getElementById('confirm-sale-btn');
+const productForm = getEl('product-form');
+const productList = getEl('product-list');
+const inventorySearchInput = getEl('inventory-search-input');
+const restockForm = getEl('restock-form');
+const saleModal = getEl('sale-modal');
+const saleSearchInput = getEl('sale-search-input');
+const saleSearchResults = getEl('sale-search-results');
+const selectedProductInfo = getEl('selected-product-info');
+const confirmSaleBtn = getEl('confirm-sale-btn');
 
 // --- INICIALIZACIÓN ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Cargado. Iniciando Cerebro v2026...");
+    console.log("DOM Cargado. Iniciando Cerebro v2026 Pro...");
     setupEventListeners();
     registerServiceWorker();
     firebaseInit();
@@ -294,8 +286,8 @@ function setupEventListeners() {
     safeBind('type-btn-cancel', 'onclick', closeModals);
 
     if (cajaFilterBtn) cajaFilterBtn.onclick = loadCajaData;
-    if (statsFilterBtn) statsFilterBtn.onclick = loadStatsData;
-    if (historialFilterBtn) historialFilterBtn.onclick = loadHistorialData;
+    safeBind('stats-filter-btn', 'onclick', loadStatsData);
+    safeBind('historial-filter-btn', 'onclick', loadHistorialData);
 
     if (teamNameInput) {
         teamNameInput.oninput = handleTeamNameInput;
@@ -333,8 +325,10 @@ function setupEventListeners() {
     });
     
     safeBind('confirm-recurring-btn', 'onclick', saveRecurringSettings);
-    if (recurringDayGrid) {
-        recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => {
+    
+    const dayGrid = document.querySelector('.day-selector-grid');
+    if (dayGrid) {
+        dayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => {
             btn.onclick = (e) => selectRecurringDay(e.currentTarget);
         });
     }
@@ -407,7 +401,7 @@ function showView(viewName) {
 
 async function handleLogin(e) {
     e.preventDefault();
-    showMessage("Validando acceso...");
+    showMessage("Validando credenciales...");
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     try {
@@ -421,7 +415,7 @@ async function handleLogin(e) {
 
 async function handleRegister(e) {
     e.preventDefault();
-    showMessage("Registrando administrador...");
+    showMessage("Creando cuenta de administrador...");
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
     try {
@@ -469,7 +463,7 @@ function loadConfigDataIntoForm() {
 
 async function handleSaveConfig(e) {
     e.preventDefault();
-    showMessage("Sincronizando tarifas...");
+    showMessage("Actualizando tarifas...");
     const newSettings = {
         court1Price: parseFloat(configCourt1Price.value) || 0,
         court2Price: parseFloat(configCourt2Price.value) || 0,
@@ -579,7 +573,7 @@ function renderTimeSlots(container, occupied, selected) {
 
 async function loadBookingsForMonth() {
     if (!db || !userId) return; 
-    showMessage("Sincronizando...");
+    showMessage("Sincronizando calendario...");
     if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
     const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
     const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
@@ -605,7 +599,7 @@ async function handleSaveBooking(event) {
 async function handleSaveSingleBooking(event) {
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
-    showMessage("Registrando...");
+    showMessage("Guardando Turno...");
 
     const bookingId = document.getElementById('booking-id').value;
     const dateStr = document.getElementById('booking-date').value;
@@ -613,7 +607,7 @@ async function handleSaveSingleBooking(event) {
     const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
     if (selectedHours.length === 0) {
-        showMessage("Elegí horarios.", true);
+        showMessage("Elegí al menos una hora.", true);
         setTimeout(hideMessage, 2000); 
         saveButton.disabled = false;
         return;
@@ -645,14 +639,16 @@ async function handleSaveSingleBooking(event) {
         if (bookingId) await logBookingEvent(action, { id: bookingId, ...data });
         
         await saveCustomer(teamName); 
-        showMessage("¡Listo!"); closeModals(); setTimeout(hideMessage, 1500); 
+        showMessage("¡Turno guardado!");
+        closeModals(); 
+        setTimeout(hideMessage, 1500); 
     } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
 }
 
 async function handleSaveRecurringBooking(event) {
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
-    showMessage("Creando serie...");
+    showMessage("Registrando ciclo...");
 
     const teamName = document.getElementById('teamName').value.trim();
     const courtId = document.querySelector('input[name="courtSelection"]:checked').value;
@@ -682,7 +678,7 @@ async function handleSaveRecurringBooking(event) {
             await logBookingEvent('created-recurring', data);
         }
         await batch.commit();
-        showMessage(`¡Serie creada! (${dates.length} turnos)`);
+        showMessage(`Serie creada: ${dates.length} turnos.`);
         closeModals(); setTimeout(hideMessage, 2000);
     } catch (e) { showMessage(e.message, true); } finally { saveButton.disabled = false; }
 }
@@ -715,7 +711,7 @@ async function handleSaveEvent(event) {
         else await addDoc(collection(db, bookingsCollectionPath), data);
         showMessage("¡Evento Guardado!");
         closeModals(); setTimeout(hideMessage, 1500);
-    } catch (e) { showMessage(e.message, true); } finally { saveButton.disabled = false; }
+    } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
 }
 
 async function handleConfirmDelete(event) {
@@ -730,10 +726,12 @@ async function handleConfirmDelete(event) {
         if (snap.exists()) {
             await logBookingEvent('deleted', { id: snap.id, ...snap.data() }, reason);
             await deleteDoc(ref);
-            showMessage("Baja registrada.");
+            showMessage("Reserva anulada.");
         }
         closeModals(); setTimeout(hideMessage, 1500); 
-    } catch (e) { showMessage(e.message, true); }
+    } catch (error) {
+        showMessage(error.message, true);
+    }
 }
 
 async function logBookingEvent(action, data, reason = null) {
@@ -793,9 +791,9 @@ function showOptionsModal(dateStr, bks) {
         d.className = 'flex justify-between items-center p-3 bg-gray-50 border rounded-xl mb-2 shadow-sm';
         d.innerHTML = `<div><p class="font-bold text-sm uppercase italic tracking-tighter">${b.type === 'event' ? '[E] ' + b.teamName : b.teamName}</p></div>
                        <div class="flex gap-1">
-                           <button class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-[10px] font-black" onclick="window.viewBookingDetail('${b.id}')">VER</button>
-                           <button class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-black" onclick="window.editBooking('${b.id}')">EDIT</button>
-                           <button class="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-black" onclick="window.deleteBooking('${b.id}')">X</button>
+                           <button class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-[10px] font-black uppercase" onclick="window.viewBookingDetail('${b.id}')">VER</button>
+                           <button class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-black uppercase" onclick="window.editBooking('${b.id}')">EDIT</button>
+                           <button class="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-black uppercase" onclick="window.deleteBooking('${b.id}')">X</button>
                        </div>`;
         list.appendChild(d);
     });
@@ -803,7 +801,7 @@ function showOptionsModal(dateStr, bks) {
 }
 
 // -----------------------------------------------------------------
-// 8. CAJA (ARQUEO PRO)
+// 8. GESTIÓN DE CAJA (ARQUEO PRO)
 // -----------------------------------------------------------------
 
 async function loadCajaData() {
@@ -812,7 +810,7 @@ async function loadCajaData() {
     if (!cajaDateTo.value) cajaDateTo.value = hoy;
 
     const from = cajaDateFrom.value, to = cajaDateTo.value;
-    showMessage("Calculando balance...");
+    showMessage("Generando arqueo...");
     try {
         const qB = query(collection(db, bookingsCollectionPath), where("day", ">=", from), where("day", "<=", to));
         const qS = query(collection(db, salesCollectionPath), where("day", ">=", from), where("day", "<=", to));
@@ -847,14 +845,14 @@ function renderCajaList(daily) {
     const sorted = Object.keys(daily).sort((a,b) => b.localeCompare(a));
     
     if(sorted.length === 0) {
-        cajaDailyList.innerHTML = '<p class="text-center text-gray-400 font-black uppercase text-[10px] p-8">Sin movimientos</p>';
+        cajaDailyList.innerHTML = '<p class="text-center text-gray-400 font-black p-8 italic uppercase text-[10px]">Sin movimientos</p>';
         return;
     }
 
     sorted.forEach(day => {
         const data = daily[day], [y, m, d] = day.split('-');
         const item = document.createElement('div');
-        item.className = 'data-card p-6 flex justify-between items-center cursor-pointer mb-3 border-l-8 border-emerald-500 hover:scale-[1.02] transition-transform';
+        item.className = 'data-card p-6 flex justify-between items-center cursor-pointer mb-3 border-l-8 border-emerald-500 hover:scale-[1.01] transition-transform';
         item.innerHTML = `<div><strong class="text-gray-800 text-xl font-black italic tracking-tighter">${d}/${m}/${y}</strong><p class="text-[9px] text-gray-400 font-bold uppercase mt-1 tracking-widest">${data.b.length} Turnos | ${data.s.length} Ventas</p></div><strong class="text-2xl font-black text-emerald-600 tracking-tighter italic">$${data.t.toLocaleString('es-AR')}</strong>`;
         item.onclick = () => showCajaDetail(`${d}/${m}/${y}`, data);
         cajaDailyList.appendChild(item);
@@ -872,15 +870,15 @@ function showCajaDetail(date, data) {
     
     const sumEl = document.getElementById('caja-detail-summary');
     if(sumEl) sumEl.innerHTML = `
-        <div class="flex justify-between text-xs font-black text-gray-400"><span>📅 Turnos:</span> <strong>$${sumB.toLocaleString()}</strong></div>
-        <div class="flex justify-between text-xs font-black text-gray-400"><span>🍭 Kiosco:</span> <strong>$${sumS.toLocaleString()}</strong></div>
+        <div class="flex justify-between text-xs font-black text-gray-400 uppercase tracking-widest"><span>📅 Turnos:</span> <strong class="text-emerald-700">$${sumB.toLocaleString()}</strong></div>
+        <div class="flex justify-between text-xs font-black text-gray-400 uppercase tracking-widest"><span>🍭 Kiosco:</span> <strong class="text-blue-700">$${sumS.toLocaleString()}</strong></div>
         <div class="flex justify-between text-2xl font-black italic border-t-4 border-gray-900 mt-4 pt-4 tracking-tighter text-gray-900"><span>TOTAL:</span> <strong>$${data.t.toLocaleString()}</strong></div>`;
     
     const list = document.getElementById('caja-detail-booking-list');
     if(list) {
         list.innerHTML = '';
-        data.b.forEach(b => list.innerHTML += `<div class="text-[11px] font-bold p-3 bg-gray-50 rounded-xl mb-1 flex justify-between"><span>${b.paymentMethod === 'mercadopago'?'📱':'💵'} 📅 ${b.teamName}</span><strong>$${b.totalPrice.toLocaleString()}</strong></div>`);
-        data.s.forEach(s => list.innerHTML += `<div class="text-[11px] font-bold p-3 bg-blue-50 rounded-xl mb-1 flex justify-between"><span>${s.paymentMethod === 'mercadopago'?'📱':'💵'} 🍭 ${s.name} (x${s.qty})</span><strong>$${s.total.toLocaleString()}</strong></div>`);
+        data.b.forEach(b => list.innerHTML += `<div class="text-[11px] font-bold p-3 bg-gray-50 rounded-xl mb-1 flex justify-between items-center shadow-sm"><span>${b.paymentMethod === 'mercadopago'?'📱':'💵'} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${b.totalPrice.toLocaleString()}</strong></div>`);
+        data.s.forEach(s => list.innerHTML += `<div class="text-[11px] font-bold p-3 bg-blue-50 rounded-xl mb-1 flex justify-between items-center shadow-sm"><span>${s.paymentMethod === 'mercadopago'?'📱':'💵'} 🍭 ${s.name} (x${s.qty})</span><strong class="text-blue-700">$${s.total.toLocaleString()}</strong></div>`);
     }
 }
 
@@ -911,14 +909,15 @@ function renderRecurringModal() {
 }
 
 function selectRecurringDay(btn) {
-    if(!recurringDayGrid) return;
-    recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected'));
+    const grid = document.querySelector('.day-selector-grid');
+    if(!grid) return;
+    grid.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
 }
 
 function saveRecurringSettings() {
-    const dBtn = recurringDayGrid?.querySelector('.day-toggle-btn.selected');
-    const mBtns = recurringMonthList?.querySelectorAll('.month-toggle-btn.selected');
+    const dBtn = document.querySelector('.day-toggle-btn.selected');
+    const mBtns = document.querySelectorAll('.month-toggle-btn.selected');
     if (!dBtn || !mBtns || mBtns.length === 0) return alert("Selecciona día y meses.");
     recurringSettings.dayOfWeek = parseInt(dBtn.dataset.day, 10);
     recurringSettings.months = Array.from(mBtns).map(b => ({ month: b.dataset.month, year: b.dataset.year, name: b.textContent }));
@@ -942,7 +941,7 @@ async function handleConfirmRestock(e) {
     const nUnitCost = bCost / addQ;
     const p = allProducts.find(x => x.id === id);
     const uStock = p.stock + addQ;
-    const uSale = Math.ceil(nUnitCost * 1.40); // 40% margen
+    const uSale = Math.ceil(nUnitCost * 1.40);
 
     try {
         showMessage("Sincronizando costos globales...");
@@ -952,7 +951,7 @@ async function handleConfirmRestock(e) {
             salePrice: uSale 
         });
         await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnitCost, 'in');
-        closeModals(); showMessage("Inventario actualizado."); setTimeout(hideMessage, 2000);
+        closeModals(); showMessage("Stock actualizado."); setTimeout(hideMessage, 2000);
     } catch (err) { alert(err.message); }
 }
 
@@ -968,7 +967,7 @@ async function handleSaveProduct(e) {
         });
         await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
         e.target.reset(); document.getElementById('product-form-container')?.classList.add('is-hidden');
-        showMessage("Producto guardado."); setTimeout(hideMessage, 1500);
+        showMessage("Ficha guardada."); setTimeout(hideMessage, 1500);
     } catch (err) { alert(err.message); }
 }
 
@@ -996,14 +995,14 @@ function renderProducts(f = "") {
         const d = document.createElement('div');
         d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-sm flex flex-col gap-4';
         d.innerHTML = `<div class="flex justify-between items-start">
-                         <div><h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black">Stock: ${p.stock}</span></div>
+                         <div><h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase">En Stock: ${p.stock}</span></div>
                          <div class="text-right"><p class="text-[8px] font-bold text-gray-400">Venta</p><p class="text-3xl font-black text-emerald-600 italic leading-none">$${p.salePrice}</p></div>
                        </div>
                        <div class="grid grid-cols-2 gap-2 mt-2">
-                           <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
-                           <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
+                           <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
+                           <button class="p-3 bg-gray-50 text-gray-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
+                           <button class="p-3 bg-gray-50 text-gray-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
+                           <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
                        </div>`;
         productList.appendChild(d);
     });
@@ -1023,8 +1022,8 @@ function handleSaleSearch() {
     if(!saleSearchResults) return;
     saleSearchResults.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
-        const i = document.createElement('div'); i.className = 'p-5 bg-gray-50 rounded-2xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 border-2 border-transparent hover:border-emerald-200 transition-all';
-        i.innerHTML = `<div><span class="font-black text-gray-800">${p.name}</span><p class="text-[10px] text-gray-400 font-bold">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic">$${p.salePrice}</strong>`;
+        const i = document.createElement('div'); i.className = 'p-5 bg-gray-50 rounded-2xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
+        i.innerHTML = `<div><span class="font-black text-gray-800">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase">DISPONIBLE: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic">$${p.salePrice}</strong>`;
         i.onclick = () => {
             currentSelectedProduct = p; 
             document.getElementById('sel-prod-name').textContent = p.name;
@@ -1047,16 +1046,18 @@ function updateSaleQty(d) {
 }
 
 function updateSaleTotal() {
-    const q = parseInt(document.getElementById('sale-qty-input').value || 1);
+    const qEl = document.getElementById('sale-qty-input'); if(!qEl) return;
+    const q = parseInt(qEl.value);
     const disp = document.getElementById('sale-total-display');
     if(disp) disp.textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString('es-AR')}`;
 }
 
 async function handleConfirmSale() {
-    const q = parseInt(document.getElementById('sale-qty-input').value);
+    const qEl = document.getElementById('sale-qty-input'); if(!qEl) return;
+    const q = parseInt(qEl.value);
     const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
     try {
-        showMessage("Cobrando...");
+        showMessage("Registrando cobro...");
         await addDoc(collection(db, salesCollectionPath), { 
             name: currentSelectedProduct.name, qty: q, total: q * currentSelectedProduct.salePrice, 
             paymentMethod: method, day: new Date().toISOString().split('T')[0], 
@@ -1065,7 +1066,7 @@ async function handleConfirmSale() {
         });
         await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - q });
         await logKioscoTransaction(currentSelectedProduct.id, `Venta (${method})`, q, currentSelectedProduct.unitCost, 'out');
-        closeModals(); showMessage("¡Venta completada!"); setTimeout(hideMessage, 1500);
+        closeModals(); showMessage("¡Operación Exitosa!"); setTimeout(hideMessage, 1500);
     } catch (err) { alert(err.message); }
 }
 
@@ -1074,7 +1075,7 @@ async function logKioscoTransaction(productId, desc, qty, cost, type) {
 }
 
 // -----------------------------------------------------------------
-// 11. GLOBALIZACIÓN WINDOW PARA HTML
+// 11. GLOBALIZACIÓN WINDOW
 // -----------------------------------------------------------------
 
 window.viewBookingDetail = async (id) => {
@@ -1082,7 +1083,7 @@ window.viewBookingDetail = async (id) => {
     const det = document.getElementById('view-booking-details');
     if(det) {
         det.innerHTML = `
-        <h3 class="text-3xl font-black italic uppercase text-emerald-900 tracking-tighter mb-8">${b.teamName}</h3>
+        <h3 class="text-4xl font-black italic uppercase text-emerald-900 tracking-tighter mb-8">${b.teamName}</h3>
         <div class="space-y-4 font-bold text-sm text-gray-500">
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Categoría</span> <span class="text-gray-900">${b.type}</span></div>
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Día</span> <span class="text-gray-900">${b.day}</span></div>
@@ -1096,7 +1097,7 @@ window.viewBookingDetail = async (id) => {
 window.editBooking = (id) => { const b = allMonthBookings.find(x => x.id === id); closeModals(); if(b.type === 'court') showBookingModal(b.day, b); else showEventModal(b.day, b); };
 window.deleteBooking = (id) => { deleteBookingIdInput.value = id; deleteReasonText.value = ''; closeModals(); if(deleteReasonModal) deleteReasonModal.classList.add('is-open'); };
 window.openRestock = (id) => { const p = allProducts.find(x => x.id === id); document.getElementById('restock-prod-id').value = id; document.getElementById('restock-name').textContent = p.name; document.getElementById('restock-current-stock').textContent = p.stock; document.getElementById('restock-modal').classList.add('is-open'); };
-window.deleteProduct = async (id) => { if(confirm("¿Eliminar ficha?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
+window.deleteProduct = async (id) => { if(confirm("¿Borrar ficha?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
@@ -1110,13 +1111,14 @@ window.openEditProduct = (id) => {
 
 async function handleConfirmEditProduct(e) {
     e.preventDefault();
+    const idVal = document.getElementById('edit-prod-id').value;
     const d = { 
         name: document.getElementById('edit-prod-name').value, 
         unitCost: parseFloat(document.getElementById('edit-prod-cost').value), 
         salePrice: parseFloat(document.getElementById('edit-prod-price').value), 
         stock: parseInt(document.getElementById('edit-prod-stock').value) 
     };
-    await updateDoc(doc(db, productsCollectionPath, document.getElementById('edit-prod-id').value), d);
+    await updateDoc(doc(db, productsCollectionPath, idVal), d);
     closeModals();
 }
 
@@ -1129,7 +1131,7 @@ window.openHistory = async (id) => {
         const t = doc.data();
         list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative overflow-hidden">
                            <div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div>
-                           <div><p class="font-black text-sm text-gray-800">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-300 italic">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div>
+                           <div><p class="font-black text-sm text-gray-800 italic uppercase tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-300 italic">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div>
                            <strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic">${t.type==='in'?'+':'-'}${t.qty}</strong>
                         </div>`;
     });
@@ -1169,17 +1171,17 @@ function updateEventTotalPrice() {
     return t;
 }
 
-async function handleStatsData() {
+async function loadStatsData() {
     if(!db) return; try {
         const snap = await getDocs(collection(db, bookingsCollectionPath));
-        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName.toLowerCase(); if(!st[n]) st[n] = {n: b.teamName, c:0, t:0}; st[n].c++; st[n].t += b.totalPrice; });
+        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "sin nombre"; if(!st[n]) st[n] = {n: b.teamName || "SIN NOMBRE", c:0, t:0}; st[n].c++; st[n].t += b.totalPrice; });
         statsList.innerHTML = ''; Object.values(st).sort((a,b)=>b.c-a.c).forEach(c => {
-            statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3"><div><strong class="font-black italic text-gray-800 uppercase">${c.n}</strong><p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic">$${c.t.toLocaleString()}</strong></div>`;
+            statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 uppercase italic"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas registradas</p></div><strong class="text-emerald-600 text-xl font-black italic italic">$${c.t.toLocaleString()}</strong></div>`;
         });
     } catch(e) {}
 }
 
-async function handleHistorialData() {
+async function loadHistorialData() {
     if(!db) return; try {
         const snap = await getDocs(query(collection(db, logCollectionPath), orderBy("timestamp", "desc")));
         historialList.innerHTML = ''; snap.forEach(d => { const e = d.data();
@@ -1194,10 +1196,10 @@ async function handleTeamNameInput() {
         const q = query(collection(db, customersCollectionPath), where(documentId(), ">=", qText), where(documentId(), "<=", qText + '\uf8ff'));
         const snap = await getDocs(q); teamNameSuggestions.innerHTML = '';
         if(snap.empty) { teamNameSuggestions.style.display = 'none'; return; }
-        snap.forEach(d => { const n = d.data().name, i = document.createElement('div'); i.className = 'suggestion-item font-black text-sm p-4 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 italic'; i.textContent = n;
+        snap.forEach(d => { const n = d.data().name, i = document.createElement('div'); i.className = 'suggestion-item font-black text-sm p-4 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 italic uppercase italic tracking-tighter'; i.textContent = n;
             i.onmousedown = () => { teamNameInput.value = n; teamNameSuggestions.style.display = 'none'; }; teamNameSuggestions.appendChild(i);
         }); teamNameSuggestions.style.display = 'block';
-    } catch(e) {}
+    } catch (e) {}
 }
 
 async function saveCustomer(name) { if(!name) return; try { await setDoc(doc(db, customersCollectionPath, name.trim().toLowerCase()), { name: name.trim(), lastBooked: new Date().toISOString() }, { merge: true }); } catch(e) {} }
