@@ -66,8 +66,6 @@ let appSettings = { court1Price: 5000, court2Price: 5000, grillPrice: 2000, even
 let recurringSettings = { dayOfWeek: null, months: [] };
 
 // --- REFERENCIAS AL DOM ---
-const getEl = (id) => document.getElementById(id);
-
 const loginView = document.getElementById('login-view');
 const registerView = document.getElementById('register-view');
 const appContainer = document.getElementById('app-container');
@@ -189,7 +187,6 @@ async function firebaseInit() {
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                console.log("Acceso autorizado para:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
                 await loadAppSettings(); 
@@ -436,7 +433,7 @@ function showView(viewName) {
 }
 
 // -----------------------------------------------------------------
-// 4. AUTENTICACIÓN (CORREGIDO SIN DUPLICADOS)
+// 4. AUTENTICACIÓN
 // -----------------------------------------------------------------
 
 async function handleLogin(e) {
@@ -497,8 +494,10 @@ function loadConfigDataIntoForm() {
     if (!configCourt1Price) return;
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
-    configGrillPrice.value = appSettings.grillPrice;
-    configEventPrice.value = appSettings.eventPrice;
+    configGrillPrice = document.getElementById('config-grill-price');
+    if(configGrillPrice) configGrillPrice.value = appSettings.grillPrice;
+    configEventPrice = document.getElementById('config-event-price');
+    if(configEventPrice) configEventPrice.value = appSettings.eventPrice;
 }
 
 async function handleSaveConfig(e) {
@@ -507,8 +506,8 @@ async function handleSaveConfig(e) {
     const newSettings = {
         court1Price: parseFloat(configCourt1Price.value) || 0,
         court2Price: parseFloat(configCourt2Price.value) || 0,
-        grillPrice: parseFloat(configGrillPrice.value) || 0,
-        eventPrice: parseFloat(configEventPrice.value) || 0
+        grillPrice: parseFloat(document.getElementById('config-grill-price').value) || 0,
+        eventPrice: parseFloat(document.getElementById('config-event-price').value) || 0
     };
     try {
         await setDoc(doc(db, settingsDocPath), newSettings);
@@ -581,7 +580,7 @@ function updateCourtAvailability() {
     const occupied = new Set();
     allMonthBookings
         .filter(b => b.day === ds && b.courtId === selCourt && b.id !== editingId)
-        .forEach(b => b.courtHours.forEach(h => occupied.add(h)));
+        .forEach(b => { if(b.courtHours) b.courtHours.forEach(h => occupied.add(h)); });
     
     const currentBooking = allMonthBookings.find(b => b.id === editingId);
     const selected = currentBooking ? currentBooking.courtHours : [];
@@ -591,7 +590,7 @@ function updateCourtAvailability() {
     const grillOccupied = new Set();
     allMonthBookings
         .filter(b => b.day === ds && b.rentGrill && b.id !== editingId)
-        .forEach(b => b.grillHours.forEach(h => grillOccupied.add(h)));
+        .forEach(b => { if(b.grillHours) b.grillHours.forEach(h => grillOccupied.add(h)); });
     
     renderTimeSlots(grillHoursList, grillOccupied, currentBooking ? currentBooking.grillHours : []);
     updateTotalPrice();
@@ -617,7 +616,7 @@ function renderTimeSlots(container, occupied, selected) {
 }
 
 // -----------------------------------------------------------------
-// 7. CARGA Y PERSISTENCIA DE RESERVAS
+// 7. PERSISTENCIA DE RESERVAS
 // -----------------------------------------------------------------
 
 async function loadBookingsForMonth() {
@@ -708,8 +707,10 @@ async function handleSaveEvent(event) {
     };
 
     try {
+        let action = bookingId ? 'updated' : 'created';
         if (bookingId) await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true });
-        else await addDoc(collection(db, bookingsCollectionPath), data);
+        else { const docRef = await addDoc(collection(db, bookingsCollectionPath), data); }
+        await logBookingEvent(action, data);
         showMessage("¡Evento guardado!"); closeModals(); setTimeout(hideMessage, 1500);
     } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
 }
@@ -790,7 +791,7 @@ async function handleConfirmSale() {
     const qty = parseInt(qtyInput.value);
     const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
     try {
-        showMessage("Cobrando...");
+        showMessage("Procesando cobro...");
         await addDoc(collection(db, salesCollectionPath), { 
             name: currentSelectedProduct.name, qty, total: qty * currentSelectedProduct.salePrice, 
             paymentMethod: method, day: new Date().toISOString().split('T')[0], 
@@ -810,7 +811,7 @@ async function handleConfirmRestock(e) {
     const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
     const nUnit = bCost / addQ;
     const p = allProducts.find(x => x.id === id);
-    const nSale = Math.ceil(nUnit * 1.40); // 40% margen
+    const nSale = Math.ceil(nUnit * 1.40);
 
     try {
         showMessage("Sincronizando costos...");
@@ -865,10 +866,10 @@ function renderProducts(f = "") {
             <div class="flex justify-between items-start">
                 <div>
                     <h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4>
-                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span>
+                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Stock: ${p.stock} un.</span>
                 </div>
                 <div class="text-right">
-                    <p class="text-[8px] font-bold text-gray-400 uppercase">P. Venta</p>
+                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Precio</p>
                     <p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p>
                 </div>
             </div>
@@ -953,14 +954,14 @@ async function loadCajaData() {
         const daily = {};
 
         snapB.docs.forEach(doc => { 
-            const b = doc.data(); tB += b.totalPrice; 
+            const b = doc.data(); tB += (b.totalPrice || 0); 
             if(!daily[b.day]) daily[b.day] = {t:0, b:[], s:[]}; 
-            daily[b.day].t += b.totalPrice; daily[b.day].b.push({id: doc.id, ...b}); 
+            daily[b.day].t += (b.totalPrice || 0); daily[b.day].b.push({id: doc.id, ...b}); 
         });
         snapS.docs.forEach(doc => { 
-            const s = doc.data(); tS += s.total; 
+            const s = doc.data(); tS += (s.total || 0); 
             if(!daily[s.day]) daily[s.day] = {t:0, b:[], s:[]}; 
-            daily[s.day].t += s.total; daily[s.day].s.push({id: doc.id, ...s}); 
+            daily[s.day].t += (s.total || 0); daily[s.day].s.push({id: doc.id, ...s}); 
         });
 
         cajaTotalBookings.textContent = `$${tB.toLocaleString('es-AR')}`;
@@ -1004,14 +1005,14 @@ function showCajaDetail(date, data) {
     cajaDetailModal.classList.add('is-open'); 
     document.getElementById('caja-detail-title').textContent = date;
     
-    let bSum = data.b.reduce((a, b) => a + b.totalPrice, 0);
-    let sSum = data.s.reduce((a, s) => a + s.total, 0);
+    let sumB = data.b.reduce((a, b) => a + (b.totalPrice || 0), 0);
+    let sumS = data.s.reduce((a, s) => a + (s.total || 0), 0);
     
-    let efSum = data.b.filter(x => x.paymentMethod === 'efectivo').reduce((a, b) => a + b.totalPrice, 0) + 
-                data.s.filter(x => x.paymentMethod === 'efectivo').reduce((a, s) => a + s.total, 0);
+    let efSum = data.b.filter(x => x.paymentMethod === 'efectivo').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
+                data.s.filter(x => x.paymentMethod === 'efectivo').reduce((a, s) => a + (s.total || 0), 0);
                 
-    let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + b.totalPrice, 0) + 
-                data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + s.total, 0);
+    let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
+                data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + (s.total || 0), 0);
 
     const sumEl = document.getElementById('caja-detail-summary');
     if(sumEl) sumEl.innerHTML = `
@@ -1028,11 +1029,11 @@ function showCajaDetail(date, data) {
         list.innerHTML = '';
         data.b.forEach(b => {
             const icon = b.paymentMethod === 'mercadopago' ? '📱' : '💵';
-            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-gray-100"><span>${icon} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${b.totalPrice.toLocaleString()}</strong></div>`;
+            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-gray-100"><span>${icon} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${(b.totalPrice || 0).toLocaleString()}</strong></div>`;
         });
         data.s.forEach(s => {
             const icon = s.paymentMethod === 'mercadopago' ? '📱' : '💵';
-            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-blue-100"><span>${icon} 🍭 ${s.name} (x${s.qty})</span><strong class="text-blue-700">$${s.total.toLocaleString()}</strong></div>`;
+            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-blue-100"><span>${icon} 🍭 ${s.name} (x${s.qty})</span><strong class="text-blue-700">$${(s.total || 0).toLocaleString()}</strong></div>`;
         });
     }
 }
@@ -1062,7 +1063,7 @@ function renderCalendar() {
         const cell = document.createElement('div');
         cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
         
-        // Número de día en negro sólido e itálico para visibilidad máxima
+        // Número de día en negro sólido para visibilidad (REPARADO)
         cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter'>${i}</span>`;
         
         if (bks.length > 0) {
@@ -1099,9 +1100,9 @@ window.viewBookingDetail = async (id) => {
         <div class="space-y-4 font-bold text-sm text-gray-500 text-left">
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Tipo</span> <span class="text-gray-900">${b.type}</span></div>
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Día</span> <span class="text-gray-900">${b.day}</span></div>
-            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Ocupación</span> <span class="text-gray-900">${b.courtHours.join(', ')}hs</span></div>
-            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Pago</span> <span class="text-gray-900 uppercase italic tracking-tighter italic tracking-tighter italic">${b.paymentMethod}</span></div>
-            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest uppercase">Liquidado</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter">$${b.totalPrice.toLocaleString()}</span></div>
+            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Horario</span> <span class="text-gray-900">${b.courtHours ? b.courtHours.join(', ') : 'S/H'}hs</span></div>
+            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Pago</span> <span class="text-gray-900 uppercase italic tracking-tighter italic tracking-tighter italic">${b.paymentMethod || 'Efectivo'}</span></div>
+            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest uppercase">Total</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter">$${(b.totalPrice || 0).toLocaleString()}</span></div>
         </div>`;
     }
     if(viewModal) viewModal.classList.add('is-open');
@@ -1120,22 +1121,25 @@ window.deleteBooking = (id) => {
 
 window.openRestock = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(getEl('restock-prod-id')) getEl('restock-prod-id').value = id;
-    if(getEl('restock-name')) getEl('restock-name').textContent = p.name;
-    if(getEl('restock-current-stock')) getEl('restock-current-stock').textContent = p.stock;
-    if(getEl('restock-modal')) getEl('restock-modal').classList.add('is-open');
+    if(document.getElementById('restock-prod-id')) document.getElementById('restock-prod-id').value = id;
+    if(document.getElementById('restock-name')) document.getElementById('restock-name').textContent = p.name;
+    if(document.getElementById('restock-current-stock')) document.getElementById('restock-current-stock').textContent = p.stock;
+    if(document.getElementById('restock-modal')) document.getElementById('restock-modal').classList.add('is-open');
 };
+
+window.showEventModal = showEventModal;
+window.showBookingModal = showBookingModal;
 
 window.deleteProduct = async (id) => { if(confirm("¿Borrar permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(getEl('edit-prod-id')) getEl('edit-prod-id').value = id;
-    if(getEl('edit-prod-name')) getEl('edit-prod-name').value = p.name;
-    if(getEl('edit-prod-cost')) getEl('edit-prod-cost').value = p.unitCost;
-    if(getEl('edit-prod-price')) getEl('edit-prod-price').value = p.salePrice;
-    if(getEl('edit-prod-stock')) getEl('edit-prod-stock').value = p.stock;
-    if(getEl('edit-product-modal')) getEl('edit-product-modal').classList.add('is-open');
+    if(document.getElementById('edit-prod-id')) document.getElementById('edit-prod-id').value = id;
+    if(document.getElementById('edit-prod-name')) document.getElementById('edit-prod-name').value = p.name;
+    if(document.getElementById('edit-prod-cost')) document.getElementById('edit-prod-cost').value = p.unitCost;
+    if(document.getElementById('edit-prod-price')) document.getElementById('edit-prod-price').value = p.salePrice;
+    if(document.getElementById('edit-prod-stock')) document.getElementById('edit-prod-stock').value = p.stock;
+    if(document.getElementById('edit-product-modal')) document.getElementById('edit-product-modal').classList.add('is-open');
 };
 
 async function handleConfirmEditProduct(e) {
@@ -1153,13 +1157,13 @@ window.openHistory = async (id) => {
     const list = document.getElementById('product-history-list'); if(!list) return; list.innerHTML = '';
     s.forEach(doc => {
         const t = doc.data();
-        list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between border-l-4 shadow-sm ${t.type==='in'?'border-emerald-500':'border-red-500'}"><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-300 italic tracking-widest">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
+        list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
     });
-    if(getEl('product-history-modal')) getEl('product-history-modal').classList.add('is-open');
+    if(document.getElementById('product-history-modal')) document.getElementById('product-history-modal').classList.add('is-open');
 };
 
 // -----------------------------------------------------------------
-// 12. UTILIDADES FINALES
+// 12. UTILIDADES
 // -----------------------------------------------------------------
 
 function showMessage(msg, isError = false) { 
@@ -1193,7 +1197,7 @@ function updateEventTotalPrice() {
 async function loadStatsData() {
     if(!db) return; try {
         const snap = await getDocs(collection(db, bookingsCollectionPath));
-        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "consumidor final"; if(!st[n]) st[n] = {n: b.teamName || "SIN NOMBRE", c:0, t:0}; st[n].c++; st[n].t += b.totalPrice; });
+        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "sin nombre"; if(!st[n]) st[n] = {n: b.teamName || "SIN NOMBRE", c:0, t:0}; st[n].c++; st[n].t += (b.totalPrice || 0); });
         if(statsList) {
             statsList.innerHTML = ''; Object.values(st).sort((a,b)=>b.c-a.c).forEach(c => {
                 statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 uppercase italic tracking-tighter italic"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic tracking-tighter italic">$${c.t.toLocaleString()}</strong></div>`;
@@ -1258,7 +1262,7 @@ function saveRecurringSettings() {
     if (!dBtn || !mBtns || mBtns.length === 0) return alert("Elige día y meses.");
     recurringSettings.dayOfWeek = parseInt(dBtn.dataset.day, 10);
     recurringSettings.months = Array.from(mBtns).map(b => ({ month: b.dataset.month, year: b.dataset.year, name: b.textContent }));
-    if(recurringSummary) { recurringSummary.textContent = `Serie: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]} del ciclo.`; recurringSummary.classList.remove('is-hidden'); }
+    if(recurringSummary) { recurringSummary.textContent = `Serie activa: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]}.`; recurringSummary.classList.remove('is-hidden'); }
     if(recurringModal) recurringModal.classList.remove('is-open');
 }
 
