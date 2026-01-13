@@ -210,19 +210,19 @@ async function firebaseInit() {
                 userId = user.uid;
                 userEmail = user.email;
                 await loadAppSettings(); 
-                appContainer.classList.remove('is-hidden');
-                loginView.classList.add('is-hidden');
-                registerView.classList.add('is-hidden');
-                userEmailDisplay.textContent = userEmail;
+                if (appContainer) appContainer.classList.remove('is-hidden');
+                if (loginView) loginView.classList.add('is-hidden');
+                if (registerView) registerView.classList.add('is-hidden');
+                if (userEmailDisplay) userEmailDisplay.textContent = userEmail;
                 await loadBookingsForMonth(); 
                 syncProducts();
             } else {
                 console.log("Sin usuario, mostrando login.");
                 userId = null;
                 userEmail = null;
-                appContainer.classList.add('is-hidden');
-                loginView.classList.remove('is-hidden');
-                registerView.classList.add('is-hidden');
+                if (appContainer) appContainer.classList.add('is-hidden');
+                if (loginView) loginView.classList.remove('is-hidden');
+                if (registerView) registerView.classList.add('is-hidden');
                 if (currentBookingsUnsubscribe) {
                     currentBookingsUnsubscribe();
                     currentBookingsUnsubscribe = null;
@@ -237,14 +237,20 @@ async function firebaseInit() {
 }
 
 // -----------------------------------------------------------------
-// 2. CONFIGURACIÓN DE EVENT LISTENERS (EXHAUSTIVO)
+// 2. CONFIGURACIÓN DE EVENT LISTENERS (CON COMPROBACIÓN NULL-SAFE)
 // -----------------------------------------------------------------
 
 function setupEventListeners() {
+    // Helper interno para asignar eventos de forma segura
+    const safeSetClick = (id, fn) => {
+        const el = document.getElementById(id);
+        if (el) el.onclick = fn;
+    };
+
     // Menú y Navegación
-    menuBtn.onclick = toggleMenu;
-    menuOverlay.onclick = toggleMenu;
-    logoutBtn.onclick = handleLogout; 
+    if (menuBtn) menuBtn.onclick = toggleMenu;
+    if (menuOverlay) menuOverlay.onclick = toggleMenu;
+    if (logoutBtn) logoutBtn.onclick = handleLogout; 
     
     document.querySelectorAll('.menu-item').forEach(item => {
         item.onclick = (e) => {
@@ -256,102 +262,117 @@ function setupEventListeners() {
     });
     
     // Autenticación
-    loginForm.onsubmit = handleLogin;
-    registerForm.onsubmit = handleRegister;
-    document.getElementById('show-register').onclick = (e) => {
+    if (loginForm) loginForm.onsubmit = handleLogin;
+    if (registerForm) registerForm.onsubmit = handleRegister;
+    
+    safeSetClick('show-register', (e) => {
         e.preventDefault();
-        loginView.classList.add('is-hidden');
-        registerView.classList.remove('is-hidden');
-    };
-    document.getElementById('show-login').onclick = (e) => {
+        if (loginView) loginView.classList.add('is-hidden');
+        if (registerView) registerView.classList.remove('is-hidden');
+    });
+    
+    safeSetClick('show-login', (e) => {
         e.preventDefault();
-        registerView.classList.add('is-hidden');
-        loginView.classList.remove('is-hidden');
-    };
+        if (registerView) registerView.classList.add('is-hidden');
+        if (loginView) loginView.classList.remove('is-hidden');
+    });
     
     // Calendario Navegación
-    document.getElementById('prev-month-btn').onclick = prevMonth;
-    document.getElementById('next-month-btn').onclick = nextMonth;
+    safeSetClick('prev-month-btn', prevMonth);
+    safeSetClick('next-month-btn', nextMonth);
     
     // Formularios Reservas
-    bookingForm.onsubmit = handleSaveBooking;
-    eventForm.onsubmit = handleSaveEvent; 
+    if (bookingForm) bookingForm.onsubmit = handleSaveBooking;
+    if (eventForm) eventForm.onsubmit = handleSaveEvent; 
     if (configForm) configForm.onsubmit = handleSaveConfig;
 
-    document.getElementById('cancel-booking-btn').onclick = closeModals;
-    document.getElementById('cancel-event-btn').onclick = closeModals; 
-    document.getElementById('close-options-btn').onclick = closeModals;
-    document.getElementById('close-view-btn').onclick = closeModals;
-    document.getElementById('close-caja-detail-btn').onclick = closeModals;
+    safeSetClick('cancel-booking-btn', closeModals);
+    safeSetClick('cancel-event-btn', closeModals); 
+    safeSetClick('close-options-btn', closeModals);
+    safeSetClick('close-view-btn', closeModals);
+    safeSetClick('close-caja-detail-btn', closeModals);
 
-    document.getElementById('add-new-booking-btn').onclick = () => {
+    safeSetClick('add-new-booking-btn', () => {
         const dateStr = optionsModal.dataset.date;
         closeModals();
         showBookingModal(dateStr); 
-    };
+    });
 
-    document.getElementById('type-btn-court').onclick = () => {
+    safeSetClick('type-btn-court', () => {
         const dateStr = typeModal.dataset.date;
         closeModals();
         showBookingModal(dateStr);
-    };
+    });
 
-    document.getElementById('type-btn-event').onclick = () => {
+    safeSetClick('type-btn-event', () => {
         const dateStr = typeModal.dataset.date;
         closeModals();
         showEventModal(dateStr);
-    };
+    });
 
-    document.getElementById('type-btn-cancel').onclick = closeModals;
+    safeSetClick('type-btn-cancel', closeModals);
 
     // Filtros
-    cajaFilterBtn.onclick = loadCajaData;
-    statsFilterBtn.onclick = loadStatsData;
-    historialFilterBtn.onclick = loadHistorialData;
+    if (cajaFilterBtn) cajaFilterBtn.onclick = loadCajaData;
+    if (statsFilterBtn) statsFilterBtn.onclick = loadStatsData;
+    if (historialFilterBtn) historialFilterBtn.onclick = loadHistorialData;
 
     // Inputs Dinámicos Reservas
-    teamNameInput.oninput = handleTeamNameInput;
-    teamNameInput.onblur = () => { setTimeout(() => { teamNameSuggestions.style.display = 'none'; }, 200); };
-    teamNameInput.onfocus = handleTeamNameInput;
+    if (teamNameInput) {
+        teamNameInput.oninput = handleTeamNameInput;
+        teamNameInput.onblur = () => { setTimeout(() => { if(teamNameSuggestions) teamNameSuggestions.style.display = 'none'; }, 200); };
+        teamNameInput.onfocus = handleTeamNameInput;
+    }
     
     document.querySelectorAll('input[name="courtSelection"]').forEach(radio => {
         radio.onchange = () => updateCourtAvailability();
     });
 
-    rentGrillCheckbox.onchange = () => {
-        grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
-        updateTotalPrice();
-    };
-    costPerHourInput.oninput = updateTotalPrice;
-    grillCostInput.oninput = updateTotalPrice;
-    eventCostPerHourInput.oninput = updateEventTotalPrice;
+    if (rentGrillCheckbox) {
+        rentGrillCheckbox.onchange = () => {
+            if(grillHoursSection) grillHoursSection.classList.toggle('is-hidden', !rentGrillCheckbox.checked);
+            updateTotalPrice();
+        };
+    }
     
-    deleteReasonForm.onsubmit = handleConfirmDelete;
-    document.getElementById('cancel-delete-btn').onclick = closeModals;
+    if (costPerHourInput) costPerHourInput.oninput = updateTotalPrice;
+    if (grillCostInput) grillCostInput.oninput = updateTotalPrice;
+    if (eventCostPerHourInput) eventCostPerHourInput.oninput = updateEventTotalPrice;
+    
+    if (deleteReasonForm) deleteReasonForm.onsubmit = handleConfirmDelete;
+    safeSetClick('cancel-delete-btn', closeModals);
 
     // Recurrencia
-    recurringToggle.onchange = openRecurringModal;
-    document.getElementById('cancel-recurring-btn').onclick = () => {
-        recurringModal.classList.remove('is-open');
-        recurringToggle.checked = false;
-        recurringSummary.classList.add('is-hidden');
-        recurringSummary.textContent = '';
+    if (recurringToggle) recurringToggle.onchange = openRecurringModal;
+    
+    safeSetClick('cancel-recurring-btn', () => {
+        if (recurringModal) recurringModal.classList.remove('is-open');
+        if (recurringToggle) recurringToggle.checked = false;
+        if (recurringSummary) {
+            recurringSummary.classList.add('is-hidden');
+            recurringSummary.textContent = '';
+        }
         recurringSettings = { dayOfWeek: null, months: [] };
-    };
-    document.getElementById('confirm-recurring-btn').onclick = saveRecurringSettings;
-    recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => {
-        btn.onclick = (e) => selectRecurringDay(e.target);
     });
+    
+    safeSetClick('confirm-recurring-btn', saveRecurringSettings);
+    
+    if (recurringDayGrid) {
+        recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => {
+            btn.onclick = (e) => selectRecurringDay(e.target);
+        });
+    }
 
     // KIOSCO - Botones de interfaz
-    const addProdBtn = document.getElementById('add-product-btn');
-    if (addProdBtn) {
-        addProdBtn.onclick = () => document.getElementById('product-form-container').classList.toggle('is-hidden');
-    }
-    const cancelProdBtn = document.getElementById('cancel-product-btn');
-    if (cancelProdBtn) {
-        cancelProdBtn.onclick = () => document.getElementById('product-form-container').classList.add('is-hidden');
-    }
+    safeSetClick('add-product-btn', () => {
+        const container = document.getElementById('product-form-container');
+        if (container) container.classList.toggle('is-hidden');
+    });
+    
+    safeSetClick('cancel-product-btn', () => {
+        const container = document.getElementById('product-form-container');
+        if (container) container.classList.add('is-hidden');
+    });
 
     // KIOSCO - Lógica de Formulario
     if (productForm) productForm.onsubmit = handleSaveProduct;
@@ -363,19 +384,21 @@ function setupEventListeners() {
     });
 
     // KIOSCO - Venta Rápida
-    document.getElementById('header-sale-btn').onclick = openSaleModal;
+    safeSetClick('header-sale-btn', openSaleModal);
     if (saleSearchInput) saleSearchInput.oninput = handleSaleSearch;
-    document.getElementById('sale-qty-minus').onclick = () => updateSaleQty(-1);
-    document.getElementById('sale-qty-plus').onclick = () => updateSaleQty(1);
+    safeSetClick('sale-qty-minus', () => updateSaleQty(-1));
+    safeSetClick('sale-qty-plus', () => updateSaleQty(1));
     if (confirmSaleBtn) confirmSaleBtn.onclick = handleConfirmSale;
-    document.getElementById('close-sale-modal-btn').onclick = closeModals;
+    safeSetClick('close-sale-modal-btn', closeModals);
 
     // KIOSCO - Reposición y Edición
     if (restockForm) restockForm.onsubmit = handleConfirmRestock;
-    document.getElementById('edit-product-form').onsubmit = handleConfirmEditProduct;
+    const editProductForm = document.getElementById('edit-product-form');
+    if (editProductForm) editProductForm.onsubmit = handleConfirmEditProduct;
 
     // Cierre de modales por fondo
-    [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')].forEach(modal => {
+    const modalList = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')];
+    modalList.forEach(modal => {
         if(modal) { 
             modal.onclick = (e) => {
                 if (e.target === modal) closeModals();
@@ -389,8 +412,8 @@ function setupEventListeners() {
 // -----------------------------------------------------------------
 
 function toggleMenu() {
-    mainMenu.classList.toggle('is-open');
-    menuOverlay.classList.toggle('hidden');
+    if (mainMenu) mainMenu.classList.toggle('is-open');
+    if (menuOverlay) menuOverlay.classList.toggle('hidden');
 }
 
 function showView(viewName) {
@@ -515,7 +538,7 @@ async function loadBookingsForMonth() {
 
 async function handleSaveBooking(event) {
     event.preventDefault();
-    if (recurringToggle.checked && recurringSettings.dayOfWeek !== null && recurringSettings.months.length > 0) {
+    if (recurringToggle && recurringToggle.checked && recurringSettings.dayOfWeek !== null && recurringSettings.months.length > 0) {
         await handleSaveRecurringBooking(event);
     } else {
         await handleSaveSingleBooking(event);
@@ -551,7 +574,7 @@ async function handleSaveSingleBooking(event) {
         monthYear: dateStr.substring(0, 7),
         paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
         courtHours: selectedCourtHours,
-        grillHours: rentGrillCheckbox.checked ? Array.from(grillHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10)) : [],
+        grillHours: (rentGrillCheckbox && rentGrillCheckbox.checked) ? Array.from(grillHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10)) : [],
         totalPrice: updateTotalPrice(),
         timestamp: Timestamp.now()
     };
@@ -562,9 +585,11 @@ async function handleSaveSingleBooking(event) {
             await setDoc(doc(db, bookingsCollectionPath, bookingId), bookingDataBase, { merge: true });
         } else {
             const docRef = await addDoc(collection(db, bookingsCollectionPath), bookingDataBase);
-            bookingId = docRef.id;
+            // No necesitamos reasignar bookingId aquí para el log si addDoc nos da el ref directo
+            await logBookingEvent(action, { id: docRef.id, ...bookingDataBase });
         }
-        await logBookingEvent(action, { id: bookingId, ...bookingDataBase });
+        if (bookingId) await logBookingEvent(action, { id: bookingId, ...bookingDataBase });
+        
         await saveCustomer(teamName); 
         showMessage("¡Turno guardado!");
         closeModals(); 
@@ -692,9 +717,10 @@ async function logBookingEvent(action, data, reason = null) {
 // -----------------------------------------------------------------
 
 function renderCalendar() {
+    if(!calendarGrid) return;
     calendarGrid.innerHTML = '';
     const year = currentMonthDate.getFullYear(), month = currentMonthDate.getMonth();
-    currentMonthYearEl.textContent = `${monthNames[month]} ${year}`;
+    if(currentMonthYearEl) currentMonthYearEl.textContent = `${monthNames[month]} ${year}`;
     const firstDay = new Date(year, month, 1).getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
 
@@ -723,11 +749,14 @@ function renderCalendar() {
 }
 
 function showOptionsModal(dateStr, bks) {
+    if(!optionsModal) return;
     optionsModal.dataset.date = dateStr;
     const list = document.getElementById('daily-bookings-list');
+    if(!list) return;
     list.innerHTML = '';
     const hasEv = bks.some(b => b.type === 'event');
-    document.getElementById('add-new-booking-btn').style.display = hasEv ? 'none' : 'block';
+    const addBtn = document.getElementById('add-new-booking-btn');
+    if (addBtn) addBtn.style.display = hasEv ? 'none' : 'block';
 
     bks.forEach(b => {
         const d = document.createElement('div');
@@ -774,9 +803,9 @@ async function loadCajaData() {
             daily[s.day].sls.push(s);
         });
 
-        cajaTotalBookings.textContent = `$${bTotal.toLocaleString()}`;
-        cajaTotalSales.textContent = `$${sTotal.toLocaleString()}`;
-        cajaTotalCombined.textContent = `$${(bTotal + sTotal).toLocaleString()}`;
+        if(cajaTotalBookings) cajaTotalBookings.textContent = `$${bTotal.toLocaleString()}`;
+        if(cajaTotalSales) cajaTotalSales.textContent = `$${sTotal.toLocaleString()}`;
+        if(cajaTotalCombined) cajaTotalCombined.textContent = `$${(bTotal + sTotal).toLocaleString()}`;
         
         renderCajaList(daily);
         hideMessage();
@@ -784,6 +813,7 @@ async function loadCajaData() {
 }
 
 function renderCajaList(daily) {
+    if(!cajaDailyList) return;
     cajaDailyList.innerHTML = '';
     Object.keys(daily).sort((a,b) => b.localeCompare(a)).forEach(day => {
         const data = daily[day], [y, m, d] = day.split('-');
@@ -796,19 +826,21 @@ function renderCajaList(daily) {
 }
 
 function showCajaDetail(date, data) {
-    cajaDetailModal.classList.add('is-open');
-    document.getElementById('caja-detail-title').textContent = date;
+    if(!cajaDetailModal) return;
+    cajaDetailModal.classList.add('is-open'); 
+    const title = document.getElementById('caja-detail-title');
+    if(title) title.textContent = date;
     const sumEl = document.getElementById('caja-detail-summary');
     let bSum = data.bks.reduce((a, b) => a + (b.totalPrice || 0), 0);
     let sSum = data.sls.reduce((a, s) => a + (s.total || 0), 0);
-    sumEl.innerHTML = `<div class="flex justify-between"><span>Turnos:</span> <strong>$${bSum.toLocaleString()}</strong></div>
-                       <div class="flex justify-between"><span>Kiosco:</span> <strong>$${sSum.toLocaleString()}</strong></div>
-                       <div class="flex justify-between text-lg font-black border-t mt-2 pt-2"><span>TOTAL:</span> <strong>$${data.total.toLocaleString()}</strong></div>`;
+    if(sumEl) sumEl.innerHTML = `<div class="flex justify-between"><span>Turnos:</span> <strong>$${bSum.toLocaleString()}</strong></div><div class="flex justify-between"><span>Kiosco:</span> <strong>$${sSum.toLocaleString()}</strong></div><div class="flex justify-between text-lg font-black border-t mt-2 pt-2"><span>TOTAL:</span> <strong>$${data.total.toLocaleString()}</strong></div>`;
     
     const list = document.getElementById('caja-detail-booking-list');
-    list.innerHTML = '';
-    data.bks.forEach(b => list.innerHTML += `<div class="text-xs p-1">📅 ${b.teamName}: $${b.totalPrice.toLocaleString()}</div>`);
-    data.sls.forEach(s => list.innerHTML += `<div class="text-xs p-1">🍭 ${s.name}: $${s.total.toLocaleString()}</div>`);
+    if(list) {
+        list.innerHTML = '';
+        data.bks.forEach(b => list.innerHTML += `<div class="text-xs p-1">📅 ${b.teamName}: $${b.totalPrice.toLocaleString()}</div>`);
+        data.sls.forEach(s => list.innerHTML += `<div class="text-xs p-1">🍭 ${s.name}: $${s.total.toLocaleString()}</div>`);
+    }
 }
 
 // -----------------------------------------------------------------
@@ -816,13 +848,14 @@ function showCajaDetail(date, data) {
 // -----------------------------------------------------------------
 
 function openRecurringModal() {
-    if (recurringToggle.checked) {
+    if (recurringToggle && recurringToggle.checked) {
         renderRecurringModal();
-        recurringModal.classList.add('is-open');
+        if(recurringModal) recurringModal.classList.add('is-open');
     }
 }
 
 function renderRecurringModal() {
+    if(!recurringMonthList) return;
     recurringMonthList.innerHTML = '';
     const now = new Date();
     for (let i = 0; i < 12; i++) {
@@ -837,49 +870,35 @@ function renderRecurringModal() {
 }
 
 function selectRecurringDay(btn) {
+    if(!recurringDayGrid) return;
     recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
 }
 
 function saveRecurringSettings() {
-    const dBtn = recurringDayGrid.querySelector('.day-toggle-btn.selected');
-    const mBtns = recurringMonthList.querySelectorAll('.month-toggle-btn.selected');
+    const dBtn = recurringDayGrid ? recurringDayGrid.querySelector('.day-toggle-btn.selected') : null;
+    const mBtns = recurringMonthList ? recurringMonthList.querySelectorAll('.month-toggle-btn.selected') : [];
     if (!dBtn || mBtns.length === 0) return alert("Selecciona día y meses.");
     recurringSettings.dayOfWeek = parseInt(dBtn.dataset.day, 10);
     recurringSettings.months = Array.from(mBtns).map(b => ({ month: b.dataset.month, year: b.dataset.year, name: b.textContent }));
-    recurringSummary.textContent = `Repetición: cada ${WEEKDAYS_ES[recurringSettings.dayOfWeek]} seleccionado.`;
-    recurringSummary.classList.remove('is-hidden');
-    recurringModal.classList.remove('is-open');
+    if(recurringSummary) {
+        recurringSummary.textContent = `Repetición: cada ${WEEKDAYS_ES[recurringSettings.dayOfWeek]} seleccionado.`;
+        recurringSummary.classList.remove('is-hidden');
+    }
+    if(recurringModal) recurringModal.classList.remove('is-open');
 }
 
 // -----------------------------------------------------------------
 // 10. LÓGICA DE KIOSCO (ALTA, REPOSICIÓN, VENTA)
 // -----------------------------------------------------------------
 
-/**
- * REPOSICIÓN DIRECTA: Al ingresar stock nuevo, actualiza COSTO DE TODO EL STOCK al último precio.
- */
 async function handleConfirmRestock(e) {
-    e.preventDefault();
-    const id = document.getElementById('restock-prod-id').value;
-    const addQ = parseInt(document.getElementById('restock-qty').value);
-    const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
-    
-    const nUnit = bCost / addQ;
-    const p = allProducts.find(x => x.id === id);
-    const uStock = p.stock + addQ;
-    
-    // Mantener margen previo
-    const margin = p.salePrice / p.unitCost;
-    const uSale = Math.ceil(nUnit * margin);
-
+    e.preventDefault(); 
+    const id = document.getElementById('restock-prod-id').value, addQ = parseInt(document.getElementById('restock-qty').value), bCost = parseFloat(document.getElementById('restock-batch-cost').value);
+    const nUnit = bCost / addQ, p = allProducts.find(x => x.id === id), uStock = p.stock + addQ, uSale = Math.ceil(nUnit * (p.salePrice / p.unitCost));
     try {
         showMessage("Sincronizando costos globales...");
-        await updateDoc(doc(db, productsCollectionPath, id), {
-            stock: uStock,
-            unitCost: nUnit, // ACTUALIZA TODO AL ULTIMO COSTO
-            salePrice: uSale
-        });
+        await updateDoc(doc(db, productsCollectionPath, id), { stock: uStock, unitCost: nUnit, salePrice: uSale });
         await logKioscoTransaction(id, `Reposición (+${addQ})`, addQ, nUnit, 'in');
         closeModals(); showMessage("Stock y costos actualizados."); setTimeout(hideMessage, 2000);
     } catch (err) { alert(err.message); }
@@ -894,19 +913,24 @@ async function handleSaveProduct(e) {
     try {
         const r = await addDoc(collection(db, productsCollectionPath), { name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now() });
         await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
-        e.target.reset(); document.getElementById('product-form-container').classList.add('is-hidden');
+        e.target.reset(); const fCont = document.getElementById('product-form-container');
+        if(fCont) fCont.classList.add('is-hidden');
         showMessage("Producto guardado."); setTimeout(hideMessage, 1500);
     } catch (err) { alert(err.message); }
 }
 
 function calculateProductPrices() {
-    const c = parseFloat(document.getElementById('prod-batch-cost').value) || 0;
-    const q = parseInt(document.getElementById('prod-batch-qty').value) || 1;
-    const m = parseFloat(document.getElementById('prod-profit-pct').value) || 40;
+    const costEl = document.getElementById('prod-batch-cost');
+    const qtyEl = document.getElementById('prod-batch-qty');
+    const marginEl = document.getElementById('prod-profit-pct');
+    if(!costEl || !qtyEl || !marginEl) return;
+    const c = parseFloat(costEl.value) || 0, q = parseInt(qtyEl.value) || 1, m = parseFloat(marginEl.value) || 40;
     const u = c / q;
     const s = Math.ceil(u * (1 + (m / 100)));
-    document.getElementById('prod-suggested-price').textContent = `$${s}`;
-    document.getElementById('prod-unit-cost').value = u;
+    const sDisp = document.getElementById('prod-suggested-price');
+    if(sDisp) sDisp.textContent = `$${s}`;
+    const uHidden = document.getElementById('prod-unit-cost');
+    if(uHidden) uHidden.value = u;
 }
 
 function syncProducts() {
@@ -923,7 +947,7 @@ function renderProducts(f = "") {
         const d = document.createElement('div');
         d.className = 'product-card bg-white p-6 rounded-[2rem] border shadow-sm flex flex-col gap-4';
         d.innerHTML = `<div class="flex justify-between items-start">
-                         <div><h4 class="font-black italic uppercase">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[10px]">Stock: ${p.stock}</span></div>
+                         <div><h4 class="font-black italic uppercase text-gray-800">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[10px]">Stock: ${p.stock}</span></div>
                          <div class="text-right"><p class="text-[9px] font-bold text-gray-400">P. VENTA</p><p class="text-2xl font-black text-emerald-600">$${p.salePrice}</p></div>
                        </div>
                        <div class="grid grid-cols-2 gap-2 mt-2">
@@ -936,43 +960,53 @@ function renderProducts(f = "") {
     });
 }
 
-// --- VENTA RÁPIDA KIOSCO ---
-
 function openSaleModal() {
-    saleSearchInput.value = ''; saleSearchResults.innerHTML = ''; selectedProductInfo.classList.add('is-hidden');
-    confirmSaleBtn.disabled = true; saleModal.classList.add('is-open'); setTimeout(() => saleSearchInput.focus(), 100);
+    if(!saleSearchInput) return;
+    saleSearchInput.value = ''; if(saleSearchResults) saleSearchResults.innerHTML = ''; 
+    if(selectedProductInfo) selectedProductInfo.classList.add('is-hidden');
+    if(confirmSaleBtn) confirmSaleBtn.disabled = true; 
+    if(saleModal) saleModal.classList.add('is-open'); 
+    setTimeout(() => { if(saleSearchInput) saleSearchInput.focus(); }, 100);
 }
 
 function handleSaleSearch() {
     const v = saleSearchInput.value.toLowerCase(); if (v.length < 2) { saleSearchResults.innerHTML = ''; return; }
+    if(!saleSearchResults) return;
     saleSearchResults.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
         const i = document.createElement('div'); i.className = 'p-4 bg-gray-50 rounded-2xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50';
         i.innerHTML = `<div><span class="font-black">${p.name}</span><p class="text-[10px] text-gray-400">STOCK: ${p.stock}</p></div><strong>$${p.salePrice}</strong>`;
         i.onclick = () => {
-            currentSelectedProduct = p; document.getElementById('sel-prod-name').textContent = p.name;
-            document.getElementById('sel-prod-stock').textContent = p.stock; document.getElementById('sel-prod-price').textContent = `$${p.salePrice}`;
-            document.getElementById('sale-qty-input').value = 1; selectedProductInfo.classList.remove('is-hidden');
-            confirmSaleBtn.disabled = (p.stock <= 0); updateSaleTotal();
+            currentSelectedProduct = p; 
+            const nEl = document.getElementById('sel-prod-name'); if(nEl) nEl.textContent = p.name;
+            const sEl = document.getElementById('sel-prod-stock'); if(sEl) sEl.textContent = p.stock; 
+            const pEl = document.getElementById('sel-prod-price'); if(pEl) pEl.textContent = `$${p.salePrice}`;
+            const qEl = document.getElementById('sale-qty-input'); if(qEl) qEl.value = 1;
+            if(selectedProductInfo) selectedProductInfo.classList.remove('is-hidden');
+            if(confirmSaleBtn) confirmSaleBtn.disabled = (p.stock <= 0); 
+            updateSaleTotal();
         };
         saleSearchResults.appendChild(i);
     });
 }
 
 function updateSaleQty(d) {
-    const i = document.getElementById('sale-qty-input');
+    const i = document.getElementById('sale-qty-input'); if(!i) return;
     let v = parseInt(i.value) + d;
     if (v < 1) v = 1; if (v > currentSelectedProduct.stock) v = currentSelectedProduct.stock;
     i.value = v; updateSaleTotal();
 }
 
 function updateSaleTotal() {
-    const q = parseInt(document.getElementById('sale-qty-input').value);
-    document.getElementById('sale-total-display').textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString()}`;
+    const qEl = document.getElementById('sale-qty-input'); if(!qEl) return;
+    const q = parseInt(qEl.value);
+    const disp = document.getElementById('sale-total-display');
+    if(disp) disp.textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString()}`;
 }
 
 async function handleConfirmSale() {
-    const q = parseInt(document.getElementById('sale-qty-input').value);
+    const qEl = document.getElementById('sale-qty-input'); if(!qEl) return;
+    const q = parseInt(qEl.value);
     try {
         await addDoc(collection(db, salesCollectionPath), { name: currentSelectedProduct.name, qty: q, total: q * currentSelectedProduct.salePrice, day: new Date().toISOString().split('T')[0], monthYear: new Date().toISOString().substring(0, 7), timestamp: Timestamp.now() });
         await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - q });
@@ -991,7 +1025,9 @@ async function logKioscoTransaction(productId, desc, qty, cost, type) {
 
 window.viewBookingDetail = async (id) => {
     const b = allMonthBookings.find(x => x.id === id);
-    document.getElementById('view-booking-details').innerHTML = `
+    const det = document.getElementById('view-booking-details');
+    if(det) {
+        det.innerHTML = `
         <h3 class="text-3xl font-black text-emerald-800 italic uppercase">${b.teamName || b.eventName}</h3>
         <div class="mt-6 space-y-3 font-bold text-gray-500 text-sm">
             <div class="flex justify-between border-b pb-2"><span>TIPO:</span> <span class="text-gray-900">${b.type.toUpperCase()}</span></div>
@@ -999,7 +1035,8 @@ window.viewBookingDetail = async (id) => {
             <div class="flex justify-between border-b pb-2"><span>HORAS:</span> <span class="text-gray-900">${b.courtHours.join(', ')}hs</span></div>
             <div class="flex justify-between pt-6"><span class="text-emerald-800">TOTAL:</span> <span class="text-3xl font-black text-emerald-600">$${b.totalPrice.toLocaleString()}</span></div>
         </div>`;
-    viewModal.classList.add('is-open');
+    }
+    if(viewModal) viewModal.classList.add('is-open');
 };
 
 window.editBooking = (id) => {
@@ -1008,59 +1045,61 @@ window.editBooking = (id) => {
 };
 
 window.deleteBooking = (id) => {
-    deleteBookingIdInput.value = id; deleteReasonText.value = '';
-    closeModals(); deleteReasonModal.classList.add('is-open');
+    if(deleteBookingIdInput) deleteBookingIdInput.value = id; 
+    if(deleteReasonText) deleteReasonText.value = '';
+    closeModals(); if(deleteReasonModal) deleteReasonModal.classList.add('is-open');
 };
 
 window.deleteProduct = async (id) => { if (confirm("¿Eliminar producto?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
 
 window.openRestock = (id) => {
     const p = allProducts.find(x => x.id === id);
-    document.getElementById('restock-prod-id').value = id;
-    document.getElementById('restock-name').textContent = p.name;
-    document.getElementById('restock-current-stock').textContent = p.stock;
-    document.getElementById('restock-modal').classList.add('is-open');
+    const idIn = document.getElementById('restock-prod-id'); if(idIn) idIn.value = id;
+    const nameIn = document.getElementById('restock-name'); if(nameIn) nameIn.textContent = p.name;
+    const stockIn = document.getElementById('restock-current-stock'); if(stockIn) stockIn.textContent = p.stock;
+    const resM = document.getElementById('restock-modal'); if(resM) resM.classList.add('is-open');
 };
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
-    document.getElementById('edit-prod-id').value = id;
-    document.getElementById('edit-prod-name').value = p.name;
-    document.getElementById('edit-prod-cost').value = p.unitCost;
-    document.getElementById('edit-prod-price').value = p.salePrice;
-    document.getElementById('edit-prod-stock').value = p.stock;
-    document.getElementById('edit-product-modal').classList.add('is-open');
+    const eid = document.getElementById('edit-prod-id'); if(eid) eid.value = id;
+    const ename = document.getElementById('edit-prod-name'); if(ename) ename.value = p.name;
+    const ecost = document.getElementById('edit-prod-cost'); if(ecost) ecost.value = p.unitCost;
+    const eprice = document.getElementById('edit-prod-price'); if(eprice) eprice.value = p.salePrice;
+    const estock = document.getElementById('edit-prod-stock'); if(estock) estock.value = p.stock;
+    const emod = document.getElementById('edit-product-modal'); if(emod) emod.classList.add('is-open');
 };
 
 async function handleConfirmEditProduct(e) {
     e.preventDefault();
+    const idVal = document.getElementById('edit-prod-id').value;
     const d = { 
         name: document.getElementById('edit-prod-name').value, 
         unitCost: parseFloat(document.getElementById('edit-prod-cost').value), 
         salePrice: parseFloat(document.getElementById('edit-prod-price').value), 
         stock: parseInt(document.getElementById('edit-prod-stock').value) 
     };
-    await updateDoc(doc(db, productsCollectionPath, document.getElementById('edit-prod-id').value), d);
+    await updateDoc(doc(db, productsCollectionPath, idVal), d);
     closeModals();
 }
 
 window.openHistory = async (id) => {
     const p = allProducts.find(x => x.id === id);
-    document.getElementById('history-product-name').textContent = p.name;
+    const hName = document.getElementById('history-product-name'); if(hName) hName.textContent = p.name;
     const s = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
-    const l = document.getElementById('product-history-list'); l.innerHTML = '';
+    const list = document.getElementById('product-history-list'); if(!list) return; list.innerHTML = '';
     s.forEach(doc => {
         const t = doc.data();
-        l.innerHTML += `<div class="p-3 bg-gray-50 rounded-xl mb-1 flex justify-between border shadow-sm">
+        list.innerHTML += `<div class="p-3 bg-gray-50 rounded-xl mb-1 flex justify-between border shadow-sm">
                            <div><p class="font-black text-sm text-gray-800">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400">${t.timestamp.toDate().toLocaleString()}</p></div>
                            <strong class="${t.type==='in'?'text-emerald-600':'text-red-500'}">${t.type==='in'?'+':'-'}${t.qty}</strong>
                         </div>`;
     });
-    document.getElementById('product-history-modal').classList.add('is-open');
+    const hMod = document.getElementById('product-history-modal'); if(hMod) hMod.classList.add('is-open');
 };
 
 // -----------------------------------------------------------------
-// 12. UTILIDADES Y AUXILIARES
+// 12. UTILIDADES Y AUXILIARES (CON CORRECCIÓN NULL-SAFE)
 // -----------------------------------------------------------------
 
 function showMessage(msg, isError = false) {
@@ -1068,19 +1107,26 @@ function showMessage(msg, isError = false) {
     const overlayEl = document.getElementById('message-overlay');
     if (textEl) {
         textEl.textContent = msg;
-        textEl.className = isError ? 'text-xl font-black text-red-600' : 'text-xl font-black text-emerald-800';
+        textEl.className = isError ? 'text-xl font-black text-red-600 tracking-tight' : 'text-xl font-black text-emerald-800 tracking-tight';
     }
     if (overlayEl) overlayEl.classList.add('is-open');
 }
 
-function hideMessage() { document.getElementById('message-overlay').classList.remove('is-open'); }
+function hideMessage() { 
+    const overlayEl = document.getElementById('message-overlay');
+    if(overlayEl) overlayEl.classList.remove('is-open'); 
+}
+
 function prevMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() - 1); loadBookingsForMonth(); }
 function nextMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); loadBookingsForMonth(); }
 function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-open')); }
 
-function updateCourtAvailability() { updateTotalPrice(); }
+function updateCourtAvailability() { 
+    updateTotalPrice(); 
+}
 
 function updateTotalPrice() {
+    if(!courtHoursList || !costPerHourInput || !bookingTotal) return 0;
     const h = courtHoursList.querySelectorAll('.time-slot.selected').length;
     const p = parseFloat(costPerHourInput.value) || 0;
     const t = h * p;
@@ -1089,10 +1135,14 @@ function updateTotalPrice() {
 }
 
 function updateEventTotalPrice() {
-    const h = eventHoursList.querySelectorAll('.time-slot.selected').length;
-    const p = parseFloat(eventCostPerHourInput.value) || 0;
+    const hList = document.getElementById('event-hours-list');
+    const cIn = document.getElementById('eventCostPerHour');
+    const tDisp = document.getElementById('event-total');
+    if(!hList || !cIn || !tDisp) return 0;
+    const h = hList.querySelectorAll('.time-slot.selected').length;
+    const p = parseFloat(cIn.value) || 0;
     const t = h * p;
-    eventTotal.textContent = `$${t.toLocaleString()}`;
+    tDisp.textContent = `$${t.toLocaleString()}`;
     return t;
 }
 
@@ -1102,11 +1152,11 @@ async function loadStatsData() {
         const snap = await getDocs(collection(db, bookingsCollectionPath));
         const st = {};
         snap.forEach(doc => {
-            const b = doc.data(); const n = b.teamName.toLowerCase();
-            if (!st[n]) st[n] = { name: b.teamName, count: 0, total: 0 };
+            const b = doc.data(); const n = b.teamName ? b.teamName.toLowerCase() : "sin nombre";
+            if (!st[n]) st[n] = { name: b.teamName || "Sin Nombre", count: 0, total: 0 };
             st[n].count++; st[n].total += (b.totalPrice || 0);
         });
-        const l = document.getElementById('stats-list'); l.innerHTML = '';
+        const l = document.getElementById('stats-list'); if(!l) return; l.innerHTML = '';
         Object.values(st).sort((a,b) => b.count - a.count).forEach(c => {
             l.innerHTML += `<div class="data-card p-4 flex justify-between items-center mb-2"><div><strong class="font-black">${c.name}</strong><p class="text-xs uppercase">${c.count} turnos</p></div><strong class="text-emerald-600">$${c.total.toLocaleString()}</strong></div>`;
         });
@@ -1117,15 +1167,16 @@ async function loadHistorialData() {
     if (!db) return;
     try {
         const snap = await getDocs(query(collection(db, logCollectionPath), orderBy("timestamp", "desc")));
-        const l = document.getElementById('historial-list'); l.innerHTML = '';
+        const l = document.getElementById('historial-list'); if(!l) return; l.innerHTML = '';
         snap.forEach(doc => {
             const e = doc.data();
-            l.innerHTML += `<div class="data-card p-4 mb-2"><div class="flex justify-between"><strong class="font-black italic uppercase">${e.teamName}</strong><span class="text-[10px] font-bold uppercase px-2 py-1 bg-gray-100 rounded-lg">${e.action}</span></div><p class="text-[9px] mt-1 text-gray-400 font-bold uppercase">${e.timestamp.toDate().toLocaleString()} | ADMIN: ${e.loggedByEmail}</p></div>`;
+            l.innerHTML += `<div class="data-card p-4 mb-2"><div class="flex justify-between"><strong class="font-black italic uppercase">${e.teamName || e.eventName}</strong><span class="text-[10px] font-bold uppercase px-2 py-1 bg-gray-100 rounded-lg">${e.action}</span></div><p class="text-[9px] mt-1 text-gray-400 font-bold uppercase">${e.timestamp.toDate().toLocaleString()} | ADMIN: ${e.loggedByEmail || "Sistema"}</p></div>`;
         });
     } catch (e) {}
 }
 
 async function handleTeamNameInput() {
+    if(!teamNameInput || !teamNameSuggestions) return;
     const qText = teamNameInput.value.trim().toLowerCase();
     if (qText.length < 2) { teamNameSuggestions.style.display = 'none'; return; }
     try {
@@ -1145,4 +1196,4 @@ async function handleTeamNameInput() {
 window.hideMessage = hideMessage;
 window.closeModals = closeModals;
 
-console.log("Sistema Panza Verde v2026 - Restauración Completa Finalizada.");
+console.log("Sistema Panza Verde v2026 - Corrección y Restauración Completa.");
