@@ -23,7 +23,8 @@ import {
     documentId,
     Timestamp, 
     orderBy, 
-    getDoc 
+    getDoc,
+    writeBatch // Para guardado en lote
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // -----------------------------------------------------------------
@@ -42,12 +43,14 @@ const firebaseConfig = {
 const bookingsCollectionPath = "bookings"; 
 const customersCollectionPath = "customers";
 const logCollectionPath = "booking_log"; 
-const settingsDocPath = "app_settings/prices"; // Para Configuración
+const settingsDocPath = "app_settings/prices"; 
 
 // --- CONSTANTES DE LA APP ---
 const OPERATING_HOURS = [
     9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
 ]; 
+const WEEKDAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const MONTHS_TO_SHOW = 12; 
 
 // --- VARIABLES GLOBALES DE LA APP ---
 let db, auth;
@@ -58,12 +61,16 @@ let currentBookingsUnsubscribe = null;
 let allMonthBookings = []; 
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-// Precios por defecto (fallback)
 let appSettings = {
     court1Price: 5000,
     court2Price: 5000,
     grillPrice: 2000,
     eventPrice: 10000
+};
+
+let recurringSettings = {
+    dayOfWeek: null, 
+    months: [] 
 };
 
 // --- REFERENCIAS AL DOM ---
@@ -120,6 +127,7 @@ const optionsModal = document.getElementById('options-modal');
 const viewModal = document.getElementById('view-modal');
 const cajaDetailModal = document.getElementById('caja-detail-modal');
 const deleteReasonModal = document.getElementById('delete-reason-modal'); 
+const recurringModal = document.getElementById('recurring-modal'); 
 const messageOverlay = document.getElementById('message-overlay');
 const messageText = document.getElementById('message-text');
 // Referencias de Formulario Cancha
@@ -133,6 +141,8 @@ const grillHoursSection = document.getElementById('grill-hours-section');
 const courtHoursList = document.getElementById('court-hours-list');
 const grillHoursList = document.getElementById('grill-hours-list');
 const bookingTotal = document.getElementById('booking-total');
+const recurringToggle = document.getElementById('recurring-toggle'); 
+const recurringSummary = document.getElementById('recurring-summary'); 
 // Referencias de Formulario Evento
 const eventForm = document.getElementById('event-form');
 const eventBookingIdInput = document.getElementById('event-booking-id'); 
@@ -154,6 +164,10 @@ const configCourt1Price = document.getElementById('config-court1-price');
 const configCourt2Price = document.getElementById('config-court2-price');
 const configGrillPrice = document.getElementById('config-grill-price');
 const configEventPrice = document.getElementById('config-event-price');
+
+// Referencias de Modal Recurrente
+const recurringDayGrid = document.querySelector('.day-selector-grid');
+const recurringMonthList = document.getElementById('recurring-month-list');
 
 
 // --- INICIALIZACIÓN ---
@@ -185,14 +199,11 @@ async function firebaseInit() {
                 console.log("Usuario autenticado:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
-                
                 await loadAppSettings(); 
-
                 appContainer.classList.remove('is-hidden');
                 loginView.classList.add('is-hidden');
                 registerView.classList.add('is-hidden');
                 userEmailDisplay.textContent = userEmail;
-                
                 await loadBookingsForMonth(); 
             } else {
                 console.log("Sin usuario, mostrando login.");
@@ -248,7 +259,7 @@ function setupEventListeners() {
     document.getElementById('next-month-btn').onclick = nextMonth;
     
     // Formularios y Modales
-    bookingForm.onsubmit = handleSaveBooking;
+    bookingForm.onsubmit = handleSaveBooking; 
     eventForm.onsubmit = handleSaveEvent; 
     
     if (configForm) {
@@ -298,7 +309,29 @@ function setupEventListeners() {
     eventCostPerHourInput.oninput = updateEventTotalPrice;
     deleteReasonForm.onsubmit = handleConfirmDelete;
     document.getElementById('cancel-delete-btn').onclick = closeModals;
-    [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal].forEach(modal => {
+
+    // --- ¡INICIO DE LA CORRECCIÓN! ---
+    recurringToggle.onchange = openRecurringModal;
+    
+    // Botón CANCELAR del modal de recurrencia
+    document.getElementById('cancel-recurring-btn').onclick = () => {
+        recurringModal.classList.remove('is-open'); // Cierra solo este modal
+        recurringToggle.checked = false; // Desmarcar el switch
+        recurringSummary.classList.add('is-hidden'); // Ocultar resumen
+        recurringSummary.textContent = '';
+        recurringSettings = { dayOfWeek: null, months: [] }; // Resetea
+    };
+    
+    // Botón CONFIRMAR del modal de recurrencia
+    document.getElementById('confirm-recurring-btn').onclick = saveRecurringSettings;
+    // --- FIN DE LA CORRECCIÓN ---
+    
+    recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => {
+        btn.onclick = (e) => selectRecurringDay(e.target);
+    });
+
+     // Cierre de modales genérico
+    [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal].forEach(modal => {
         if(modal) { 
             modal.onclick = (e) => {
                 if (e.target === modal) closeModals();
@@ -318,11 +351,9 @@ function showView(viewName) {
     for (const key in views) {
         if (views[key]) views[key].classList.add('is-hidden');
     }
-    
     const viewToShow = views[viewName];
     if (viewToShow) {
         viewToShow.classList.remove('is-hidden');
-        
         if (viewName === 'caja') loadCajaData();
         else if (viewName === 'stats') loadStatsData();
         else if (viewName === 'historial') loadHistorialData();
@@ -486,6 +517,15 @@ async function loadBookingsForMonth() {
 
 async function handleSaveBooking(event) {
     event.preventDefault();
+    
+    if (recurringToggle.checked && recurringSettings.dayOfWeek !== null && recurringSettings.months.length > 0) {
+        await handleSaveRecurringBooking(event);
+    } else {
+        await handleSaveSingleBooking(event);
+    }
+}
+
+async function handleSaveSingleBooking(event) {
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
     saveButton.textContent = "Guardando...";
@@ -553,6 +593,135 @@ async function handleSaveBooking(event) {
         saveButton.textContent = "Guardar";
     }
 }
+
+async function handleSaveRecurringBooking(event) {
+    const saveButton = bookingForm.querySelector('button[type="submit"]');
+    saveButton.disabled = true;
+    saveButton.textContent = "Guardando...";
+    showMessage("Procesando reservas recurrentes...");
+
+    const teamName = document.getElementById('teamName').value.trim();
+    const courtId = document.querySelector('input[name="courtSelection"]:checked').value;
+    const selectedCourtHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
+    const selectedGrillHours = Array.from(grillHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
+
+    if (selectedCourtHours.length === 0) {
+        showMessage("Debes seleccionar al menos un horario de cancha.", true);
+        setTimeout(hideMessage, 2000); 
+        saveButton.disabled = false;
+        saveButton.textContent = "Guardar";
+        return;
+    }
+
+    const commonBookingData = {
+        type: 'court', 
+        teamName: teamName,
+        courtId: courtId, 
+        peopleCount: parseInt(document.getElementById('peopleCount').value, 10),
+        costPerHour: parseFloat(costPerHourInput.value),
+        rentGrill: rentGrillCheckbox.checked,
+        grillCost: parseFloat(grillCostInput.value),
+        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+        courtHours: selectedCourtHours,
+        grillHours: rentGrillCheckbox.checked ? selectedGrillHours : [],
+        totalPrice: updateTotalPrice()
+    };
+    
+    const { dayOfWeek, months } = recurringSettings;
+    let datesToBook = [];
+    
+    months.forEach(m => {
+        const year = parseInt(m.year, 10);
+        const month = parseInt(m.month, 10);
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            if (date.getDay() == dayOfWeek) { 
+                const dateStr = date.toISOString().split('T')[0];
+                datesToBook.push(dateStr);
+            }
+        }
+    });
+
+    if (datesToBook.length === 0) {
+        showMessage("No se encontraron fechas válidas para la recurrencia.", true);
+        saveButton.disabled = false;
+        saveButton.textContent = "Guardar";
+        return;
+    }
+
+    const conflicts = [];
+    const bookingsToCreate = [];
+    
+    showMessage(`Comprobando ${datesToBook.length} fechas...`);
+    
+    const q = query(collection(db, bookingsCollectionPath), 
+        where("type", "==", "court"),
+        where("courtId", "==", courtId),
+        where("day", ">=", datesToBook[0]) 
+    );
+    const snapshot = await getDocs(q);
+    
+    const occupiedSlotsMap = new Map();
+    snapshot.docs.forEach(doc => {
+        const booking = doc.data();
+        const existingSlots = occupiedSlotsMap.get(booking.day) || new Set();
+        booking.courtHours.forEach(hour => existingSlots.add(hour));
+        occupiedSlotsMap.set(booking.day, existingSlots);
+    });
+
+    for (const dateStr of datesToBook) {
+        const occupiedOnThisDate = occupiedSlotsMap.get(dateStr) || new Set();
+        const hasConflict = selectedCourtHours.some(hour => occupiedOnThisDate.has(hour));
+        
+        if (hasConflict) {
+            conflicts.push(dateStr);
+        } else {
+            bookingsToCreate.push({
+                ...commonBookingData,
+                day: dateStr,
+                monthYear: dateStr.substring(0, 7)
+            });
+        }
+    }
+
+    try {
+        if (bookingsToCreate.length > 0) {
+            const batch = writeBatch(db);
+            const logBatch = []; 
+            
+            for (const bookingData of bookingsToCreate) {
+                const docRef = doc(collection(db, bookingsCollectionPath)); 
+                batch.set(docRef, bookingData);
+                logBatch.push(logBookingEvent('created', bookingData));
+            }
+            
+            await batch.commit(); 
+            await Promise.all(logBatch); 
+        }
+
+        let successMsg = `Se crearon ${bookingsToCreate.length} reservas.`;
+        if (conflicts.length > 0) {
+            successMsg += `\n${conflicts.length} fechas omitidas por conflictos: ${conflicts.join(', ')}`;
+            showMessage(successMsg, true); 
+        } else {
+            showMessage(successMsg, false); 
+        }
+        
+        await saveCustomer(commonBookingData.teamName); 
+        closeModals(); 
+        setTimeout(hideMessage, 4000); 
+
+    } catch (error) {
+        console.error("Error al guardar reservas recurrentes:", error);
+        showMessage(`Error al guardar: ${error.message}`, true);
+    } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = "Guardar";
+    }
+}
+
 
 async function handleSaveEvent(event) {
     event.preventDefault();
@@ -833,6 +1002,7 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
     let selectedGrillHours = [];
 
     if (bookingToEdit) {
+        recurringToggle.disabled = true;
         document.getElementById('booking-modal-title').textContent = "Editar Reserva (Cancha)";
         document.getElementById('booking-id').value = bookingToEdit.id;
         document.getElementById('teamName').value = bookingToEdit.teamName;
@@ -845,9 +1015,9 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
         document.querySelector(`input[name="paymentMethod"][value="${paymentMethod}"]`).checked = true;
         selectedGrillHours = bookingToEdit.grillHours || [];
     } else {
+        recurringToggle.disabled = false;
         document.getElementById('booking-modal-title').textContent = `Reservar Cancha (${dateStr})`;
         document.getElementById('booking-id').value = '';
-        // Cargar precios desde la config global
         costPerHourInput.value = appSettings.court1Price; 
         grillCostInput.value = appSettings.grillPrice; 
         rentGrillCheckbox.checked = false;
@@ -880,10 +1050,12 @@ function updateCourtAvailability() {
     const bookingIdToEdit = bookingForm.dataset.editingId;
     const selectedCourt = document.querySelector('input[name="courtSelection"]:checked').value;
     
-    if (selectedCourt === 'cancha1') {
-        costPerHourInput.value = appSettings.court1Price;
-    } else {
-        costPerHourInput.value = appSettings.court2Price;
+    if (!bookingIdToEdit) { 
+        if (selectedCourt === 'cancha1') {
+            costPerHourInput.value = appSettings.court1Price;
+        } else {
+            costPerHourInput.value = appSettings.court2Price;
+        }
     }
 
     const currentlySelectedHours = getCurrentlySelectedHours(courtHoursList);
@@ -924,7 +1096,7 @@ function showEventModal(dateStr, eventToEdit = null) {
     } else {
         document.getElementById('event-modal-title').textContent = `Reservar Evento (${dateStr})`;
         eventBookingIdInput.value = '';
-        eventCostPerHourInput.value = appSettings.eventPrice; // Cargar precio desde config
+        eventCostPerHourInput.value = appSettings.eventPrice; 
     }
 
     renderTimeSlots(eventHoursList, occupiedHours, selectedHours);
@@ -1112,6 +1284,13 @@ function closeModals() {
     viewModal.classList.remove('is-open');
     cajaDetailModal.classList.remove('is-open');
     deleteReasonModal.classList.remove('is-open'); 
+    recurringModal.classList.remove('is-open'); 
+
+    recurringToggle.checked = false;
+    recurringToggle.disabled = false;
+    recurringSummary.classList.add('is-hidden');
+    recurringSummary.textContent = '';
+    recurringSettings = { dayOfWeek: null, months: [] };
 }
 
 
@@ -1179,7 +1358,7 @@ function renderCajaList(dailyTotals) {
         const displayDate = `${dayNum}/${month}/${year}`;
         
         const item = document.createElement('div');
-        item.className = 'caja-day-item data-card'; // Clase de tarjeta
+        item.className = 'caja-day-item data-card'; 
         item.innerHTML = `
             <div class="flex items-center">
                 <div class="data-card-icon bg-emerald-100 text-emerald-600">
@@ -1283,10 +1462,10 @@ function renderStatsList(stats) {
     }
     statsArray.forEach((client, index) => {
         const item = document.createElement('div');
-        item.className = 'stats-item data-card'; // Clase de tarjeta
+        item.className = 'stats-item data-card'; 
         
         let iconHtml = '';
-        if (index === 0) { // Primer puesto
+        if (index === 0) { 
             iconHtml = `<div class="data-card-icon bg-amber-100 text-amber-600"><svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg></div>`;
         } else {
             iconHtml = `<div class="data-card-icon bg-gray-100 text-gray-600"><svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`;
@@ -1344,7 +1523,7 @@ function renderHistorialList(logEntries) {
     }
     logEntries.forEach(entry => {
         const item = document.createElement('div');
-        item.className = 'historial-item data-card'; // Clase de tarjeta
+        item.className = 'historial-item data-card'; 
         const eventDate = entry.timestamp.toDate();
         const formattedTimestamp = eventDate.toLocaleString('es-AR', { 
             day: '2-digit', month: '2-digit', year: 'numeric', 
@@ -1404,6 +1583,89 @@ function renderHistorialList(logEntries) {
         `;
         historialList.appendChild(item);
     });
+}
+
+
+// --- LÓGICA DE RECURRENCIA ---
+
+function openRecurringModal() {
+    if (recurringToggle.checked) {
+        if (bookingForm.dataset.editingId) {
+            showMessage("No se puede crear una reserva recurrente al editar.", true);
+            recurringToggle.checked = false;
+            return;
+        }
+        renderRecurringModal();
+        recurringModal.classList.add('is-open');
+    } else {
+        recurringSettings = { dayOfWeek: null, months: [] };
+        recurringSummary.classList.add('is-hidden');
+        recurringSummary.textContent = '';
+    }
+}
+
+function renderRecurringModal() {
+    recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => btn.classList.remove('selected'));
+    recurringMonthList.innerHTML = '';
+    
+    const today = new Date();
+    for (let i = 0; i < MONTHS_TO_SHOW; i++) {
+        const date = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        const monthName = new Date(year, month).toLocaleString('es-AR', { month: 'long' });
+        const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+        
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'month-toggle-btn';
+        btn.dataset.month = month;
+        btn.dataset.year = year;
+        btn.textContent = `${capitalizedMonth} ${year}`;
+        
+        btn.onclick = (e) => {
+            e.target.classList.toggle('selected');
+        };
+        
+        recurringMonthList.appendChild(btn);
+    }
+}
+
+function selectRecurringDay(selectedButton) {
+    recurringDayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    selectedButton.classList.add('selected');
+}
+
+function saveRecurringSettings() {
+    const selectedDayBtn = recurringDayGrid.querySelector('.day-toggle-btn.selected');
+    const selectedMonthBtns = recurringMonthList.querySelectorAll('.month-toggle-btn.selected');
+
+    if (!selectedDayBtn) {
+        alert("Por favor, selecciona un día de la semana.");
+        return;
+    }
+    if (selectedMonthBtns.length === 0) {
+        alert("Por favor, selecciona al menos un mes.");
+        return;
+    }
+
+    recurringSettings.dayOfWeek = parseInt(selectedDayBtn.dataset.day, 10);
+    recurringSettings.months = Array.from(selectedMonthBtns).map(btn => {
+        return {
+            month: btn.dataset.month,
+            year: btn.dataset.year,
+            name: btn.textContent.split(' ')[0] 
+        };
+    });
+
+    const dayName = WEEKDAYS_ES[recurringSettings.dayOfWeek];
+    const monthNames = recurringSettings.months.map(m => m.name.substring(0, 3)).join(', ');
+    recurringSummary.textContent = `Repetir cada ${dayName} de ${monthNames}.`;
+    recurringSummary.classList.remove('is-hidden');
+    
+    recurringModal.classList.remove('is-open'); // ¡CORREGIDO! Cierra solo este modal
 }
 
 
