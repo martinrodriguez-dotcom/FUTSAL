@@ -1,4 +1,4 @@
-const CACHE_NAME = 'futsal-app-cache-v6.5'; // Subimos versión para forzar actualización
+const CACHE_NAME = 'futsal-app-cache-v6.6'; // Subimos versión para forzar actualización
 const urlsToCache = [
     '/',
     '/index.html',
