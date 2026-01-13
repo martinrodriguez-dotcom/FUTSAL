@@ -451,3 +451,47 @@ input:checked + .slider:before {
     color: white;
     border-color: #059669; /* bg-emerald-600 */
 }
+
+/* ============================================= */
+/* ¡NUEVO! ESTILOS ADICIONALES PARA KIOSCO */
+/* ============================================= */
+
+/* Etiquetas de stock dinámicas */
+.stock-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    font-weight: 900;
+}
+.stock-badge.stock-low {
+    background-color: #FEE2E2; /* red-100 */
+    color: #B91C1C; /* red-700 */
+}
+.stock-badge.stock-ok {
+    background-color: #D1FAE5; /* emerald-100 */
+    color: #047857; /* emerald-700 */
+}
+
+/* Animación de latido para el producto seleccionado en venta */
+.animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+}
+
+/* Scrollbar personalizado para los modales largos */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
