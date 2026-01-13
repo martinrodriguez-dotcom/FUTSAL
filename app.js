@@ -54,7 +54,7 @@ const OPERATING_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 
 const WEEKDAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-// --- VARIABLES GLOBALES ---
+// --- VARIABLES GLOBALES DE ESTADO ---
 let db, auth, userId = null, userEmail = null; 
 let currentMonthDate = new Date();
 let currentBookingsUnsubscribe = null;
@@ -66,107 +66,105 @@ let appSettings = { court1Price: 5000, court2Price: 5000, grillPrice: 2000, even
 let recurringSettings = { dayOfWeek: null, months: [] };
 
 // --- REFERENCIAS AL DOM ---
-const getEl = (id) => document.getElementById(id);
-
-const loginView = getEl('login-view');
-const registerView = getEl('register-view');
-const appContainer = getEl('app-container');
+const loginView = document.getElementById('login-view');
+const registerView = document.getElementById('register-view');
+const appContainer = document.getElementById('app-container');
 
 const views = {
-    calendar: getEl('calendar-view'),
-    caja: getEl('caja-view'),
-    stats: getEl('stats-view'),
-    historial: getEl('historial-view'),
-    configuracion: getEl('config-view'),
-    productos: getEl('productos-view') 
+    calendar: document.getElementById('calendar-view'),
+    caja: document.getElementById('caja-view'),
+    stats: document.getElementById('stats-view'),
+    historial: document.getElementById('historial-view'),
+    configuracion: document.getElementById('config-view'),
+    productos: document.getElementById('productos-view') 
 };
 
-const calendarGrid = getEl('calendar-grid');
-const currentMonthYearEl = getEl('current-month-year');
-const menuBtn = getEl('menu-btn');
-const mainMenu = getEl('main-menu');
-const menuOverlay = getEl('menu-overlay');
-const userEmailDisplay = getEl('user-email-display'); 
-const logoutBtn = getEl('logout-btn'); 
+const calendarGrid = document.getElementById('calendar-grid');
+const currentMonthYearEl = document.getElementById('current-month-year');
+const menuBtn = document.getElementById('menu-btn');
+const mainMenu = document.getElementById('main-menu');
+const menuOverlay = document.getElementById('menu-overlay');
+const userEmailDisplay = document.getElementById('user-email-display'); 
+const logoutBtn = document.getElementById('logout-btn'); 
 
-const loginForm = getEl('login-form');
-const registerForm = getEl('register-form');
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
 
-const cajaDailyList = getEl('caja-daily-list');
-const cajaTotalCombined = getEl('caja-total-combined');
-const cajaTotalBookings = getEl('caja-total-bookings');
-const cajaTotalSales = getEl('caja-total-sales');
-const cajaDateFrom = getEl('caja-date-from');
-const cajaDateTo = getEl('caja-date-to');
-const cajaFilterBtn = getEl('caja-filter-btn');
+const cajaDailyList = document.getElementById('caja-daily-list');
+const cajaTotalCombined = document.getElementById('caja-total-combined');
+const cajaTotalBookings = document.getElementById('caja-total-bookings');
+const cajaTotalSales = document.getElementById('caja-total-sales');
+const cajaDateFrom = document.getElementById('caja-date-from');
+const cajaDateTo = document.getElementById('caja-date-to');
+const cajaFilterBtn = document.getElementById('caja-filter-btn');
 
-const statsList = getEl('stats-list');
-const statsDateFrom = getEl('stats-date-from');
-const statsDateTo = getEl('stats-date-to');
-const statsFilterBtn = getEl('stats-filter-btn');
+const statsList = document.getElementById('stats-list');
+const statsDateFrom = document.getElementById('stats-date-from');
+const statsDateTo = document.getElementById('stats-date-to');
+const statsFilterBtn = document.getElementById('stats-filter-btn');
 
-const historialList = getEl('historial-list');
-const historialDateFrom = getEl('historial-date-from');
-const historialDateTo = getEl('historial-date-to');
-const historialFilterBtn = getEl('historial-filter-btn');
+const historialList = document.getElementById('historial-list');
+const historialDateFrom = document.getElementById('historial-date-from');
+const historialDateTo = document.getElementById('historial-date-to');
+const historialFilterBtn = document.getElementById('historial-filter-btn');
 
-const typeModal = getEl('type-modal'); 
-const bookingModal = getEl('booking-modal');
-const eventModal = getEl('event-modal'); 
-const optionsModal = getEl('options-modal');
-const viewModal = getEl('view-modal');
-const cajaDetailModal = getEl('caja-detail-modal');
-const deleteReasonModal = getEl('delete-reason-modal'); 
-const recurringModal = getEl('recurring-modal'); 
-const messageOverlay = getEl('message-overlay');
+const typeModal = document.getElementById('type-modal'); 
+const bookingModal = document.getElementById('booking-modal');
+const eventModal = document.getElementById('event-modal'); 
+const optionsModal = document.getElementById('options-modal');
+const viewModal = document.getElementById('view-modal');
+const cajaDetailModal = document.getElementById('caja-detail-modal');
+const deleteReasonModal = document.getElementById('delete-reason-modal'); 
+const recurringModal = document.getElementById('recurring-modal'); 
+const messageOverlay = document.getElementById('message-overlay');
 
-const bookingForm = getEl('booking-form');
-const teamNameInput = getEl('teamName');
-const teamNameSuggestions = getEl('teamName-suggestions');
-const costPerHourInput = getEl('costPerHour');
-const grillCostInput = getEl('grillCost');
-const rentGrillCheckbox = getEl('rentGrill');
-const grillHoursSection = getEl('grill-hours-section');
-const courtHoursList = getEl('court-hours-list');
-const grillHoursList = getEl('grill-hours-list');
-const bookingTotal = getEl('booking-total');
-const recurringToggle = getEl('recurring-toggle'); 
-const recurringSummary = getEl('recurring-summary'); 
+const bookingForm = document.getElementById('booking-form');
+const teamNameInput = document.getElementById('teamName');
+const teamNameSuggestions = document.getElementById('teamName-suggestions');
+const costPerHourInput = document.getElementById('costPerHour');
+const grillCostInput = document.getElementById('grillCost');
+const rentGrillCheckbox = document.getElementById('rentGrill');
+const grillHoursSection = document.getElementById('grill-hours-section');
+const courtHoursList = document.getElementById('court-hours-list');
+const grillHoursList = document.getElementById('grill-hours-list');
+const bookingTotal = document.getElementById('booking-total');
+const recurringToggle = document.getElementById('recurring-toggle'); 
+const recurringSummary = document.getElementById('recurring-summary'); 
 
-const eventForm = getEl('event-form');
-const eventBookingIdInput = getEl('event-booking-id'); 
-const eventDateInput = getEl('event-date'); 
-const eventNameInput = getEl('eventName');
-const contactPersonInput = getEl('contactPerson');
-const contactPhoneInput = getEl('contactPhone');
-const eventCostPerHourInput = getEl('eventCostPerHour');
-const eventHoursList = getEl('event-hours-list');
-const eventTotal = getEl('event-total');
+const eventForm = document.getElementById('event-form');
+const eventBookingIdInput = document.getElementById('event-booking-id'); 
+const eventDateInput = document.getElementById('event-date'); 
+const eventNameInput = document.getElementById('eventName');
+const contactPersonInput = document.getElementById('contactPerson');
+const contactPhoneInput = document.getElementById('contactPhone');
+const eventCostPerHourInput = document.getElementById('eventCostPerHour');
+const eventHoursList = document.getElementById('event-hours-list');
+const eventTotal = document.getElementById('event-total');
 
-const deleteReasonForm = getEl('delete-reason-form');
-const deleteReasonText = getEl('delete-reason-text');
-const deleteBookingIdInput = getEl('delete-booking-id');
+const deleteReasonForm = document.getElementById('delete-reason-form');
+const deleteReasonText = document.getElementById('delete-reason-text');
+const deleteBookingIdInput = document.getElementById('delete-booking-id');
 
-const configForm = getEl('config-form');
-const configCourt1Price = getEl('config-court1-price');
-const configCourt2Price = getEl('config-court2-price');
-const configGrillPrice = getEl('config-grill-price');
-const configEventPrice = getEl('config-event-price');
+const configForm = document.getElementById('config-form');
+const configCourt1Price = document.getElementById('config-court1-price');
+const configCourt2Price = document.getElementById('config-court2-price');
+const configGrillPrice = document.getElementById('config-grill-price');
+const configEventPrice = document.getElementById('config-event-price');
 
-const productForm = getEl('product-form');
-const productList = getEl('product-list');
-const inventorySearchInput = getEl('inventory-search-input');
-const restockForm = getEl('restock-form');
-const saleModal = getEl('sale-modal');
-const saleSearchInput = getEl('sale-search-input');
-const saleSearchResults = getEl('sale-search-results');
-const selectedProductInfo = getEl('selected-product-info');
-const confirmSaleBtn = getEl('confirm-sale-btn');
+const productForm = document.getElementById('product-form');
+const productList = document.getElementById('product-list');
+const inventorySearchInput = document.getElementById('inventory-search-input');
+const restockForm = document.getElementById('restock-form');
+const saleModal = document.getElementById('sale-modal');
+const saleSearchInput = document.getElementById('sale-search-input');
+const saleSearchResults = document.getElementById('sale-search-results');
+const selectedProductInfo = document.getElementById('selected-product-info');
+const confirmSaleBtn = document.getElementById('confirm-sale-btn');
 
 // --- INICIALIZACIÓN ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Cargado. Iniciando Sistema Panza Verde v2026...");
+    console.log("DOM Cargado. Iniciando Sistema Pro v2026...");
     setupEventListeners();
     registerServiceWorker();
     firebaseInit();
@@ -189,7 +187,7 @@ async function firebaseInit() {
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                console.log("Sesión activa:", user.email);
+                console.log("Acceso autorizado para:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
                 await loadAppSettings(); 
@@ -202,7 +200,6 @@ async function firebaseInit() {
                 await loadBookingsForMonth(); 
                 syncProducts();
             } else {
-                console.log("Esperando inicio de sesión...");
                 userId = null;
                 userEmail = null;
                 if (appContainer) appContainer.classList.add('is-hidden');
@@ -222,15 +219,11 @@ async function firebaseInit() {
 }
 
 // -----------------------------------------------------------------
-// 2. CONFIGURACIÓN DE EVENT LISTENERS (RESISTENTE A NULL)
+// 2. CONFIGURACIÓN DE EVENT LISTENERS (EXPLICITOS)
 // -----------------------------------------------------------------
 
 function setupEventListeners() {
-    const safeBind = (id, event, fn) => {
-        const el = document.getElementById(id);
-        if (el) el[event] = fn;
-    };
-
+    // Menú y Navegación
     if (menuBtn) menuBtn.onclick = toggleMenu;
     if (menuOverlay) menuOverlay.onclick = toggleMenu;
     if (logoutBtn) logoutBtn.onclick = handleLogout; 
@@ -244,58 +237,92 @@ function setupEventListeners() {
         };
     });
     
+    // Autenticación
     if (loginForm) loginForm.onsubmit = handleLogin;
     if (registerForm) registerForm.onsubmit = handleRegister;
     
-    safeBind('show-register', 'onclick', (e) => {
-        e.preventDefault();
-        if (loginView) loginView.classList.add('is-hidden');
-        if (registerView) registerView.classList.remove('is-hidden');
-    });
+    const showRegisterLink = document.getElementById('show-register');
+    if (showRegisterLink) {
+        showRegisterLink.onclick = (e) => {
+            e.preventDefault();
+            if (loginView) loginView.classList.add('is-hidden');
+            if (registerView) registerView.classList.remove('is-hidden');
+        };
+    }
     
-    safeBind('show-login', 'onclick', (e) => {
-        e.preventDefault();
-        if (registerView) registerView.classList.add('is-hidden');
-        if (loginView) loginView.classList.remove('is-hidden');
-    });
+    const showLoginLink = document.getElementById('show-login');
+    if (showLoginLink) {
+        showLoginLink.onclick = (e) => {
+            e.preventDefault();
+            if (registerView) registerView.classList.add('is-hidden');
+            if (loginView) loginView.classList.remove('is-hidden');
+        };
+    }
     
-    safeBind('prev-month-btn', 'onclick', prevMonth);
-    safeBind('next-month-btn', 'onclick', nextMonth);
+    // Calendario
+    const prevBtn = document.getElementById('prev-month-btn');
+    if (prevBtn) prevBtn.onclick = prevMonth;
     
+    const nextBtn = document.getElementById('next-month-btn');
+    if (nextBtn) nextBtn.onclick = nextMonth;
+    
+    // Formularios Reservas
     if (bookingForm) bookingForm.onsubmit = handleSaveBooking;
     if (eventForm) eventForm.onsubmit = handleSaveEvent; 
     if (configForm) configForm.onsubmit = handleSaveConfig;
 
-    safeBind('cancel-booking-btn', 'onclick', closeModals);
-    safeBind('cancel-event-btn', 'onclick', closeModals); 
-    safeBind('close-options-btn', 'onclick', closeModals);
-    safeBind('close-view-btn', 'onclick', closeModals);
-    safeBind('close-caja-detail-btn', 'onclick', closeModals);
+    const cancelBookingBtn = document.getElementById('cancel-booking-btn');
+    if (cancelBookingBtn) cancelBookingBtn.onclick = closeModals;
 
-    safeBind('add-new-booking-btn', 'onclick', () => {
-        const ds = optionsModal.dataset.date;
-        closeModals();
-        showBookingModal(ds); 
-    });
+    const cancelEventBtn = document.getElementById('cancel-event-btn');
+    if (cancelEventBtn) cancelEventBtn.onclick = closeModals;
 
-    safeBind('type-btn-court', 'onclick', () => {
-        const ds = typeModal.dataset.date;
-        closeModals();
-        showBookingModal(ds);
-    });
+    const closeOptionsBtn = document.getElementById('close-options-btn');
+    if (closeOptionsBtn) closeOptionsBtn.onclick = closeModals;
 
-    safeBind('type-btn-event', 'onclick', () => {
-        const ds = typeModal.dataset.date;
-        closeModals();
-        showEventModal(ds);
-    });
+    const closeViewBtn = document.getElementById('close-view-btn');
+    if (closeViewBtn) closeViewBtn.onclick = closeModals;
 
-    safeBind('type-btn-cancel', 'onclick', closeModals);
+    const closeCajaDetailBtn = document.getElementById('close-caja-detail-btn');
+    if (closeCajaDetailBtn) closeCajaDetailBtn.onclick = closeModals;
 
+    // Botones de acción desde modales
+    const addNewBookingBtn = document.getElementById('add-new-booking-btn');
+    if (addNewBookingBtn) {
+        addNewBookingBtn.onclick = () => {
+            const ds = optionsModal.dataset.date;
+            closeModals();
+            showBookingModal(ds); 
+        };
+    }
+
+    const typeBtnCourt = document.getElementById('type-btn-court');
+    if (typeBtnCourt) {
+        typeBtnCourt.onclick = () => {
+            const ds = typeModal.dataset.date;
+            closeModals();
+            showBookingModal(ds);
+        };
+    }
+
+    const typeBtnEvent = document.getElementById('type-btn-event');
+    if (typeBtnEvent) {
+        typeBtnEvent.onclick = () => {
+            const ds = typeModal.dataset.date;
+            closeModals();
+            showEventModal(ds);
+        };
+    }
+
+    const typeBtnCancel = document.getElementById('type-btn-cancel');
+    if (typeBtnCancel) typeBtnCancel.onclick = closeModals;
+
+    // Filtros
     if (cajaFilterBtn) cajaFilterBtn.onclick = loadCajaData;
     if (statsFilterBtn) statsFilterBtn.onclick = loadStatsData;
     if (historialFilterBtn) historialFilterBtn.onclick = loadHistorialData;
 
+    // Inputs Reservas
     if (teamNameInput) {
         teamNameInput.oninput = handleTeamNameInput;
         teamNameInput.onblur = () => { setTimeout(() => { if(teamNameSuggestions) teamNameSuggestions.style.display = 'none'; }, 200); };
@@ -318,16 +345,25 @@ function setupEventListeners() {
     if (eventCostPerHourInput) eventCostPerHourInput.oninput = updateEventTotalPrice;
     
     if (deleteReasonForm) deleteReasonForm.onsubmit = handleConfirmDelete;
-    safeBind('cancel-delete-btn', 'onclick', closeModals);
+    
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    if (cancelDeleteBtn) cancelDeleteBtn.onclick = closeModals;
 
+    // Recurrencia
     if (recurringToggle) recurringToggle.onchange = openRecurringModal;
-    safeBind('confirm-recurring-btn', 'onclick', saveRecurringSettings);
-    safeBind('cancel-recurring-btn', 'onclick', () => {
-        if (recurringModal) recurringModal.classList.remove('is-open');
-        if (recurringToggle) recurringToggle.checked = false;
-        if (recurringSummary) recurringSummary.classList.add('is-hidden');
-        recurringSettings = { dayOfWeek: null, months: [] };
-    });
+    
+    const confirmRecurBtn = document.getElementById('confirm-recurring-btn');
+    if (confirmRecurBtn) confirmRecurBtn.onclick = saveRecurringSettings;
+
+    const cancelRecurBtn = document.getElementById('cancel-recurring-btn');
+    if (cancelRecurBtn) {
+        cancelRecurBtn.onclick = () => {
+            if (recurringModal) recurringModal.classList.remove('is-open');
+            if (recurringToggle) recurringToggle.checked = false;
+            if (recurringSummary) recurringSummary.classList.add('is-hidden');
+            recurringSettings = { dayOfWeek: null, months: [] };
+        };
+    }
     
     const dayGrid = document.querySelector('.day-selector-grid');
     if (dayGrid) {
@@ -337,34 +373,59 @@ function setupEventListeners() {
     }
 
     // KIOSCO
-    safeBind('add-product-btn', 'onclick', () => document.getElementById('product-form-container')?.classList.toggle('is-hidden'));
-    safeBind('cancel-product-btn', 'onclick', () => document.getElementById('product-form-container')?.classList.add('is-hidden'));
+    const addProductBtn = document.getElementById('add-product-btn');
+    if (addProductBtn) {
+        addProductBtn.onclick = () => {
+            const container = document.getElementById('product-form-container');
+            if(container) container.classList.toggle('is-hidden');
+        };
+    }
+    
+    const cancelProductBtn = document.getElementById('cancel-product-btn');
+    if (cancelProductBtn) {
+        cancelProductBtn.onclick = () => {
+            const container = document.getElementById('product-form-container');
+            if(container) container.classList.add('is-hidden');
+        };
+    }
+
     if (productForm) productForm.onsubmit = handleSaveProduct;
     if (inventorySearchInput) inventorySearchInput.oninput = (e) => renderProducts(e.target.value);
     
-    ['prod-batch-cost', 'prod-batch-qty', 'prod-profit-pct'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.oninput = calculateProductPrices;
-    });
+    const prodBatchCostIn = document.getElementById('prod-batch-cost');
+    if(prodBatchCostIn) prodBatchCostIn.oninput = calculateProductPrices;
 
-    safeBind('header-sale-btn', 'onclick', openSaleModal);
+    const prodBatchQtyIn = document.getElementById('prod-batch-qty');
+    if(prodBatchQtyIn) prodBatchQtyIn.oninput = calculateProductPrices;
+
+    const prodProfitPctIn = document.getElementById('prod-profit-pct');
+    if(prodProfitPctIn) prodProfitPctIn.oninput = calculateProductPrices;
+
+    const headerSaleBtn = document.getElementById('header-sale-btn');
+    if (headerSaleBtn) headerSaleBtn.onclick = openSaleModal;
+
     if (saleSearchInput) saleSearchInput.oninput = handleSaleSearch;
-    safeBind('sale-qty-minus', 'onclick', () => updateSaleQty(-1));
-    safeBind('sale-qty-plus', 'onclick', () => updateSaleQty(1));
+    
+    const qtyMinusBtn = document.getElementById('sale-qty-minus');
+    if (qtyMinusBtn) qtyMinusBtn.onclick = () => updateSaleQty(-1);
+
+    const qtyPlusBtn = document.getElementById('sale-qty-plus');
+    if (qtyPlusBtn) qtyPlusBtn.onclick = () => updateSaleQty(1);
+
     if (confirmSaleBtn) confirmSaleBtn.onclick = handleConfirmSale;
-    safeBind('close-sale-modal-btn', 'onclick', closeModals);
+
+    const closeSaleModalBtn = document.getElementById('close-sale-modal-btn');
+    if (closeSaleModalBtn) closeSaleModalBtn.onclick = closeModals;
 
     if (restockForm) restockForm.onsubmit = handleConfirmRestock;
     const editFormEl = document.getElementById('edit-product-form');
     if (editFormEl) editFormEl.onsubmit = handleConfirmEditProduct;
 
-    // Cierre genérico
-    const modales = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')];
-    modales.forEach(m => {
+    // Cierre genérico de modales al tocar el fondo
+    const allModals = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')];
+    allModals.forEach(m => {
         if(m) { 
-            m.onclick = (e) => {
-                if (e.target === m) closeModals();
-            };
+            m.onclick = (e) => { if (e.target === m) closeModals(); };
         }
     });
 }
@@ -585,7 +646,7 @@ function renderTimeSlots(container, occupied, selected) {
 
 async function loadBookingsForMonth() {
     if (!db || !userId) return; 
-    showMessage("Actualizando calendario...");
+    showMessage("Sincronizando calendario...");
     if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
     const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
     const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
@@ -593,10 +654,7 @@ async function loadBookingsForMonth() {
         allMonthBookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderCalendar();
         hideMessage();
-    }, (error) => {
-        console.error(error);
-        hideMessage();
-    });
+    }, (error) => { console.error(error); hideMessage(); });
 }
 
 async function handleSaveBooking(event) {
@@ -627,13 +685,13 @@ async function handleSaveSingleBooking(event) {
 
     const data = {
         type: 'court', teamName, 
-        courtId: document.querySelector('input[name="courtSelection"]:checked').value, 
+        courtId: document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1', 
         peopleCount: parseInt(document.getElementById('peopleCount').value, 10),
         costPerHour: parseFloat(costPerHourInput.value),
         rentGrill: rentGrillCheckbox.checked,
         grillCost: parseFloat(grillCostInput.value),
         day: dateStr, monthYear: dateStr.substring(0, 7),
-        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked')?.value || 'efectivo',
         courtHours: selectedHours,
         grillHours: (rentGrillCheckbox && rentGrillCheckbox.checked) ? Array.from(grillHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10)) : [],
         totalPrice: updateTotalPrice(),
@@ -642,22 +700,42 @@ async function handleSaveSingleBooking(event) {
 
     try {
         let action = bookingId ? 'updated' : 'created';
-        if (bookingId) {
-            await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true });
-        } else {
-            const docRef = await addDoc(collection(db, bookingsCollectionPath), data);
-            bookingId = docRef.id;
-        }
+        if (bookingId) { await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true }); } 
+        else { const docRef = await addDoc(collection(db, bookingsCollectionPath), data); bookingId = docRef.id; }
         await logBookingEvent(action, { id: bookingId, ...data });
         await saveCustomer(teamName); 
-        showMessage("¡Turno confirmado!");
-        closeModals(); 
-        setTimeout(hideMessage, 1500); 
-    } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
-    } finally {
+        showMessage("¡Turno guardado!"); closeModals(); setTimeout(hideMessage, 1500); 
+    } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
+}
+
+async function handleSaveEvent(event) {
+    event.preventDefault();
+    const saveButton = eventForm.querySelector('button[type="submit"]');
+    saveButton.disabled = true;
+    showMessage("Guardando evento...");
+    const bookingId = eventBookingIdInput.value;
+    const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
+
+    if (selectedHours.length === 0) {
+        showMessage("Elige horarios de ocupación.", true);
         saveButton.disabled = false;
+        return;
     }
+
+    const data = {
+        type: 'event', teamName: eventNameInput.value.trim(), contactPerson: contactPersonInput.value.trim(), 
+        contactPhone: contactPhoneInput.value.trim(), costPerHour: parseFloat(eventCostPerHourInput.value), 
+        day: eventDateInput.value, monthYear: eventDateInput.value.substring(0, 7), 
+        paymentMethod: document.querySelector('input[name="eventPaymentMethod"]:checked')?.value || 'efectivo', 
+        courtHours: selectedHours, totalPrice: updateEventTotalPrice(),
+        timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail
+    };
+
+    try {
+        if (bookingId) await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true });
+        else await addDoc(collection(db, bookingsCollectionPath), data);
+        showMessage("¡Evento guardado!"); closeModals(); setTimeout(hideMessage, 1500);
+    } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
 }
 
 async function handleSaveRecurringBooking(event) {
@@ -666,7 +744,7 @@ async function handleSaveRecurringBooking(event) {
     showMessage("Generando serie de turnos...");
 
     const teamName = document.getElementById('teamName').value.trim();
-    const courtId = document.querySelector('input[name="courtSelection"]:checked').value;
+    const courtId = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
     const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
     const { dayOfWeek, months } = recurringSettings;
@@ -694,55 +772,24 @@ async function handleSaveRecurringBooking(event) {
             await logBookingEvent('created-recurring', data);
         }
         await batch.commit();
-        showMessage(`¡Se crearon ${dates.length} reservas fijas!`);
+        showMessage(`¡Serie creada! (${dates.length} turnos)`);
         closeModals(); setTimeout(hideMessage, 2000);
     } catch (e) { showMessage(e.message, true); } finally { saveButton.disabled = false; }
-}
-
-async function handleSaveEvent(event) {
-    event.preventDefault();
-    const saveButton = eventForm.querySelector('button[type="submit"]');
-    saveButton.disabled = true;
-    showMessage("Guardando evento especial...");
-    const bookingId = eventBookingIdInput.value;
-    const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
-
-    if (selectedHours.length === 0) {
-        showMessage("Elige horarios de ocupación.", true);
-        saveButton.disabled = false;
-        return;
-    }
-
-    const data = {
-        type: 'event', teamName: eventNameInput.value.trim(), contactPerson: contactPersonInput.value.trim(), 
-        contactPhone: contactPhoneInput.value.trim(), costPerHour: parseFloat(eventCostPerHourInput.value), 
-        day: eventDateInput.value, monthYear: eventDateInput.value.substring(0, 7), 
-        paymentMethod: document.querySelector('input[name="eventPaymentMethod"]:checked').value, 
-        courtHours: selectedHours, totalPrice: updateEventTotalPrice(),
-        timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail
-    };
-
-    try {
-        if (bookingId) await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true });
-        else await addDoc(collection(db, bookingsCollectionPath), data);
-        showMessage("¡Evento guardado!");
-        closeModals(); setTimeout(hideMessage, 1500);
-    } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
 }
 
 async function handleConfirmDelete(event) {
     event.preventDefault();
     const id = deleteBookingIdInput.value;
     const reason = deleteReasonText.value.trim();
-    if (!reason) return alert("Escribe el motivo del borrado.");
-    showMessage("Eliminando registro...");
+    if (!reason) return alert("Motivo obligatorio.");
+    showMessage("Eliminando...");
     try {
         const ref = doc(db, bookingsCollectionPath, id);
         const snap = await getDoc(ref);
         if (snap.exists()) {
             await logBookingEvent('deleted', { id: snap.id, ...snap.data() }, reason);
             await deleteDoc(ref);
-            showMessage("Reserva anulada correctamente.");
+            showMessage("Reserva anulada.");
         }
         closeModals(); setTimeout(hideMessage, 1500); 
     } catch (error) { showMessage(error.message, true); }
@@ -758,200 +805,16 @@ async function logBookingEvent(action, data, reason = null) {
 }
 
 // -----------------------------------------------------------------
-// 8. CALENDARIO: RENDERIZADO VISIBLE (ALTO CONTRASTE)
-// -----------------------------------------------------------------
-
-function renderCalendar() {
-    if(!calendarGrid) return;
-    calendarGrid.innerHTML = '';
-    const year = currentMonthDate.getFullYear(), month = currentMonthDate.getMonth();
-    currentMonthYearEl.textContent = `${monthNames[month]} ${year}`;
-    
-    const firstDay = new Date(year, month, 1).getDay();
-    const lastDate = new Date(year, month + 1, 0).getDate();
-
-    // Días del mes anterior
-    for (let i = 0; i < firstDay; i++) {
-        const d = document.createElement('div');
-        d.className = 'other-month-day h-20 md:h-28 bg-gray-50 border-gray-100 border opacity-30 rounded-xl';
-        calendarGrid.appendChild(d);
-    }
-
-    // Días del mes actual
-    for (let i = 1; i <= lastDate; i++) {
-        const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-        const bks = allMonthBookings.filter(b => b.day === ds);
-        const cell = document.createElement('div');
-        cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
-        
-        // Número de día en negro sólido e itálico para visibilidad máxima
-        cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter leading-none'>${i}</span>`;
-        
-        if (bks.length > 0) {
-            const hasEv = bks.some(b => b.type === 'event');
-            if(hasEv) cell.classList.add('day-cell-locked');
-            const badge = document.createElement('span');
-            badge.className = `booking-count ${hasEv ? 'event' : ''}`;
-            badge.textContent = bks.length;
-            cell.appendChild(badge);
-        }
-        
-        cell.onclick = () => {
-            if (bks.length > 0) {
-                showOptionsModal(ds, bks);
-            } else {
-                typeModal.dataset.date = ds;
-                typeModal.classList.add('is-open');
-            }
-        };
-        calendarGrid.appendChild(cell);
-    }
-}
-
-function showOptionsModal(dateStr, bks) {
-    optionsModal.dataset.date = dateStr;
-    const list = document.getElementById('daily-bookings-list');
-    if(!list) return;
-    list.innerHTML = '';
-    const hasEv = bks.some(b => b.type === 'event');
-    const addBtn = document.getElementById('add-new-booking-btn');
-    if (addBtn) addBtn.style.display = hasEv ? 'none' : 'block';
-
-    bks.forEach(b => {
-        const item = document.createElement('div');
-        item.className = 'flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-2xl mb-3 shadow-sm';
-        item.innerHTML = `
-            <div>
-                <p class="font-black text-sm uppercase italic tracking-tighter text-gray-800">${b.type === 'event' ? '★ ' + b.teamName : b.teamName}</p>
-                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${b.courtHours.join(', ')}hs</p>
-            </div>
-            <div class="flex gap-1">
-                <button class="px-2 py-2 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase" onclick="window.viewBookingDetail('${b.id}')">VER</button>
-                <button class="px-2 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-[9px] font-black uppercase" onclick="window.editBooking('${b.id}')">EDT</button>
-                <button class="px-2 py-2 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase" onclick="window.deleteBooking('${b.id}')">X</button>
-            </div>`;
-        list.appendChild(item);
-    });
-    optionsModal.classList.add('is-open');
-}
-
-// -----------------------------------------------------------------
-// 9. CAJA: ARQUEO AUTOMÁTICO Y DESGLOSE DETALLADO
-// -----------------------------------------------------------------
-
-async function loadCajaData() {
-    const hoy = new Date().toISOString().split('T')[0];
-    if (!cajaDateFrom.value) cajaDateFrom.value = hoy;
-    if (!cajaDateTo.value) cajaDateTo.value = hoy;
-
-    const from = cajaDateFrom.value, to = cajaDateTo.value;
-    showMessage("Generando balance...");
-    try {
-        const qB = query(collection(db, bookingsCollectionPath), where("day", ">=", from), where("day", "<=", to));
-        const qS = query(collection(db, salesCollectionPath), where("day", ">=", from), where("day", "<=", to));
-        const [snapB, snapS] = await Promise.all([getDocs(qB), getDocs(qS)]);
-        
-        let tB = 0, tS = 0; 
-        const daily = {};
-
-        snapB.docs.forEach(doc => { 
-            const b = doc.data(); tB += b.totalPrice; 
-            if(!daily[b.day]) daily[b.day] = {t:0, b:[], s:[]}; 
-            daily[b.day].t += b.totalPrice; daily[b.day].b.push({id: doc.id, ...b}); 
-        });
-        snapS.docs.forEach(doc => { 
-            const s = doc.data(); tS += s.total; 
-            if(!daily[s.day]) daily[s.day] = {t:0, b:[], s:[]}; 
-            daily[s.day].t += s.total; daily[s.day].s.push({id: doc.id, ...s}); 
-        });
-
-        if(cajaTotalBookings) cajaTotalBookings.textContent = `$${tB.toLocaleString('es-AR')}`;
-        if(cajaTotalSales) cajaTotalSales.textContent = `$${tS.toLocaleString('es-AR')}`;
-        if(cajaTotalCombined) cajaTotalCombined.textContent = `$${(tB + tS).toLocaleString('es-AR')}`;
-        
-        renderCajaList(daily);
-        hideMessage();
-    } catch (e) { console.error(e); hideMessage(); }
-}
-
-function renderCajaList(daily) {
-    if(!cajaDailyList) return;
-    cajaDailyList.innerHTML = '';
-    const sorted = Object.keys(daily).sort((a,b) => b.localeCompare(a));
-    
-    if(sorted.length === 0) {
-        cajaDailyList.innerHTML = '<p class="text-center text-gray-400 font-black p-10 italic uppercase text-[10px]">Sin movimientos registrados</p>';
-        return;
-    }
-
-    sorted.forEach(day => {
-        const data = daily[day], [y, m, d] = day.split('-');
-        const item = document.createElement('div');
-        item.className = 'data-card p-6 flex justify-between items-center cursor-pointer mb-3 border-l-8 border-emerald-500 hover:scale-[1.01] transition-transform shadow-lg';
-        item.innerHTML = `
-            <div>
-                <strong class="text-gray-900 text-xl font-black italic tracking-tighter">${d}/${m}/${y}</strong>
-                <p class="text-[9px] text-gray-400 font-bold uppercase mt-1 tracking-widest">${data.b.length} Turnos | ${data.s.length} Ventas Kiosco</p>
-            </div>
-            <div class="text-right">
-                <strong class="text-2xl font-black text-emerald-600 tracking-tighter italic">$${data.t.toLocaleString('es-AR')}</strong>
-                <p class="text-[8px] font-black text-gray-300 uppercase">Ver Detalle</p>
-            </div>`;
-        item.onclick = () => showCajaDetail(`${d}/${m}/${y}`, data);
-        cajaDailyList.appendChild(item);
-    });
-}
-
-function showCajaDetail(date, data) {
-    if(!cajaDetailModal) return;
-    cajaDetailModal.classList.add('is-open'); 
-    document.getElementById('caja-detail-title').textContent = date;
-    
-    // Cálculos de desglose
-    let bSum = data.b.reduce((a, b) => a + b.totalPrice, 0);
-    let sSum = data.s.reduce((a, s) => a + s.total, 0);
-    
-    let efSum = data.b.filter(x => x.paymentMethod === 'efectivo').reduce((a, b) => a + b.totalPrice, 0) + 
-                data.s.filter(x => x.paymentMethod === 'efectivo').reduce((a, s) => a + s.total, 0);
-                
-    let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + b.totalPrice, 0) + 
-                data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + s.total, 0);
-
-    const sumEl = document.getElementById('caja-detail-summary');
-    if(sumEl) sumEl.innerHTML = `
-        <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] mb-8 shadow-2xl border-t-8 border-emerald-400 relative overflow-hidden">
-            <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic">BANK</div>
-            <div class="flex justify-between mb-2"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">En Efectivo:</span> <strong class="text-emerald-400 text-lg">$${efSum.toLocaleString()}</strong></div>
-            <div class="flex justify-between mb-6"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">MP / Transf:</span> <strong class="text-blue-400 text-lg">$${mpSum.toLocaleString()}</strong></div>
-            <div class="flex justify-between text-3xl font-black border-t border-white/20 pt-6 italic tracking-tighter"><span>CIERRE:</span> <span class="text-white">$${data.t.toLocaleString()}</span></div>
-        </div>
-        <div class="flex justify-between text-[11px] font-black text-gray-400 uppercase tracking-widest px-2 mb-4"><span>📅 Turnos: $${bSum.toLocaleString()}</span><span>🍭 Kiosco: $${sSum.toLocaleString()}</span></div>
-    `;
-    
-    const list = document.getElementById('caja-detail-booking-list');
-    if(list) {
-        list.innerHTML = '';
-        data.b.forEach(b => {
-            const icon = b.paymentMethod === 'mercadopago' ? '📱' : '💵';
-            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-gray-100"><span>${icon} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${b.totalPrice.toLocaleString()}</strong></div>`;
-        });
-        data.s.forEach(s => {
-            const icon = s.paymentMethod === 'mercadopago' ? '📱' : '💵';
-            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-blue-100"><span>${icon} 🍭 ${s.name} (x${s.qty})</span><strong class="text-blue-700">$${s.total.toLocaleString()}</strong></div>`;
-        });
-    }
-}
-
-// -----------------------------------------------------------------
-// 10. KIOSCO PRO: LÓGICA DE ÚLTIMO PRECIO Y VENTAS (FULL)
+// 8. KIOSCO PRO: ÚLTIMO PRECIO Y VENTAS (FULL)
 // -----------------------------------------------------------------
 
 async function handleConfirmSale() {
     if(!currentSelectedProduct) return;
-    const qty = parseInt(document.getElementById('sale-qty-input').value);
+    const qtyInput = document.getElementById('sale-qty-input');
+    const qty = parseInt(qtyInput.value);
     const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
     try {
-        showMessage("Cobrando...");
+        showMessage("Procesando cobro...");
         await addDoc(collection(db, salesCollectionPath), { 
             name: currentSelectedProduct.name, qty, total: qty * currentSelectedProduct.salePrice, 
             paymentMethod: method, day: new Date().toISOString().split('T')[0], 
@@ -960,7 +823,7 @@ async function handleConfirmSale() {
         });
         await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
         await logKioscoTransaction(currentSelectedProduct.id, `Venta (${method})`, qty, currentSelectedProduct.unitCost, 'out');
-        closeModals(); showMessage("¡Venta cobrada!"); setTimeout(hideMessage, 1500);
+        closeModals(); showMessage("¡Venta completada!"); setTimeout(hideMessage, 1500);
     } catch (e) { alert(e.message); }
 }
 
@@ -969,23 +832,15 @@ async function handleConfirmRestock(e) {
     const id = document.getElementById('restock-prod-id').value;
     const addQ = parseInt(document.getElementById('restock-qty').value);
     const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
-    
-    const nUnitCost = bCost / addQ;
+    const nUnit = bCost / addQ;
     const p = allProducts.find(x => x.id === id);
-    const uStock = p.stock + addQ;
-    
-    // LÓGICA PEDIDA: 40% de margen sobre el ÚLTIMO costo unitario de reposición
-    const uSale = Math.ceil(nUnitCost * 1.40);
+    const nSale = Math.ceil(nUnit * 1.40); // 40% margen sobre reposición
 
     try {
         showMessage("Sincronizando precios...");
-        await updateDoc(doc(db, productsCollectionPath, id), { 
-            stock: uStock, 
-            unitCost: nUnitCost, 
-            salePrice: uSale 
-        });
-        await logKioscoTransaction(id, `Reposición Directa (+${addQ} un.)`, addQ, nUnitCost, 'in');
-        closeModals(); showMessage("¡Todo el inventario actualizado!"); setTimeout(hideMessage, 2000);
+        await updateDoc(doc(db, productsCollectionPath, id), { stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale });
+        await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnit, 'in');
+        closeModals(); showMessage("¡Todo el stock actualizado!"); setTimeout(hideMessage, 2000);
     } catch (err) { alert(err.message); }
 }
 
@@ -996,12 +851,10 @@ async function handleSaveProduct(e) {
     const uc = parseFloat(document.getElementById('prod-unit-cost').value);
     const sp = parseFloat(document.getElementById('prod-suggested-price').textContent.replace('$', ''));
     try {
-        const r = await addDoc(collection(db, productsCollectionPath), { 
-            name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), adminCreator: userEmail
-        });
+        const r = await addDoc(collection(db, productsCollectionPath), { name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail });
         await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
         e.target.reset(); document.getElementById('product-form-container')?.classList.add('is-hidden');
-        showMessage("Ficha guardada."); setTimeout(hideMessage, 1500);
+        showMessage("Ficha creada."); setTimeout(hideMessage, 1500);
     } catch (err) { alert(err.message); }
 }
 
@@ -1026,30 +879,17 @@ function renderProducts(f = "") {
     if (!productList) return;
     productList.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
-        const d = document.createElement('div');
-        d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
-        d.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4>
-                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span>
-                </div>
-                <div class="text-right">
-                    <p class="text-[8px] font-bold text-gray-400 uppercase">P. Venta</p>
-                    <p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mt-2">
-                <button class="p-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
-                <button class="p-3 bg-red-50 text-red-500 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
-            </div>`;
+        const d = document.createElement('div'); d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4';
+        d.innerHTML = `<div class="flex justify-between items-start"><div><h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase">Stock: ${p.stock} un.</span></div><div class="text-right"><p class="text-[8px] font-bold text-gray-400">P. Venta</p><p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic tracking-tighter">$${p.salePrice}</p></div></div>
+                       <div class="grid grid-cols-2 gap-2 mt-2">
+                           <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
+                           <button class="p-3 bg-gray-50 text-gray-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
+                           <button class="p-3 bg-gray-50 text-gray-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
+                           <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
+                       </div>`;
         productList.appendChild(d);
     });
 }
-
-// --- VENTA RÁPIDA KIOSCO ---
 
 function openSaleModal() {
     if(!saleSearchInput) return;
@@ -1065,9 +905,8 @@ function handleSaleSearch() {
     if(!saleSearchResults) return;
     saleSearchResults.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
-        const i = document.createElement('div');
-        i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 border-2 border-transparent hover:border-emerald-200 transition-all shadow-sm';
-        i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic">$${p.salePrice}</strong>`;
+        const i = document.createElement('div'); i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
+        i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
         i.onclick = () => {
             currentSelectedProduct = p; 
             document.getElementById('sel-prod-name').textContent = p.name;
@@ -1097,13 +936,11 @@ function updateSaleTotal() {
 }
 
 async function logKioscoTransaction(productId, desc, qty, cost, type) {
-    await addDoc(collection(db, transactionsCollectionPath), { 
-        productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail 
-    });
+    await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail });
 }
 
 // -----------------------------------------------------------------
-// 11. GLOBALIZACIÓN WINDOW PARA BOTONES DINÁMICOS
+// 9. GLOBALIZACIÓN WINDOW PARA BOTONES DINÁMICOS
 // -----------------------------------------------------------------
 
 window.viewBookingDetail = async (id) => {
@@ -1116,8 +953,8 @@ window.viewBookingDetail = async (id) => {
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Tipo</span> <span class="text-gray-900">${b.type}</span></div>
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Día</span> <span class="text-gray-900">${b.day}</span></div>
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Ocupación</span> <span class="text-gray-900">${b.courtHours.join(', ')}hs</span></div>
-            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Pago</span> <span class="text-gray-900 uppercase italic">${b.paymentMethod}</span></div>
-            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest">Liquidado</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic">$${b.totalPrice.toLocaleString()}</span></div>
+            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Pago</span> <span class="text-gray-900 uppercase italic tracking-tighter italic">${b.paymentMethod}</span></div>
+            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest">Liquidado</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter">$${b.totalPrice.toLocaleString()}</span></div>
         </div>`;
     }
     if(viewModal) viewModal.classList.add('is-open');
@@ -1131,41 +968,35 @@ window.editBooking = (id) => {
 
 window.deleteBooking = (id) => { 
     if(deleteBookingIdInput) deleteBookingIdInput.value = id; 
-    if(deleteReasonText) deleteReasonText.value = '';
     closeModals(); if(deleteReasonModal) deleteReasonModal.classList.add('is-open'); 
 };
 
 window.openRestock = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(getEl('restock-prod-id')) getEl('restock-prod-id').value = id;
-    if(getEl('restock-name')) getEl('restock-name').textContent = p.name;
-    if(getEl('restock-current-stock')) getEl('restock-current-stock').textContent = p.stock;
-    if(getEl('restock-modal')) getEl('restock-modal').classList.add('is-open');
+    if(document.getElementById('restock-prod-id')) document.getElementById('restock-prod-id').value = id;
+    if(document.getElementById('restock-name')) document.getElementById('restock-name').textContent = p.name;
+    if(document.getElementById('restock-current-stock')) document.getElementById('restock-current-stock').textContent = p.stock;
+    if(document.getElementById('restock-modal')) document.getElementById('restock-modal').classList.add('is-open');
 };
 
 window.deleteProduct = async (id) => { 
-    if(confirm("¿Eliminar permanentemente esta ficha?")) await deleteDoc(doc(db, productsCollectionPath, id)); 
+    if(confirm("¿Eliminar ficha permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); 
 };
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(getEl('edit-prod-id')) getEl('edit-prod-id').value = id;
-    if(getEl('edit-prod-name')) getEl('edit-prod-name').value = p.name;
-    if(getEl('edit-prod-cost')) getEl('edit-prod-cost').value = p.unitCost;
-    if(getEl('edit-prod-price')) getEl('edit-prod-price').value = p.salePrice;
-    if(getEl('edit-prod-stock')) getEl('edit-prod-stock').value = p.stock;
-    if(getEl('edit-product-modal')) getEl('edit-product-modal').classList.add('is-open');
+    if(document.getElementById('edit-prod-id')) document.getElementById('edit-prod-id').value = id;
+    if(document.getElementById('edit-prod-name')) document.getElementById('edit-prod-name').value = p.name;
+    if(document.getElementById('edit-prod-cost')) document.getElementById('edit-prod-cost').value = p.unitCost;
+    if(document.getElementById('edit-prod-price')) document.getElementById('edit-prod-price').value = p.salePrice;
+    if(document.getElementById('edit-prod-stock')) document.getElementById('edit-prod-stock').value = p.stock;
+    if(document.getElementById('edit-product-modal')) document.getElementById('edit-product-modal').classList.add('is-open');
 };
 
 async function handleConfirmEditProduct(e) {
     e.preventDefault();
     const idVal = document.getElementById('edit-prod-id').value;
-    const d = { 
-        name: document.getElementById('edit-prod-name').value, 
-        unitCost: parseFloat(document.getElementById('edit-prod-cost').value), 
-        salePrice: parseFloat(document.getElementById('edit-prod-price').value), 
-        stock: parseInt(document.getElementById('edit-prod-stock').value) 
-    };
+    const d = { name: document.getElementById('edit-prod-name').value, unitCost: parseFloat(document.getElementById('edit-prod-cost').value), salePrice: parseFloat(document.getElementById('edit-prod-price').value), stock: parseInt(document.getElementById('edit-prod-stock').value) };
     await updateDoc(doc(db, productsCollectionPath, idVal), d);
     closeModals();
 }
@@ -1177,26 +1008,18 @@ window.openHistory = async (id) => {
     const list = document.getElementById('product-history-list'); if(!list) return; list.innerHTML = '';
     s.forEach(doc => {
         const t = doc.data();
-        list.innerHTML += `
-            <div class="p-4 bg-gray-50 rounded-[1.5rem] mb-2 flex justify-between items-center shadow-sm relative overflow-hidden border border-gray-100">
-               <div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div>
-               <div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-300 italic">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div>
-               <strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter">${t.type==='in'?'+':'-'}${t.qty}</strong>
-            </div>`;
+        list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-300 italic">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
     });
-    const hMod = document.getElementById('product-history-modal'); if(hMod) hMod.classList.add('is-open');
+    if(document.getElementById('product-history-modal')) document.getElementById('product-history-modal').classList.add('is-open');
 };
 
 // -----------------------------------------------------------------
-// 12. UTILIDADES Y AUXILIARES
+// 10. UTILIDADES
 // -----------------------------------------------------------------
 
 function showMessage(msg, isError = false) { 
     const t = document.getElementById('message-text'); 
-    if(t) {
-        t.textContent = msg; 
-        t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase';
-    }
+    if(t) { t.textContent = msg; t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; }
     if(messageOverlay) messageOverlay.classList.add('is-open'); 
 }
 
@@ -1209,26 +1032,26 @@ function updateTotalPrice() {
     const h = courtHoursList?.querySelectorAll('.time-slot.selected').length || 0;
     const p = parseFloat(costPerHourInput?.value) || 0;
     const g = (rentGrillCheckbox && rentGrillCheckbox.checked) ? (parseFloat(grillCostInput?.value) || 0) : 0;
-    const total = (h * p) + g;
-    if(bookingTotal) bookingTotal.textContent = `$${total.toLocaleString('es-AR')}`;
-    return total;
+    const t = (h * p) + g;
+    if(bookingTotal) bookingTotal.textContent = `$${t.toLocaleString('es-AR')}`;
+    return t;
 }
 
 function updateEventTotalPrice() {
     const h = eventHoursList?.querySelectorAll('.time-slot.selected').length || 0;
     const p = parseFloat(eventCostPerHourInput?.value) || 0;
-    const total = h * p;
-    if(eventTotal) eventTotal.textContent = `$${total.toLocaleString('es-AR')}`;
-    return total;
+    const t = h * p;
+    if(eventTotal) eventTotal.textContent = `$${t.toLocaleString('es-AR')}`;
+    return t;
 }
 
 async function loadStatsData() {
     if(!db) return; try {
         const snap = await getDocs(collection(db, bookingsCollectionPath));
-        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "consumidor final"; if(!st[n]) st[n] = {n: b.teamName || "SIN NOMBRE", c:0, t:0}; st[n].c++; st[n].t += b.totalPrice; });
+        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "sin nombre"; if(!st[n]) st[n] = {n: b.teamName || "S/N", c:0, t:0}; st[n].c++; st[n].t += b.totalPrice; });
         if(statsList) {
             statsList.innerHTML = ''; Object.values(st).sort((a,b)=>b.c-a.c).forEach(c => {
-                statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 uppercase italic"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic">$${c.t.toLocaleString()}</strong></div>`;
+                statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 uppercase italic"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic italic italic tracking-tighter">$${c.t.toLocaleString()}</strong></div>`;
             });
         }
     } catch(e) {}
@@ -1236,7 +1059,6 @@ async function loadStatsData() {
 
 async function loadHistorialData() {
     if(!db) return; try {
-        const from = historialDateFrom.value, to = historialDateTo.value;
         const snap = await getDocs(query(collection(db, logCollectionPath), orderBy("timestamp", "desc")));
         if(historialList) {
             historialList.innerHTML = ''; snap.forEach(d => { const e = d.data();
@@ -1255,26 +1077,16 @@ async function handleTeamNameInput() {
         const snap = await getDocs(q); teamNameSuggestions.innerHTML = '';
         if(snap.empty) { teamNameSuggestions.style.display = 'none'; return; }
         snap.forEach(d => { 
-            const n = d.data().name, i = document.createElement('div'); 
-            i.className = 'suggestion-item font-black text-sm p-4 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 italic uppercase tracking-tighter'; 
-            i.textContent = n;
-            i.onmousedown = () => { teamNameInput.value = n; teamNameSuggestions.style.display = 'none'; }; 
-            teamNameSuggestions.appendChild(i);
+            const n = d.data().name, i = document.createElement('div'); i.className = 'suggestion-item font-black text-sm p-4 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 italic uppercase tracking-tighter'; i.textContent = n;
+            i.onmousedown = () => { teamNameInput.value = n; teamNameSuggestions.style.display = 'none'; }; teamNameSuggestions.appendChild(i);
         }); 
         teamNameSuggestions.style.display = 'block';
     } catch (e) {}
 }
 
-async function saveCustomer(name) { 
-    if(!name) return; 
-    try { 
-        await setDoc(doc(db, customersCollectionPath, name.trim().toLowerCase()), { name: name.trim(), lastBooked: new Date().toISOString() }, { merge: true }); 
-    } catch(e) {} 
-}
+async function saveCustomer(name) { if(!name) return; try { await setDoc(doc(db, customersCollectionPath, name.trim().toLowerCase()), { name: name.trim(), lastBooked: new Date().toISOString() }, { merge: true }); } catch(e) {} }
 
-async function openRecurringModal() { 
-    if (recurringToggle && recurringToggle.checked) { renderRecurringModal(); if(recurringModal) recurringModal.classList.add('is-open'); } 
-}
+async function openRecurringModal() { if (recurringToggle && recurringToggle.checked) { renderRecurringModal(); if(recurringModal) recurringModal.classList.add('is-open'); } }
 
 function renderRecurringModal() {
     if(!recurringMonthList) return; 
@@ -1283,8 +1095,7 @@ function renderRecurringModal() {
         const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
         const btn = document.createElement('button'); 
         btn.className = 'month-toggle-btn'; btn.dataset.month = d.getMonth(); btn.dataset.year = d.getFullYear();
-        btn.textContent = d.toLocaleString('es-AR', { month: 'short', year: 'numeric' }); 
-        btn.onclick = (e) => e.currentTarget.classList.toggle('selected');
+        btn.textContent = d.toLocaleString('es-AR', { month: 'short', year: 'numeric' }); btn.onclick = (e) => e.currentTarget.classList.toggle('selected');
         recurringMonthList.appendChild(btn);
     }
 }
@@ -1299,14 +1110,63 @@ function selectRecurringDay(btn) {
 function saveRecurringSettings() {
     const dBtn = document.querySelector('.day-toggle-btn.selected'); 
     const mBtns = document.querySelectorAll('.month-toggle-btn.selected');
-    if (!dBtn || mBtns.length === 0) return alert("Debes elegir un día y al menos un mes.");
+    if (!dBtn || !mBtns || mBtns.length === 0) return alert("Selecciona día y meses.");
     recurringSettings.dayOfWeek = parseInt(dBtn.dataset.day, 10);
     recurringSettings.months = Array.from(mBtns).map(b => ({ month: b.dataset.month, year: b.dataset.year, name: b.textContent }));
-    if(recurringSummary) {
-        recurringSummary.textContent = `Serie activa: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]} del ciclo elegido.`;
-        recurringSummary.classList.remove('is-hidden');
-    }
+    if(recurringSummary) { recurringSummary.textContent = `Serie activa: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]}.`; recurringSummary.classList.remove('is-hidden'); }
     if(recurringModal) recurringModal.classList.remove('is-open');
+}
+
+async function handleLogin(e) { e.preventDefault(); showMessage("Validando acceso..."); try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value); hideMessage(); } catch (err) { showMessage(err.message, true); } }
+async function handleLogout() { await signOut(auth); }
+
+// -----------------------------------------------------------------
+// 11. CALENDARIO: RENDERIZADO VISIBLE (ALTO CONTRASTE)
+// -----------------------------------------------------------------
+
+function renderCalendar() {
+    if(!calendarGrid) return;
+    calendarGrid.innerHTML = '';
+    const year = currentMonthDate.getFullYear(), month = currentMonthDate.getMonth();
+    currentMonthYearEl.textContent = `${monthNames[month]} ${year}`;
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+        const d = document.createElement('div');
+        d.className = 'other-month-day h-20 md:h-28 bg-gray-50 opacity-20 border border-gray-100 rounded-xl';
+        calendarGrid.appendChild(d);
+    }
+
+    for (let i = 1; i <= lastDate; i++) {
+        const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const bks = allMonthBookings.filter(b => b.day === ds);
+        const cell = document.createElement('div');
+        cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
+        
+        // Número de día en negro sólido e itálico para visibilidad máxima (RESTAURADO)
+        cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter'>${i}</span>`;
+        
+        if (bks.length > 0) {
+            const hasEv = bks.some(b => b.type === 'event');
+            if(hasEv) cell.classList.add('day-cell-locked');
+            const badge = document.createElement('span');
+            badge.className = `booking-count ${hasEv ? 'event' : ''}`;
+            badge.textContent = bks.length;
+            cell.appendChild(badge);
+        }
+        
+        cell.onclick = () => {
+            if (bks.length > 0) {
+                showOptionsModal(ds, bks);
+            } else {
+                typeModal.dataset.date = ds;
+                typeModal.classList.add('is-open');
+            }
+        };
+        calendarGrid.appendChild(cell);
+    }
 }
 
 window.hideMessage = hideMessage; window.closeModals = closeModals;
