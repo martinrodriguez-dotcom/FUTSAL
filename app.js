@@ -62,7 +62,12 @@ let allMonthBookings = [];
 let allProducts = []; 
 let currentSelectedProduct = null;
 
-let appSettings = { court1Price: 5000, court2Price: 5000, grillPrice: 2000, eventPrice: 10000 };
+let appSettings = { 
+    court1Price: 5000, 
+    court2Price: 5000, 
+    grillPrice: 2000, 
+    eventPrice: 10000 
+};
 let recurringSettings = { dayOfWeek: null, months: [] };
 
 // --- REFERENCIAS AL DOM ---
@@ -164,7 +169,7 @@ const confirmSaleBtn = document.getElementById('confirm-sale-btn');
 // --- INICIALIZACIÓN ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Cargado. Iniciando Sistema Pro v2026...");
+    console.log("DOM Cargado. Iniciando Sistema Panza Verde v2026...");
     setupEventListeners();
     registerServiceWorker();
     firebaseInit();
@@ -187,7 +192,7 @@ async function firebaseInit() {
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                console.log("Acceso autorizado para:", user.email);
+                console.log("Acceso autorizado:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
                 await loadAppSettings(); 
@@ -223,6 +228,7 @@ async function firebaseInit() {
 // -----------------------------------------------------------------
 
 function setupEventListeners() {
+    // Menú y Navegación
     if (menuBtn) menuBtn.onclick = toggleMenu;
     if (menuOverlay) menuOverlay.onclick = toggleMenu;
     if (logoutBtn) logoutBtn.onclick = handleLogout; 
@@ -236,6 +242,7 @@ function setupEventListeners() {
         };
     });
     
+    // Autenticación
     if (loginForm) loginForm.onsubmit = handleLogin;
     if (registerForm) registerForm.onsubmit = handleRegister;
     
@@ -257,12 +264,14 @@ function setupEventListeners() {
         };
     }
     
+    // Navegación de Calendario
     const prevBtn = document.getElementById('prev-month-btn');
     if (prevBtn) prevBtn.onclick = prevMonth;
     
     const nextBtn = document.getElementById('next-month-btn');
     if (nextBtn) nextBtn.onclick = nextMonth;
     
+    // Formularios Reservas
     if (bookingForm) bookingForm.onsubmit = handleSaveBooking;
     if (eventForm) eventForm.onsubmit = handleSaveEvent; 
     if (configForm) configForm.onsubmit = handleSaveConfig;
@@ -282,15 +291,7 @@ function setupEventListeners() {
     const closeCajaDetailBtn = document.getElementById('close-caja-detail-btn');
     if (closeCajaDetailBtn) closeCajaDetailBtn.onclick = closeModals;
 
-    const addNewBookingBtn = document.getElementById('add-new-booking-btn');
-    if (addNewBookingBtn) {
-        addNewBookingBtn.onclick = () => {
-            const ds = optionsModal.dataset.date;
-            closeModals();
-            showBookingModal(ds); 
-        };
-    }
-
+    // Botones de acción de tipo de reserva
     const typeBtnCourt = document.getElementById('type-btn-court');
     if (typeBtnCourt) {
         typeBtnCourt.onclick = () => {
@@ -312,10 +313,12 @@ function setupEventListeners() {
     const typeBtnCancel = document.getElementById('type-btn-cancel');
     if (typeBtnCancel) typeBtnCancel.onclick = closeModals;
 
+    // Filtros de vistas
     if (cajaFilterBtn) cajaFilterBtn.onclick = loadCajaData;
     if (statsFilterBtn) statsFilterBtn.onclick = loadStatsData;
     if (historialFilterBtn) historialFilterBtn.onclick = loadHistorialData;
 
+    // Inputs Dinámicos
     if (teamNameInput) {
         teamNameInput.oninput = handleTeamNameInput;
         teamNameInput.onblur = () => { setTimeout(() => { if(teamNameSuggestions) teamNameSuggestions.style.display = 'none'; }, 200); };
@@ -342,6 +345,7 @@ function setupEventListeners() {
     const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
     if (cancelDeleteBtn) cancelDeleteBtn.onclick = closeModals;
 
+    // Recurrencia
     if (recurringToggle) recurringToggle.onchange = openRecurringModal;
     
     const confirmRecurBtn = document.getElementById('confirm-recurring-btn');
@@ -357,13 +361,14 @@ function setupEventListeners() {
         };
     }
     
-    const dayGrid = document.querySelector('.day-selector-grid');
-    if (dayGrid) {
-        dayGrid.querySelectorAll('.day-toggle-btn').forEach(btn => {
+    const dayGridContainer = document.querySelector('.day-selector-grid');
+    if (dayGridContainer) {
+        dayGridContainer.querySelectorAll('.day-toggle-btn').forEach(btn => {
             btn.onclick = (e) => selectRecurringDay(e.currentTarget);
         });
     }
 
+    // KIOSCO Y STOCK
     const addProductBtn = document.getElementById('add-product-btn');
     if (addProductBtn) {
         addProductBtn.onclick = () => {
@@ -383,23 +388,32 @@ function setupEventListeners() {
     if (productForm) productForm.onsubmit = handleSaveProduct;
     if (inventorySearchInput) inventorySearchInput.oninput = (e) => renderProducts(e.target.value);
     
-    if (document.getElementById('prod-batch-cost')) document.getElementById('prod-batch-cost').oninput = calculateProductPrices;
-    if (document.getElementById('prod-batch-qty')) document.getElementById('prod-batch-qty').oninput = calculateProductPrices;
-    if (document.getElementById('prod-profit-pct')) document.getElementById('prod-profit-pct').oninput = calculateProductPrices;
+    // Cálculo sugerido automático
+    const pbCost = document.getElementById('prod-batch-cost');
+    const pbQty = document.getElementById('prod-batch-qty');
+    const ppPct = document.getElementById('prod-profit-pct');
+    if (pbCost) pbCost.oninput = calculateProductPrices;
+    if (pbQty) pbQty.oninput = calculateProductPrices;
+    if (ppPct) ppPct.oninput = calculateProductPrices;
 
-    if (document.getElementById('header-sale-btn')) document.getElementById('header-sale-btn').onclick = openSaleModal;
+    // Venta Rápida
+    const hSaleBtn = document.getElementById('header-sale-btn');
+    if (hSaleBtn) hSaleBtn.onclick = openSaleModal;
     if (saleSearchInput) saleSearchInput.oninput = handleSaleSearch;
-    if (document.getElementById('sale-qty-minus')) document.getElementById('sale-qty-minus').onclick = () => updateSaleQty(-1);
-    if (document.getElementById('sale-qty-plus')) document.getElementById('sale-qty-plus').onclick = () => updateSaleQty(1);
+    
+    const sQtyMinus = document.getElementById('sale-qty-minus');
+    if (sQtyMinus) sQtyMinus.onclick = () => updateSaleQty(-1);
+    const sQtyPlus = document.getElementById('sale-qty-plus');
+    if (sQtyPlus) sQtyPlus.onclick = () => updateSaleQty(1);
     if (confirmSaleBtn) confirmSaleBtn.onclick = handleConfirmSale;
-    if (document.getElementById('close-sale-modal-btn')) document.getElementById('close-sale-modal-btn').onclick = closeModals;
 
     if (restockForm) restockForm.onsubmit = handleConfirmRestock;
-    const editFormEl = document.getElementById('edit-product-form');
-    if (editFormEl) editFormEl.onsubmit = handleConfirmEditProduct;
+    const editFEl = document.getElementById('edit-product-form');
+    if (editFEl) editFEl.onsubmit = handleConfirmEditProduct;
 
-    const modalList = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')];
-    modalList.forEach(m => {
+    // Cierre de modales genérico al tocar fondo
+    const modsList = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')];
+    modsList.forEach(m => {
         if(m) { m.onclick = (e) => { if (e.target === m) closeModals(); }; }
     });
 }
@@ -474,7 +488,7 @@ async function handleLogout() {
 }
 
 // -----------------------------------------------------------------
-// 5. CONFIGURACIÓN Y PRECIOS (CORREGIDO ERROR CONST)
+// 5. CONFIGURACIÓN Y PRECIOS
 // -----------------------------------------------------------------
 
 async function loadAppSettings() {
@@ -496,7 +510,6 @@ function loadConfigDataIntoForm() {
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
     
-    // CORRECCIÓN: Acceso directo a .value de los elementos DOM existentes
     const grillEl = document.getElementById('config-grill-price');
     if(grillEl) grillEl.value = appSettings.grillPrice;
     
@@ -524,9 +537,12 @@ async function handleSaveConfig(e) {
 }
 
 // -----------------------------------------------------------------
-// 6. FORMULARIOS DE RESERVA Y EVENTOS (FULL LOGIC)
+// 6. FORMULARIOS DE RESERVA Y EVENTOS (RESTAURADOS AL 100%)
 // -----------------------------------------------------------------
 
+/**
+ * Muestra el modal de reserva normal (Canchita)
+ */
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     if(bookingForm) bookingForm.reset();
@@ -554,24 +570,32 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
     if(bookingModal) bookingModal.classList.add('is-open');
 }
 
+/**
+ * Muestra el modal de Evento Especial (RESTAURADO)
+ */
 async function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     if(eventForm) eventForm.reset();
-    eventDateInput.value = dateStr;
+    
+    const dateInput = document.getElementById('event-date');
+    if(dateInput) dateInput.value = dateStr;
+    
     const title = document.getElementById('event-modal-title');
 
     if (eventToEdit) {
-        title.textContent = "Editar Evento";
-        document.getElementById('event-booking-id').value = eventToEdit.id;
-        eventNameInput.value = eventToEdit.teamName;
-        contactPersonInput.value = eventToEdit.contactPerson;
-        contactPhoneInput.value = eventToEdit.contactPhone;
-        eventCostPerHourInput.value = eventToEdit.costPerHour;
+        if(title) title.textContent = "Editar Evento";
+        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = eventToEdit.id;
+        if(eventNameInput) eventNameInput.value = eventToEdit.teamName;
+        if(contactPersonInput) contactPersonInput.value = eventToEdit.contactPerson;
+        if(contactPhoneInput) contactPhoneInput.value = eventToEdit.contactPhone;
+        if(eventCostPerHourInput) eventCostPerHourInput.value = eventToEdit.costPerHour;
     } else {
-        title.textContent = `Reservar Evento (${dateStr})`;
-        document.getElementById('event-booking-id').value = '';
-        eventCostPerHourInput.value = appSettings.eventPrice;
+        if(title) title.textContent = `Reservar Evento (${dateStr})`;
+        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = '';
+        if(eventCostPerHourInput) eventCostPerHourInput.value = appSettings.eventPrice;
     }
+    
+    // Renderizamos los horarios disponibles para el evento
     renderTimeSlots(eventHoursList, new Set(), eventToEdit ? eventToEdit.courtHours : []);
     if(eventModal) eventModal.classList.add('is-open');
 }
@@ -620,7 +644,7 @@ function renderTimeSlots(container, occupied, selected) {
 }
 
 // -----------------------------------------------------------------
-// 7. CARGA DE DATOS Y GUARDADO DE RESERVAS (FULL LOGIC)
+// 7. PERSISTENCIA DE RESERVAS Y EVENTOS
 // -----------------------------------------------------------------
 
 async function loadBookingsForMonth() {
@@ -693,6 +717,7 @@ async function handleSaveEvent(event) {
     saveButton.disabled = true;
     showMessage("Guardando evento...");
     const bookingId = eventBookingIdInput.value;
+    const dateStr = eventDateInput.value;
     const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
     if (selectedHours.length === 0) {
@@ -704,7 +729,7 @@ async function handleSaveEvent(event) {
     const data = {
         type: 'event', teamName: eventNameInput.value.trim(), contactPerson: contactPersonInput.value.trim(), 
         contactPhone: contactPhoneInput.value.trim(), costPerHour: parseFloat(eventCostPerHourInput.value), 
-        day: eventDateInput.value, monthYear: eventDateInput.value.substring(0, 7), 
+        day: dateStr, monthYear: dateStr.substring(0, 7), 
         paymentMethod: document.querySelector('input[name="eventPaymentMethod"]:checked')?.value || 'efectivo', 
         courtHours: selectedHours, totalPrice: updateEventTotalPrice(),
         timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail
@@ -804,7 +829,7 @@ async function handleConfirmSale() {
         });
         await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
         await logKioscoTransaction(currentSelectedProduct.id, `Venta (${method})`, qty, currentSelectedProduct.unitCost, 'out');
-        closeModals(); showMessage("¡Venta completada!"); setTimeout(hideMessage, 1500);
+        closeModals(); showMessage("¡Operación Exitosa!"); setTimeout(hideMessage, 1500);
     } catch (e) { alert(e.message); }
 }
 
@@ -815,13 +840,15 @@ async function handleConfirmRestock(e) {
     const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
     const nUnit = bCost / addQ;
     const p = allProducts.find(x => x.id === id);
-    const nSale = Math.ceil(nUnit * 1.40); // 40% margen sobre reposición
+    const nSale = Math.ceil(nUnit * 1.40);
 
     try {
-        showMessage("Sincronizando precios...");
-        await updateDoc(doc(db, productsCollectionPath, id), { stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale });
+        showMessage("Sincronizando costos...");
+        await updateDoc(doc(db, productsCollectionPath, id), { 
+            stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale 
+        });
         await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnit, 'in');
-        closeModals(); showMessage("¡Todo el stock actualizado!"); setTimeout(hideMessage, 2000);
+        closeModals(); showMessage("¡Todo el inventario actualizado!"); setTimeout(hideMessage, 2000);
     } catch (err) { alert(err.message); }
 }
 
@@ -832,10 +859,12 @@ async function handleSaveProduct(e) {
     const uc = parseFloat(document.getElementById('prod-unit-cost').value);
     const sp = parseFloat(document.getElementById('prod-suggested-price').textContent.replace('$', ''));
     try {
-        const r = await addDoc(collection(db, productsCollectionPath), { name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail });
+        const r = await addDoc(collection(db, productsCollectionPath), { 
+            name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail
+        });
         await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
         e.target.reset(); document.getElementById('product-form-container')?.classList.add('is-hidden');
-        showMessage("Ficha creada."); setTimeout(hideMessage, 1500);
+        showMessage("Ficha guardada."); setTimeout(hideMessage, 1500);
     } catch (err) { alert(err.message); }
 }
 
@@ -845,8 +874,8 @@ function calculateProductPrices() {
     const margin = parseFloat(document.getElementById('prod-profit-pct').value) || 40;
     const u = cost / qty;
     const s = Math.ceil(u * (1 + (margin / 100)));
-    document.getElementById('prod-suggested-price').textContent = `$${s}`;
-    document.getElementById('prod-unit-cost').value = u;
+    const disp = document.getElementById('prod-suggested-price'); if(disp) disp.textContent = `$${s}`;
+    const hidden = document.getElementById('prod-unit-cost'); if(hidden) hidden.value = u;
 }
 
 function syncProducts() {
@@ -860,14 +889,25 @@ function renderProducts(f = "") {
     if (!productList) return;
     productList.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
-        const d = document.createElement('div'); d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4';
-        d.innerHTML = `<div class="flex justify-between items-start"><div><h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase">Stock: ${p.stock} un.</span></div><div class="text-right"><p class="text-[8px] font-bold text-gray-400">P. Venta</p><p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic tracking-tighter">$${p.salePrice}</p></div></div>
-                       <div class="grid grid-cols-2 gap-2 mt-2">
-                           <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
-                           <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
-                       </div>`;
+        const d = document.createElement('div');
+        d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
+        d.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div>
+                    <h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4>
+                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Precio</p>
+                    <p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic tracking-tighter">$${p.salePrice}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <button class="p-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
+                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
+                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
+                <button class="p-3 bg-red-50 text-red-500 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
+            </div>`;
         productList.appendChild(d);
     });
 }
@@ -886,8 +926,9 @@ function handleSaleSearch() {
     if(!saleSearchResults) return;
     saleSearchResults.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
-        const i = document.createElement('div'); i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
-        i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
+        const i = document.createElement('div');
+        i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
+        i.innerHTML = `<div><span class="font-black text-gray-900 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
         i.onclick = () => {
             currentSelectedProduct = p; 
             document.getElementById('sel-prod-name').textContent = p.name;
@@ -917,7 +958,9 @@ function updateSaleTotal() {
 }
 
 async function logKioscoTransaction(productId, desc, qty, cost, type) {
-    await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail });
+    await addDoc(collection(db, transactionsCollectionPath), { 
+        productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail 
+    });
 }
 
 // -----------------------------------------------------------------
@@ -1049,7 +1092,7 @@ function renderCalendar() {
         const cell = document.createElement('div');
         cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
         
-        // Número de día en negro sólido e itálico para visibilidad máxima (RESTAURADO)
+        // Número de día en negro sólido e itálico para visibilidad máxima (MODIFICADO)
         cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter'>${i}</span>`;
         
         if (bks.length > 0) {
@@ -1113,6 +1156,7 @@ window.openRestock = (id) => {
     if(document.getElementById('restock-modal')) document.getElementById('restock-modal').classList.add('is-open');
 };
 
+// Exportación explícita para que el HTML encuentre las funciones de formularios
 window.showEventModal = showEventModal;
 window.showBookingModal = showBookingModal;
 
@@ -1149,7 +1193,7 @@ window.openHistory = async (id) => {
 };
 
 // -----------------------------------------------------------------
-// 12. UTILIDADES
+// 12. UTILIDADES FINALES
 // -----------------------------------------------------------------
 
 function showMessage(msg, isError = false) { 
@@ -1236,9 +1280,9 @@ function renderRecurringModal() {
 }
 
 function selectRecurringDay(btn) { 
-    const dayGrid = document.querySelector('.day-selector-grid');
-    if(!dayGrid) return;
-    dayGrid.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); 
+    const grid = document.querySelector('.day-selector-grid');
+    if(!grid) return;
+    grid.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); 
     btn.classList.add('selected'); 
 }
 
