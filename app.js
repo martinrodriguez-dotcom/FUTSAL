@@ -1,3 +1,6 @@
+// =================================================================
+// CEREBRO DE GESTIÓN INTEGRAL PANZA VERDE V2026 PRO
+// =================================================================
 // Importaciones de Firebase SDK (v11.6.1)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { 
@@ -62,21 +65,27 @@ let allMonthBookings = [];
 let allProducts = []; 
 let currentSelectedProduct = null;
 
+// Configuración inicial de precios
 let appSettings = { 
     court1Price: 5000, 
     court2Price: 5000, 
     grillPrice: 2000, 
     eventPrice: 10000 
 };
+
+// Configuración para reservas fijas (recurrentes)
 let recurringSettings = { dayOfWeek: null, months: [] };
 
-// --- REFERENCIAS AL DOM ---
+// -----------------------------------------------------------------
+// 2. REFERENCIAS COMPLETAS AL DOM
+// -----------------------------------------------------------------
 const getEl = (id) => document.getElementById(id);
 
 const loginView = document.getElementById('login-view');
 const registerView = document.getElementById('register-view');
 const appContainer = document.getElementById('app-container');
 
+// Vistas principales
 const views = {
     calendar: document.getElementById('calendar-view'),
     caja: document.getElementById('caja-view'),
@@ -86,6 +95,7 @@ const views = {
     productos: document.getElementById('productos-view') 
 };
 
+// UI Elementos
 const calendarGrid = document.getElementById('calendar-grid');
 const currentMonthYearEl = document.getElementById('current-month-year');
 const menuBtn = document.getElementById('menu-btn');
@@ -94,9 +104,11 @@ const menuOverlay = document.getElementById('menu-overlay');
 const userEmailDisplay = document.getElementById('user-email-display'); 
 const logoutBtn = document.getElementById('logout-btn'); 
 
+// Formularios
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 
+// Caja
 const cajaDailyList = document.getElementById('caja-daily-list');
 const cajaTotalCombined = document.getElementById('caja-total-combined');
 const cajaTotalBookings = document.getElementById('caja-total-bookings');
@@ -105,16 +117,11 @@ const cajaDateFrom = document.getElementById('caja-date-from');
 const cajaDateTo = document.getElementById('caja-date-to');
 const cajaFilterBtn = document.getElementById('caja-filter-btn');
 
+// Stats e Historial
 const statsList = document.getElementById('stats-list');
-const statsDateFrom = document.getElementById('stats-date-from');
-const statsDateTo = document.getElementById('stats-date-to');
-const statsFilterBtn = document.getElementById('stats-filter-btn');
-
 const historialList = document.getElementById('historial-list');
-const historialDateFrom = document.getElementById('historial-date-from');
-const historialDateTo = document.getElementById('historial-date-to');
-const historialFilterBtn = document.getElementById('historial-filter-btn');
 
+// Modales
 const typeModal = document.getElementById('type-modal'); 
 const bookingModal = document.getElementById('booking-modal');
 const eventModal = document.getElementById('event-modal'); 
@@ -125,6 +132,7 @@ const deleteReasonModal = document.getElementById('delete-reason-modal');
 const recurringModal = document.getElementById('recurring-modal'); 
 const messageOverlay = document.getElementById('message-overlay');
 
+// Campos Reserva Canchita
 const bookingForm = document.getElementById('booking-form');
 const teamNameInput = document.getElementById('teamName');
 const teamNameSuggestions = document.getElementById('teamName-suggestions');
@@ -138,6 +146,7 @@ const bookingTotal = document.getElementById('booking-total');
 const recurringToggle = document.getElementById('recurring-toggle'); 
 const recurringSummary = document.getElementById('recurring-summary'); 
 
+// Campos Eventos
 const eventForm = document.getElementById('event-form');
 const eventBookingIdInput = document.getElementById('event-booking-id'); 
 const eventDateInput = document.getElementById('event-date'); 
@@ -148,14 +157,15 @@ const eventCostPerHourInput = document.getElementById('eventCostPerHour');
 const eventHoursList = document.getElementById('event-hours-list');
 const eventTotal = document.getElementById('event-total');
 
+// Borrado y Config
 const deleteReasonForm = document.getElementById('delete-reason-form');
 const deleteReasonText = document.getElementById('delete-reason-text');
 const deleteBookingIdInput = document.getElementById('delete-booking-id');
-
 const configForm = document.getElementById('config-form');
 const configCourt1Price = document.getElementById('config-court1-price');
 const configCourt2Price = document.getElementById('config-court2-price');
 
+// Kiosco
 const productForm = document.getElementById('product-form');
 const productList = document.getElementById('product-list');
 const inventorySearchInput = document.getElementById('inventory-search-input');
@@ -206,14 +216,23 @@ async function firebaseInit() {
                 if (loginView) loginView.classList.remove('is-hidden');
             }
         });
-    } catch (error) { showMessage(`Error: ${error.message}`, true); }
+    } catch (error) { 
+        console.error("Error Firebase:", error);
+        showMessage(`Error de conexión: ${error.message}`, true); 
+    }
 }
 
 // -----------------------------------------------------------------
-// 2. CONFIGURACIÓN DE EVENT LISTENERS EXPLÍCITOS
+// 3. CONFIGURACIÓN DE EVENT LISTENERS (PROTEGIDO)
 // -----------------------------------------------------------------
 
 function setupEventListeners() {
+    // Función interna para asignar eventos solo si el elemento existe en el DOM
+    const safeAssign = (id, event, fn) => {
+        const el = document.getElementById(id);
+        if (el) el[event] = fn;
+    };
+
     if (menuBtn) menuBtn.onclick = toggleMenu;
     if (menuOverlay) menuOverlay.onclick = toggleMenu;
     if (logoutBtn) logoutBtn.onclick = handleLogout; 
@@ -229,49 +248,36 @@ function setupEventListeners() {
     if (loginForm) loginForm.onsubmit = handleLogin;
     if (registerForm) registerForm.onsubmit = handleRegister;
     
-    const showRegisterLink = document.getElementById('show-register');
-    if (showRegisterLink) {
-        showRegisterLink.onclick = (e) => {
-            e.preventDefault();
-            if (loginView) loginView.classList.add('is-hidden');
-            if (registerView) registerView.classList.remove('is-hidden');
-        };
-    }
+    safeAssign('show-register', 'onclick', (e) => { e.preventDefault(); loginView.classList.add('is-hidden'); registerView.classList.remove('is-hidden'); });
+    safeAssign('show-login', 'onclick', (e) => { e.preventDefault(); registerView.classList.add('is-hidden'); loginView.classList.remove('is-hidden'); });
     
-    const showLoginLink = document.getElementById('show-login');
-    if (showLoginLink) {
-        showLoginLink.onclick = (e) => {
-            e.preventDefault();
-            if (registerView) registerView.classList.add('is-hidden');
-            if (loginView) loginView.classList.remove('is-hidden');
-        };
-    }
-    
-    if (document.getElementById('prev-month-btn')) document.getElementById('prev-month-btn').onclick = prevMonth;
-    if (document.getElementById('next-month-btn')) document.getElementById('next-month-btn').onclick = nextMonth;
+    safeAssign('prev-month-btn', 'onclick', prevMonth);
+    safeAssign('next-month-btn', 'onclick', nextMonth);
     
     if (bookingForm) bookingForm.onsubmit = handleSaveSingleBooking;
     if (eventForm) eventForm.onsubmit = handleSaveEvent; 
     if (configForm) configForm.onsubmit = handleSaveConfig;
 
-    document.getElementById('cancel-booking-btn').onclick = closeModals;
-    document.getElementById('cancel-event-btn').onclick = closeModals; 
-    document.getElementById('close-options-btn').onclick = closeModals;
-    document.getElementById('close-view-btn').onclick = closeModals;
-    document.getElementById('close-caja-detail-btn').onclick = closeModals;
+    // Cierre de Modales
+    safeAssign('cancel-booking-btn', 'onclick', closeModals);
+    safeAssign('cancel-event-btn', 'onclick', closeModals); 
+    safeAssign('close-options-btn', 'onclick', closeModals);
+    safeAssign('close-view-btn', 'onclick', closeModals);
+    safeAssign('close-caja-detail-btn', 'onclick', closeModals);
 
-    document.getElementById('add-new-booking-btn').onclick = () => { showBookingModal(optionsModal.dataset.date); };
-    document.getElementById('type-btn-court').onclick = () => { showBookingModal(typeModal.dataset.date); };
-    document.getElementById('type-btn-event').onclick = () => { showEventModal(typeModal.dataset.date); };
-    document.getElementById('type-btn-cancel').onclick = closeModals;
+    // Selección de Tipo de Reserva
+    safeAssign('add-new-booking-btn', 'onclick', () => { showBookingModal(optionsModal.dataset.date); });
+    safeAssign('type-btn-court', 'onclick', () => { showBookingModal(typeModal.dataset.date); });
+    safeAssign('type-btn-event', 'onclick', () => { showEventModal(typeModal.dataset.date); });
+    safeAssign('type-btn-cancel', 'onclick', closeModals);
 
     if (cajaFilterBtn) cajaFilterBtn.onclick = loadCajaData;
-    if (statsFilterBtn) statsFilterBtn.onclick = loadStatsData;
-    if (historialFilterBtn) historialFilterBtn.onclick = loadHistorialData;
 
+    // Sugerencias y Dinámicas de Reserva
     if (teamNameInput) {
         teamNameInput.oninput = handleTeamNameInput;
         teamNameInput.onblur = () => { setTimeout(() => { if(teamNameSuggestions) teamNameSuggestions.style.display = 'none'; }, 200); };
+        teamNameInput.onfocus = handleTeamNameInput;
     }
     
     document.querySelectorAll('input[name="courtSelection"]').forEach(radio => { radio.onchange = updateCourtAvailability; });
@@ -281,51 +287,40 @@ function setupEventListeners() {
     if (eventCostPerHourInput) eventCostPerHourInput.oninput = updateEventTotalPrice;
     if (deleteReasonForm) deleteReasonForm.onsubmit = handleConfirmDelete;
     if (recurringToggle) recurringToggle.onchange = openRecurringModal;
-    document.getElementById('confirm-recurring-btn').onclick = saveRecurringSettings;
+    safeAssign('confirm-recurring-btn', 'onclick', saveRecurringSettings);
 
-    document.getElementById('add-product-btn').onclick = () => document.getElementById('product-form-container')?.classList.toggle('is-hidden');
-    document.getElementById('cancel-product-btn').onclick = () => document.getElementById('product-form-container')?.classList.add('is-hidden');
+    // Kiosco Listeners
+    safeAssign('add-product-btn', 'onclick', () => document.getElementById('product-form-container')?.classList.toggle('is-hidden'));
+    safeAssign('cancel-product-btn', 'onclick', () => document.getElementById('product-form-container')?.classList.add('is-hidden'));
     if (productForm) productForm.onsubmit = handleSaveProduct;
     if (inventorySearchInput) inventorySearchInput.oninput = (e) => renderProducts(e.target.value);
     
-    const prodBC = document.getElementById('prod-batch-cost'); if (prodBC) prodBC.oninput = calculateProductPrices;
-    const prodBQ = document.getElementById('prod-batch-qty'); if (prodBQ) prodBQ.oninput = calculateProductPrices;
-    const prodPP = document.getElementById('prod-profit-pct'); if (prodPP) prodPP.oninput = calculateProductPrices;
+    if (getEl('prod-batch-cost')) getEl('prod-batch-cost').oninput = calculateProductPrices;
+    if (getEl('prod-batch-qty')) getEl('prod-batch-qty').oninput = calculateProductPrices;
+    if (getEl('prod-profit-pct')) getEl('prod-profit-pct').oninput = calculateProductPrices;
 
-    document.getElementById('header-sale-btn').onclick = openSaleModal;
+    safeAssign('header-sale-btn', 'onclick', openSaleModal);
     if (saleSearchInput) saleSearchInput.oninput = handleSaleSearch;
-    document.getElementById('sale-qty-minus').onclick = () => updateSaleQty(-1);
-    document.getElementById('sale-qty-plus').onclick = () => updateSaleQty(1);
+    safeAssign('sale-qty-minus', 'onclick', () => updateSaleQty(-1));
+    safeAssign('sale-qty-plus', 'onclick', () => updateSaleQty(1));
     if (confirmSaleBtn) confirmSaleBtn.onclick = handleConfirmSale;
     if (restockForm) restockForm.onsubmit = handleConfirmRestock;
-    document.getElementById('edit-product-form').onsubmit = handleConfirmEditProduct;
+    if (getEl('edit-product-form')) getEl('edit-product-form').onsubmit = handleConfirmEditProduct;
 
-    const modalList = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')];
+    // Cierre de modales al tocar el fondo sombreado
+    const modalList = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, getEl('restock-modal'), getEl('edit-product-modal'), getEl('product-history-modal')];
     modalList.forEach(m => { if(m) m.onclick = (e) => { if (e.target === m) closeModals(); }; });
 }
 
 // -----------------------------------------------------------------
-// 3. LÓGICA DE VISTAS Y NAVEGACIÓN
+// 4. LÓGICA DE VISTAS Y CONFIGURACIÓN
 // -----------------------------------------------------------------
 
-function toggleMenu() {
-    if (mainMenu) mainMenu.classList.toggle('is-open');
-    if (menuOverlay) menuOverlay.classList.toggle('hidden');
-}
-
 function showView(viewName) {
-    for (const key in views) {
-        if (views[key]) views[key].classList.add('is-hidden');
-    }
-    const viewToShow = views[viewName];
-    if (viewToShow) {
-        viewToShow.classList.remove('is-hidden');
-        if (viewName === 'caja') {
-            const hoy = new Date().toISOString().split('T')[0];
-            if (!cajaDateFrom.value) cajaDateFrom.value = hoy;
-            if (!cajaDateTo.value) cajaDateTo.value = hoy;
-            loadCajaData();
-        }
+    for (const key in views) { if (views[key]) views[key].classList.add('is-hidden'); }
+    if (views[viewName]) {
+        views[viewName].classList.remove('is-hidden');
+        if (viewName === 'caja') loadCajaData();
         else if (viewName === 'stats') loadStatsData();
         else if (viewName === 'historial') loadHistorialData();
         else if (viewName === 'configuracion') loadConfigDataIntoForm(); 
@@ -333,77 +328,31 @@ function showView(viewName) {
     }
 }
 
-// -----------------------------------------------------------------
-// 4. AUTENTICACIÓN
-// -----------------------------------------------------------------
-
-async function handleLogin(e) {
-    e.preventDefault();
-    showMessage("Validando acceso...");
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        hideMessage();
-    } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
-        setTimeout(hideMessage, 3000);
-    }
-}
-
-async function handleRegister(e) {
-    e.preventDefault();
-    showMessage("Registrando administrador...");
-    const email = document.getElementById('register-email').value;
-    const password = document.getElementById('register-password').value;
-    try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        hideMessage();
-    } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
-        setTimeout(hideMessage, 3000);
-    }
-}
-
-async function handleLogout() {
-    try {
-        await signOut(auth);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-// -----------------------------------------------------------------
-// 5. CONFIGURACIÓN Y PRECIOS
-// -----------------------------------------------------------------
+function toggleMenu() { mainMenu?.classList.toggle('is-open'); menuOverlay?.classList.toggle('hidden'); }
 
 async function loadAppSettings() {
     try {
         const docRef = doc(db, settingsDocPath);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            appSettings = docSnap.data();
-        } else {
-            await setDoc(docRef, appSettings); 
-        }
-    } catch (error) {
-        console.error(error);
-    }
+        if (docSnap.exists()) appSettings = docSnap.data();
+        else await setDoc(docRef, appSettings);
+    } catch (e) { console.error(e); }
 }
 
 function loadConfigDataIntoForm() {
     if (!configCourt1Price) return;
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
-    const grillEl = document.getElementById('config-grill-price');
-    if(grillEl) grillEl.value = appSettings.grillPrice;
-    const eventEl = document.getElementById('config-event-price');
-    if(eventEl) eventEl.value = appSettings.eventPrice;
+    
+    const gEl = document.getElementById('config-grill-price');
+    if(gEl) gEl.value = appSettings.grillPrice;
+    
+    const eEl = document.getElementById('config-event-price');
+    if(eEl) eEl.value = appSettings.eventPrice;
 }
 
 async function handleSaveConfig(e) {
     e.preventDefault();
-    showMessage("Sincronizando tarifas...");
     const newSettings = {
         court1Price: parseFloat(configCourt1Price.value) || 0,
         court2Price: parseFloat(configCourt2Price.value) || 0,
@@ -415,38 +364,34 @@ async function handleSaveConfig(e) {
         appSettings = newSettings;
         showMessage("¡Precios actualizados!");
         setTimeout(hideMessage, 1500);
-    } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
-    }
+    } catch (error) { showMessage(error.message, true); }
 }
 
 // -----------------------------------------------------------------
-// 6. FORMULARIOS DE RESERVA Y EVENTOS (FULL LOGIC)
+// 5. FORMULARIOS DE RESERVA (SIN BLOQUEOS VISUALES)
 // -----------------------------------------------------------------
 
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     if(bookingForm) bookingForm.reset();
-    document.getElementById('booking-date').value = dateStr;
-    const title = document.getElementById('booking-modal-title');
-    
+    getEl('booking-date').value = dateStr;
+    const title = getEl('booking-modal-title');
     if (bookingToEdit) {
-        title.textContent = "Editar Turno";
-        document.getElementById('booking-id').value = bookingToEdit.id;
-        document.getElementById('teamName').value = bookingToEdit.teamName;
-        document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
+        title.textContent = "Editar Reserva";
+        getEl('booking-id').value = bookingToEdit.id;
+        getEl('teamName').value = bookingToEdit.teamName;
+        getEl('peopleCount').value = bookingToEdit.peopleCount;
         costPerHourInput.value = bookingToEdit.costPerHour;
         rentGrillCheckbox.checked = bookingToEdit.rentGrill;
         grillCostInput.value = bookingToEdit.grillCost;
         recurringToggle.disabled = true;
     } else {
         title.textContent = `Reservar Cancha (${dateStr})`;
-        document.getElementById('booking-id').value = '';
+        getEl('booking-id').value = '';
         costPerHourInput.value = appSettings.court1Price;
         grillCostInput.value = appSettings.grillPrice;
         recurringToggle.disabled = false;
     }
-    
     updateCourtAvailability();
     if(bookingModal) bookingModal.classList.add('is-open');
 }
@@ -454,19 +399,18 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
 async function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     if(eventForm) eventForm.reset();
-    document.getElementById('event-date').value = dateStr;
-    const title = document.getElementById('event-modal-title');
-
+    getEl('event-date').value = dateStr;
+    const title = getEl('event-modal-title');
     if (eventToEdit) {
-        title.textContent = "Editar Evento";
-        document.getElementById('event-booking-id').value = eventToEdit.id;
+        title.textContent = "Editar Evento Especial";
+        getEl('event-booking-id').value = eventToEdit.id;
         eventNameInput.value = eventToEdit.teamName;
         contactPersonInput.value = eventToEdit.contactPerson;
         contactPhoneInput.value = eventToEdit.contactPhone;
         eventCostPerHourInput.value = eventToEdit.costPerHour;
     } else {
-        title.textContent = `Reservar Evento (${dateStr})`;
-        document.getElementById('event-booking-id').value = '';
+        title.textContent = `Nuevo Evento (${dateStr})`;
+        getEl('event-booking-id').value = '';
         eventCostPerHourInput.value = appSettings.eventPrice;
     }
     renderTimeSlots(eventHoursList, new Set(), eventToEdit ? eventToEdit.courtHours : []);
@@ -474,73 +418,44 @@ async function showEventModal(dateStr, eventToEdit = null) {
 }
 
 function updateCourtAvailability() {
-    const ds = document.getElementById('booking-date').value;
-    const selCourt = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const editingId = document.getElementById('booking-id').value;
-    
+    const ds = getEl('booking-date').value;
+    const selC = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
+    const eId = getEl('booking-id').value;
     const occupied = new Set();
     allMonthBookings
-        .filter(b => b.day === ds && b.courtId === selCourt && b.id !== editingId)
+        .filter(b => b.day === ds && b.courtId === selC && b.id !== eId)
         .forEach(b => { if(b.courtHours) b.courtHours.forEach(h => occupied.add(h)); });
-    
     renderTimeSlots(courtHoursList, occupied, []);
     updateTotalPrice();
 }
 
 function renderTimeSlots(container, occupied, selected) {
-    if(!container) return;
-    container.innerHTML = '';
+    if(!container) return; container.innerHTML = '';
     OPERATING_HOURS.forEach(h => {
         const btn = document.createElement('button');
-        btn.type = "button"; 
-        btn.className = `time-slot ${occupied.has(h) ? 'disabled' : ''} ${selected.includes(h) ? 'selected' : ''}`;
+        btn.type = "button"; btn.className = `time-slot ${occupied.has(h) ? 'disabled' : ''} ${selected.includes(h) ? 'selected' : ''}`;
         btn.textContent = `${h}:00`; btn.dataset.hour = h;
-        if (!occupied.has(h)) {
-            btn.onclick = () => { 
-                btn.classList.toggle('selected'); 
-                updateTotalPrice(); 
-                updateEventTotalPrice(); 
-            };
-        }
+        if (!occupied.has(h)) btn.onclick = () => { btn.classList.toggle('selected'); updateTotalPrice(); updateEventTotalPrice(); };
         container.appendChild(btn);
     });
 }
 
 // -----------------------------------------------------------------
-// 7. PERSISTENCIA DE RESERVAS (FLUJO SIN BLOQUEOS)
+// 6. PERSISTENCIA Y GUARDADO (REGLA DE 2 SEGUNDOS)
 // -----------------------------------------------------------------
 
-async function loadBookingsForMonth() {
-    if (!db || !userId) return; 
-    if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
-    const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
-    const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
-    currentBookingsUnsubscribe = onSnapshot(q, (snapshot) => {
-        allMonthBookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderCalendar();
-    }, (error) => { console.error(error); });
-}
-
-async function handleSaveBooking(event) {
-    event.preventDefault();
-    if (recurringToggle && recurringToggle.checked && recurringSettings.dayOfWeek !== null && recurringSettings.months.length > 0) {
-        await handleSaveRecurringBooking(event);
-    } else {
-        await handleSaveSingleBooking(event);
-    }
-}
-
 async function handleSaveSingleBooking(event) {
+    event.preventDefault();
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
 
-    // ¡CORRECCIÓN!: let en lugar de const para el ID
+    // ¡CORRECCIÓN!: let para permitir la reasignación en nuevos turnos
     let bookingId = document.getElementById('booking-id').value;
     const dateStr = document.getElementById('booking-date').value;
     const teamName = teamNameInput.value.trim();
     const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
-    if (selectedHours.length === 0) { alert("Debes marcar horarios."); saveButton.disabled = false; return; }
+    if (selectedHours.length === 0) { alert("Elige horarios de ocupación."); saveButton.disabled = false; return; }
 
     const data = {
         type: 'court', teamName, 
@@ -558,16 +473,16 @@ async function handleSaveSingleBooking(event) {
     };
 
     try {
-        let action = bookingId ? 'updated' : 'created';
         if (bookingId) { 
             await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true }); 
         } else { 
             const docRef = await addDoc(collection(db, bookingsCollectionPath), data); 
             bookingId = docRef.id; 
         }
-        await logBookingEvent(action, { id: bookingId, ...data });
+        await logBookingEvent(bookingId ? 'updated' : 'created', { id: bookingId, ...data });
         await saveCustomer(teamName); 
         
+        // MOSTRAR CARTEL Y CERRAR EN 2 SEGUNDOS
         showMessage("¡Guardado con éxito!"); 
         setTimeout(() => {
             closeModals();
@@ -585,7 +500,7 @@ async function handleSaveEvent(event) {
     saveButton.disabled = true;
     
     let bookingId = document.getElementById('event-booking-id').value;
-    const dateStr = document.getElementById('event-date').value;
+    const dateStr = eventDateInput.value;
     const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
     if (selectedHours.length === 0) { alert("Elige horarios de ocupación."); saveButton.disabled = false; return; }
@@ -600,16 +515,15 @@ async function handleSaveEvent(event) {
     };
 
     try {
-        let action = bookingId ? 'updated' : 'created';
         if (bookingId) {
             await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true });
         } else {
             const docRef = await addDoc(collection(db, bookingsCollectionPath), data);
             bookingId = docRef.id;
         }
-        await logBookingEvent(action, { id: bookingId, ...data });
+        await logBookingEvent(bookingId ? 'updated' : 'created', { id: bookingId, ...data });
         
-        showMessage("¡Guardado con éxito!"); 
+        showMessage("¡Evento registrado con éxito!"); 
         setTimeout(() => {
             closeModals();
             hideMessage();
@@ -618,47 +532,6 @@ async function handleSaveEvent(event) {
         showMessage(error.message, true); 
         saveButton.disabled = false;
     }
-}
-
-async function handleSaveRecurringBooking(event) {
-    const saveButton = bookingForm.querySelector('button[type="submit"]');
-    saveButton.disabled = true;
-
-    const teamName = teamNameInput.value.trim();
-    const courtId = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
-
-    const { dayOfWeek, months } = recurringSettings;
-    let dates = [];
-    months.forEach(m => {
-        const y = parseInt(m.year, 10), mon = parseInt(m.month, 10);
-        const lastDay = new Date(y, mon + 1, 0).getDate();
-        for (let d = 1; d <= lastDay; d++) {
-            const date = new Date(y, mon, d);
-            if (date.getDay() == dayOfWeek) dates.push(date.toISOString().split('T')[0]);
-        }
-    });
-
-    try {
-        const batch = writeBatch(db);
-        for (const d of dates) {
-            const docRef = doc(collection(db, bookingsCollectionPath));
-            const data = { 
-                type: 'court', teamName, courtId, day: d, monthYear: d.substring(0, 7), 
-                courtHours: selectedHours, totalPrice: updateTotalPrice(), 
-                paymentMethod: 'efectivo', timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail,
-                peopleCount: 10, costPerHour: parseFloat(costPerHourInput.value), rentGrill: false, grillCost: 0, grillHours: []
-            };
-            batch.set(docRef, data);
-            await logBookingEvent('created-recurring', data);
-        }
-        await batch.commit();
-        showMessage("¡Serie guardada con éxito!"); 
-        setTimeout(() => {
-            closeModals();
-            hideMessage();
-        }, 2000);
-    } catch (e) { showMessage(e.message, true); saveButton.disabled = false; }
 }
 
 async function handleConfirmDelete(event) {
@@ -674,10 +547,7 @@ async function handleConfirmDelete(event) {
             await deleteDoc(ref);
             showMessage("Anulado con éxito.");
         }
-        setTimeout(() => {
-            closeModals();
-            hideMessage();
-        }, 2000);
+        setTimeout(() => { closeModals(); hideMessage(); }, 2000);
     } catch (error) { showMessage(error.message, true); }
 }
 
@@ -691,174 +561,12 @@ async function logBookingEvent(action, data, reason = null) {
 }
 
 // -----------------------------------------------------------------
-// 8. KIOSCO PRO: ÚLTIMO PRECIO Y VENTAS (FULL)
-// -----------------------------------------------------------------
-
-async function handleConfirmSale() {
-    if(!currentSelectedProduct) return;
-    const qtyInput = document.getElementById('sale-qty-input');
-    const qty = parseInt(qtyInput.value);
-    const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
-    try {
-        await addDoc(collection(db, salesCollectionPath), { 
-            name: currentSelectedProduct.name, qty, total: qty * currentSelectedProduct.salePrice, 
-            paymentMethod: method, day: new Date().toISOString().split('T')[0], 
-            monthYear: new Date().toISOString().substring(0, 7), timestamp: Timestamp.now(),
-            adminId: userId, adminEmail: userEmail
-        });
-        await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
-        await logKioscoTransaction(currentSelectedProduct.id, `Venta (${method})`, qty, currentSelectedProduct.unitCost, 'out');
-        
-        showMessage("¡Venta completada!"); 
-        setTimeout(() => {
-            closeModals();
-            hideMessage();
-        }, 2000);
-    } catch (e) { alert(e.message); }
-}
-
-async function handleConfirmRestock(e) {
-    e.preventDefault();
-    const id = document.getElementById('restock-prod-id').value;
-    const addQ = parseInt(document.getElementById('restock-qty').value);
-    const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
-    const nUnit = bCost / addQ;
-    const p = allProducts.find(x => x.id === id);
-    const nSale = Math.ceil(nUnit * 1.40);
-
-    try {
-        await updateDoc(doc(db, productsCollectionPath, id), { 
-            stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale 
-        });
-        await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnit, 'in');
-        
-        showMessage("¡Stock actualizado!"); 
-        setTimeout(() => {
-            closeModals();
-            hideMessage();
-        }, 2000);
-    } catch (err) { alert(err.message); }
-}
-
-async function handleSaveProduct(e) {
-    e.preventDefault();
-    const n = document.getElementById('prod-name').value.trim();
-    const s = parseInt(document.getElementById('prod-stock').value);
-    const uc = parseFloat(document.getElementById('prod-unit-cost').value);
-    const sp = parseFloat(document.getElementById('prod-suggested-price').textContent.replace('$', ''));
-    try {
-        const r = await addDoc(collection(db, productsCollectionPath), { 
-            name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail
-        });
-        await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
-        e.target.reset(); document.getElementById('product-form-container')?.classList.add('is-hidden');
-        showMessage("Ficha guardada con éxito!"); 
-        setTimeout(() => { closeModals(); hideMessage(); }, 2000);
-    } catch (err) { alert(err.message); }
-}
-
-function calculateProductPrices() {
-    const cost = parseFloat(document.getElementById('prod-batch-cost').value) || 0;
-    const qty = parseInt(document.getElementById('prod-batch-qty').value) || 1;
-    const margin = parseFloat(document.getElementById('prod-profit-pct').value) || 40;
-    const u = cost / qty;
-    const s = Math.ceil(u * (1 + (margin / 100)));
-    document.getElementById('prod-suggested-price').textContent = `$${s}`;
-    document.getElementById('prod-unit-cost').value = u;
-}
-
-function syncProducts() {
-    onSnapshot(collection(db, productsCollectionPath), (snap) => {
-        allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderProducts();
-    });
-}
-
-function renderProducts(f = "") {
-    if (!productList) return;
-    productList.innerHTML = '';
-    allProducts.filter(p => p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
-        const d = document.createElement('div');
-        d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
-        d.innerHTML = `
-            <div class="flex justify-between items-start text-left">
-                <div>
-                    <h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4>
-                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span>
-                </div>
-                <div class="text-right">
-                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Precio</p>
-                    <p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mt-2">
-                <button class="p-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
-                <button class="p-3 bg-red-50 text-red-500 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
-            </div>`;
-        productList.appendChild(d);
-    });
-}
-
-function openSaleModal() {
-    saleSearchInput.value = ''; if(saleSearchResults) saleSearchResults.innerHTML = ''; 
-    selectedProductInfo?.classList.add('is-hidden');
-    confirmSaleBtn.disabled = true; 
-    saleModal?.classList.add('is-open'); 
-    setTimeout(() => saleSearchInput?.focus(), 100);
-}
-
-function handleSaleSearch() {
-    const v = saleSearchInput.value.toLowerCase(); if (v.length < 2) { if(saleSearchResults) saleSearchResults.innerHTML = ''; return; }
-    if(!saleSearchResults) return;
-    saleSearchResults.innerHTML = '';
-    allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
-        const i = document.createElement('div');
-        i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
-        i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
-        i.onclick = () => {
-            currentSelectedProduct = p; 
-            document.getElementById('sel-prod-name').textContent = p.name;
-            document.getElementById('sel-prod-stock').textContent = p.stock; 
-            document.getElementById('sel-prod-price').textContent = `$${p.salePrice}`;
-            document.getElementById('sale-qty-input').value = 1;
-            selectedProductInfo.classList.remove('is-hidden');
-            confirmSaleBtn.disabled = (p.stock <= 0); 
-            updateSaleTotal();
-        };
-        saleSearchResults.appendChild(i);
-    });
-}
-
-function updateSaleQty(d) {
-    const i = document.getElementById('sale-qty-input'); if(!i) return;
-    let v = parseInt(i.value) + d;
-    if (v < 1) v = 1; if (v > currentSelectedProduct.stock) v = currentSelectedProduct.stock;
-    i.value = v; updateSaleTotal();
-}
-
-function updateSaleTotal() {
-    const qEl = document.getElementById('sale-qty-input'); if(!qEl) return;
-    const q = parseInt(qEl.value);
-    const disp = document.getElementById('sale-total-display');
-    if(disp) disp.textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString('es-AR')}`;
-}
-
-async function logKioscoTransaction(productId, desc, qty, cost, type) {
-    await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail });
-}
-
-// -----------------------------------------------------------------
-// 9. CAJA: ARQUEO AUTOMÁTICO Y DESGLOSE DETALLADO
+// 7. ARQUEO DE CAJA (DESGLOSE POR PAGO)
 // -----------------------------------------------------------------
 
 async function loadCajaData() {
-    const hoy = new Date().toISOString().split('T')[0];
-    if (!cajaDateFrom.value) cajaDateFrom.value = hoy;
-    if (!cajaDateTo.value) cajaDateTo.value = hoy;
-
     const from = cajaDateFrom.value, to = cajaDateTo.value;
+    if(!from || !to) return;
     try {
         const qB = query(collection(db, bookingsCollectionPath), where("day", ">=", from), where("day", "<=", to));
         const qS = query(collection(db, salesCollectionPath), where("day", ">=", from), where("day", "<=", to));
@@ -878,29 +586,24 @@ async function loadCajaData() {
             daily[s.day].t += (s.total || 0); daily[s.day].s.push({id: doc.id, ...s}); 
         });
 
-        cajaTotalBookings.textContent = `$${tB.toLocaleString('es-AR')}`;
-        cajaTotalSales.textContent = `$${tS.toLocaleString('es-AR')}`;
-        cajaTotalCombined.textContent = `$${(tB + tS).toLocaleString('es-AR')}`;
+        cajaTotalBookings.textContent = `$${tB.toLocaleString()}`;
+        cajaTotalSales.textContent = `$${tS.toLocaleString()}`;
+        cajaTotalCombined.textContent = `$${(tB + tS).toLocaleString()}`;
         
         renderCajaList(daily);
     } catch (e) { console.error(e); }
 }
 
 function renderCajaList(daily) {
-    if(!cajaDailyList) return;
-    cajaDailyList.innerHTML = '';
+    if(!cajaDailyList) return; cajaDailyList.innerHTML = '';
     const sorted = Object.keys(daily).sort((a,b) => b.localeCompare(a));
+    if(sorted.length === 0) { cajaDailyList.innerHTML = '<p class="text-center p-8 opacity-40 uppercase font-black text-[10px]">Sin movimientos</p>'; return; }
     
-    if(sorted.length === 0) {
-        cajaDailyList.innerHTML = '<p class="text-center text-gray-400 font-black p-8 italic uppercase text-[10px]">Sin movimientos registrados</p>';
-        return;
-    }
-
     sorted.forEach(day => {
         const data = daily[day], [y, m, d] = day.split('-');
         const item = document.createElement('div');
         item.className = 'data-card p-6 flex justify-between items-center cursor-pointer mb-3 border-l-8 border-emerald-500 hover:scale-[1.01] transition-transform shadow-lg';
-        item.innerHTML = `<div><strong class="text-gray-900 text-xl font-black italic">${d}/${m}/${y}</strong><p class="text-[9px] text-gray-400 font-bold uppercase mt-1 tracking-widest">${data.b.length} Turnos | ${data.s.length} Ventas Kiosco</p></div><div class="text-right"><strong class="text-2xl font-black text-emerald-600 tracking-tighter italic">$${data.t.toLocaleString('es-AR')}</strong></div>`;
+        item.innerHTML = `<div><strong class="text-gray-900 text-xl font-black italic tracking-tighter">${d}/${m}/${y}</strong><p class="text-[9px] text-gray-400 font-bold uppercase mt-1 tracking-widest">${data.b.length} Turnos | ${data.s.length} Ventas Kiosco</p></div><div class="text-right"><strong class="text-2xl font-black text-emerald-600 tracking-tighter italic">$${data.t.toLocaleString('es-AR')}</strong></div>`;
         item.onclick = () => showCajaDetail(`${d}/${m}/${y}`, data);
         cajaDailyList.appendChild(item);
     });
@@ -909,10 +612,7 @@ function renderCajaList(daily) {
 function showCajaDetail(date, data) {
     if(!cajaDetailModal) return;
     cajaDetailModal.classList.add('is-open'); 
-    document.getElementById('caja-detail-title').textContent = date;
-    
-    let sumB = data.b.reduce((a, b) => a + (b.totalPrice || 0), 0);
-    let sumS = data.s.reduce((a, s) => a + (s.total || 0), 0);
+    getEl('caja-detail-title').textContent = date;
     
     let efSum = data.b.filter(x => x.paymentMethod === 'efectivo').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
                 data.s.filter(x => x.paymentMethod === 'efectivo').reduce((a, s) => a + (s.total || 0), 0);
@@ -920,32 +620,22 @@ function showCajaDetail(date, data) {
     let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
                 data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + (s.total || 0), 0);
 
-    const sumEl = document.getElementById('caja-detail-summary');
-    if(sumEl) sumEl.innerHTML = `
+    getEl('caja-detail-summary').innerHTML = `
         <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] mb-8 shadow-2xl border-t-8 border-emerald-400 relative overflow-hidden text-left">
-            <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter italic">BANK</div>
+            <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter">BANK</div>
             <div class="flex justify-between mb-2"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">En Efectivo:</span> <strong class="text-emerald-400 text-lg">$${efSum.toLocaleString()}</strong></div>
             <div class="flex justify-between mb-6"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">MP / Transf:</span> <strong class="text-blue-400 text-lg">$${mpSum.toLocaleString()}</strong></div>
             <div class="flex justify-between text-3xl font-black border-t border-white/20 pt-6 italic tracking-tighter"><span>CIERRE:</span> <span class="text-white">$${data.t.toLocaleString()}</span></div>
         </div>
     `;
     
-    const list = document.getElementById('caja-detail-booking-list');
-    if(list) {
-        list.innerHTML = '';
-        data.b.forEach(b => {
-            const icon = b.paymentMethod === 'mercadopago' ? '📱' : '💵';
-            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-gray-100"><span>${icon} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${(b.totalPrice || 0).toLocaleString()}</strong></div>`;
-        });
-        data.s.forEach(s => {
-            const icon = s.paymentMethod === 'mercadopago' ? '📱' : '💵';
-            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-blue-100"><span>${icon} 🍭 ${s.name} (x${s.qty})</span><strong class="text-blue-700">$${(s.total || 0).toLocaleString()}</strong></div>`;
-        });
-    }
+    const list = getEl('caja-detail-booking-list'); list.innerHTML = '';
+    data.b.forEach(b => list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-gray-100"><span>${b.paymentMethod==='mercadopago'?'📱':'💵'} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${(b.totalPrice || 0).toLocaleString()}</strong></div>`);
+    data.s.forEach(s => list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-blue-100"><span>${s.paymentMethod==='mercadopago'?'📱':'💵'} 🍭 ${s.name}</span><strong class="text-blue-700">$${(s.total || 0).toLocaleString()}</strong></div>`);
 }
 
 // -----------------------------------------------------------------
-// 10. CALENDARIO: RENDERIZADO VISIBLE (ALTO CONTRASTE)
+// 8. CALENDARIO (RESTAURADO ALTA VISIBILIDAD)
 // -----------------------------------------------------------------
 
 function renderCalendar() {
@@ -958,9 +648,7 @@ function renderCalendar() {
     const lastDate = new Date(year, month + 1, 0).getDate();
 
     for (let i = 0; i < firstDay; i++) {
-        const d = document.createElement('div');
-        d.className = 'other-month-day h-20 md:h-28 bg-gray-50 opacity-20 border border-gray-100 rounded-xl';
-        calendarGrid.appendChild(d);
+        calendarGrid.appendChild(Object.assign(document.createElement('div'), { className: 'h-20 md:h-28 bg-gray-50 opacity-10 rounded-xl' }));
     }
 
     for (let i = 1; i <= lastDate; i++) {
@@ -969,7 +657,7 @@ function renderCalendar() {
         const cell = document.createElement('div');
         cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
         
-        // Número de día en negro sólido e itálico para visibilidad máxima
+        // Número de día en NEGRO SÓLIDO (RESTAURADO)
         cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter'>${i}</span>`;
         
         if (bks.length > 0) {
@@ -995,18 +683,17 @@ function renderCalendar() {
 
 function showOptionsModal(dateStr, bks) {
     optionsModal.dataset.date = dateStr;
-    const list = document.getElementById('daily-bookings-list');
+    const list = getEl('daily-bookings-list');
     if(!list) return;
     list.innerHTML = '';
     const hasEv = bks.some(b => b.type === 'event');
-    const addBtn = document.getElementById('add-new-booking-btn');
-    if (addBtn) addBtn.style.display = hasEv ? 'none' : 'block';
+    getEl('add-new-booking-btn').style.display = hasEv ? 'none' : 'block';
 
     bks.forEach(b => {
         const item = document.createElement('div');
-        item.className = 'flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-2xl mb-3 shadow-sm';
+        item.className = 'flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-2xl mb-3 shadow-sm text-left';
         item.innerHTML = `
-            <div class="text-left">
+            <div>
                 <p class="font-black text-sm uppercase italic tracking-tighter text-gray-800">${b.type === 'event' ? '★ ' + b.teamName : b.teamName}</p>
                 <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${b.courtHours ? b.courtHours.join(', ') : 'S/H'}hs</p>
             </div>
@@ -1021,12 +708,116 @@ function showOptionsModal(dateStr, bks) {
 }
 
 // -----------------------------------------------------------------
-// 11. GLOBALIZACIÓN WINDOW PARA BOTONES DINÁMICOS
+// 9. KIOSCO PRO (LÓGICA ÚLTIMO PRECIO)
+// -----------------------------------------------------------------
+
+async function handleConfirmSale() {
+    if(!currentSelectedProduct) return;
+    const qtyInput = getEl('sale-qty-input');
+    const qty = parseInt(qtyInput.value);
+    const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
+    try {
+        await addDoc(collection(db, salesCollectionPath), { 
+            name: currentSelectedProduct.name, qty, total: qty * currentSelectedProduct.salePrice, 
+            paymentMethod: method, day: new Date().toISOString().split('T')[0], 
+            monthYear: new Date().toISOString().substring(0, 7), timestamp: Timestamp.now(),
+            adminId: userId, adminEmail: userEmail
+        });
+        await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
+        await logKioscoTransaction(currentSelectedProduct.id, `Venta (${method})`, qty, currentSelectedProduct.unitCost, 'out');
+        
+        showMessage("¡Venta completada!"); 
+        setTimeout(() => { closeModals(); hideMessage(); }, 2000);
+    } catch (e) { alert(e.message); }
+}
+
+async function handleConfirmRestock(e) {
+    e.preventDefault();
+    const id = getEl('restock-prod-id').value;
+    const addQ = parseInt(getEl('restock-qty').value);
+    const bCost = parseFloat(getEl('restock-batch-cost').value);
+    const nUnit = bCost / addQ;
+    const p = allProducts.find(x => x.id === id);
+    const nSale = Math.ceil(nUnit * 1.40); // 40% margen
+
+    try {
+        await updateDoc(doc(db, productsCollectionPath, id), { 
+            stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale 
+        });
+        await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnit, 'in');
+        showMessage("¡Stock actualizado!"); 
+        setTimeout(() => { closeModals(); hideMessage(); }, 2000);
+    } catch (err) { alert(err.message); }
+}
+
+async function handleSaveProduct(e) {
+    e.preventDefault();
+    const n = getEl('prod-name').value.trim();
+    const s = parseInt(getEl('prod-stock').value);
+    const uc = parseFloat(getEl('prod-unit-cost').value);
+    const sp = parseFloat(getEl('prod-suggested-price').textContent.replace('$', ''));
+    try {
+        const r = await addDoc(collection(db, productsCollectionPath), { 
+            name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail
+        });
+        await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
+        e.target.reset(); getEl('product-form-container')?.classList.add('is-hidden');
+        showMessage("Ficha creada con éxito!"); 
+        setTimeout(() => { closeModals(); hideMessage(); }, 2000);
+    } catch (err) { alert(err.message); }
+}
+
+function calculateProductPrices() {
+    const cost = parseFloat(getEl('prod-batch-cost').value) || 0;
+    const qty = parseInt(getEl('prod-batch-qty').value) || 1;
+    const margin = parseFloat(getEl('prod-profit-pct').value) || 40;
+    const u = cost / qty;
+    const s = Math.ceil(u * (1 + (margin / 100)));
+    getEl('prod-suggested-price').textContent = `$${s}`;
+    getEl('prod-unit-cost').value = u;
+}
+
+function syncProducts() {
+    onSnapshot(collection(db, productsCollectionPath), (snap) => {
+        allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderProducts();
+    });
+}
+
+function renderProducts(f = "") {
+    if (!productList) return;
+    productList.innerHTML = '';
+    allProducts.filter(p => p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
+        const d = document.createElement('div');
+        d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
+        d.innerHTML = `
+            <div class="flex justify-between items-start text-left">
+                <div>
+                    <h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4>
+                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Venta</p>
+                    <p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
+                <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
+                <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
+                <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
+            </div>`;
+        productList.appendChild(d);
+    });
+}
+
+// -----------------------------------------------------------------
+// 10. GLOBALIZACIÓN WINDOW PARA HTML
 // -----------------------------------------------------------------
 
 window.viewBookingDetail = async (id) => {
     const b = allMonthBookings.find(x => x.id === id);
-    const det = document.getElementById('view-booking-details');
+    const det = getEl('view-booking-details');
     if(det) {
         det.innerHTML = `
         <h3 class="text-4xl font-black italic uppercase text-emerald-900 tracking-tighter mb-8 tracking-tighter italic uppercase text-left">${b.teamName}</h3>
@@ -1035,7 +826,7 @@ window.viewBookingDetail = async (id) => {
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Día</span> <span class="text-gray-900">${b.day}</span></div>
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Horario</span> <span class="text-gray-900">${b.courtHours ? b.courtHours.join(', ') : 'S/H'}hs</span></div>
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Pago</span> <span class="text-gray-900 uppercase italic tracking-tighter italic tracking-tighter italic">${b.paymentMethod || 'Efectivo'}</span></div>
-            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest uppercase">Total</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter tracking-tighter tracking-tighter tracking-tighter italic italic italic">$${(b.totalPrice || 0).toLocaleString()}</span></div>
+            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest uppercase">Total</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter italic italic italic">$${(b.totalPrice || 0).toLocaleString()}</span></div>
         </div>`;
     }
     if(viewModal) viewModal.classList.add('is-open');
@@ -1048,59 +839,54 @@ window.editBooking = (id) => {
 };
 
 window.deleteBooking = (id) => { 
-    if(document.getElementById('delete-booking-id')) document.getElementById('delete-booking-id').value = id; 
+    if(getEl('delete-booking-id')) getEl('delete-booking-id').value = id; 
     closeModals(); if(deleteReasonModal) deleteReasonModal.classList.add('is-open'); 
 };
 
 window.openRestock = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(document.getElementById('restock-prod-id')) document.getElementById('restock-prod-id').value = id;
-    if(document.getElementById('restock-name')) document.getElementById('restock-name').textContent = p.name;
-    if(document.getElementById('restock-current-stock')) document.getElementById('restock-current-stock').textContent = p.stock;
-    if(document.getElementById('restock-modal')) document.getElementById('restock-modal').classList.add('is-open');
+    if(getEl('restock-prod-id')) getEl('restock-prod-id').value = id;
+    if(getEl('restock-name')) getEl('restock-name').textContent = p.name;
+    if(getEl('restock-current-stock')) getEl('restock-current-stock').textContent = p.stock;
+    if(getEl('restock-modal')) getEl('restock-modal').classList.add('is-open');
 };
-
-window.showEventModal = showEventModal;
-window.showBookingModal = showBookingModal;
-
-window.deleteProduct = async (id) => { if(confirm("¿Borrar ficha permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(document.getElementById('edit-prod-id')) document.getElementById('edit-prod-id').value = id;
-    if(document.getElementById('edit-prod-name')) document.getElementById('edit-prod-name').value = p.name;
-    if(document.getElementById('edit-prod-cost')) document.getElementById('edit-prod-cost').value = p.unitCost;
-    if(document.getElementById('edit-prod-price')) document.getElementById('edit-prod-price').value = p.salePrice;
-    if(document.getElementById('edit-prod-stock')) document.getElementById('edit-prod-stock').value = p.stock;
-    if(document.getElementById('edit-product-modal')) document.getElementById('edit-product-modal').classList.add('is-open');
+    if(getEl('edit-prod-id')) getEl('edit-prod-id').value = id;
+    if(getEl('edit-prod-name')) getEl('edit-prod-name').value = p.name;
+    if(getEl('edit-prod-cost')) getEl('edit-prod-cost').value = p.unitCost;
+    if(getEl('edit-prod-price')) getEl('edit-prod-price').value = p.salePrice;
+    if(getEl('edit-prod-stock')) getEl('edit-prod-stock').value = p.stock;
+    if(getEl('edit-product-modal')) getEl('edit-product-modal').classList.add('is-open');
 };
 
 async function handleConfirmEditProduct(e) {
     e.preventDefault();
-    const idVal = document.getElementById('edit-prod-id').value;
-    const d = { name: document.getElementById('edit-prod-name').value, unitCost: parseFloat(document.getElementById('edit-prod-cost').value), salePrice: parseFloat(document.getElementById('edit-prod-price').value), stock: parseInt(document.getElementById('edit-prod-stock').value) };
+    const idVal = getEl('edit-prod-id').value;
+    const d = { name: getEl('edit-prod-name').value, unitCost: parseFloat(getEl('edit-prod-cost').value), salePrice: parseFloat(getEl('edit-prod-price').value), stock: parseInt(getEl('edit-prod-stock').value) };
     await updateDoc(doc(db, productsCollectionPath, idVal), d);
     closeModals();
 }
 
 window.openHistory = async (id) => {
     const p = allProducts.find(x => x.id === id);
-    const hName = document.getElementById('history-product-name'); if(hName) hName.textContent = p.name;
+    const hName = getEl('history-product-name'); if(hName) hName.textContent = p.name;
     const s = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
-    const list = document.getElementById('product-history-list'); if(!list) return; list.innerHTML = '';
+    const list = getEl('product-history-list'); list.innerHTML = '';
     s.forEach(doc => {
         const t = doc.data();
         list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100 text-left"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic tracking-widest">${t.timestamp.toDate().toLocaleString()}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
     });
-    if(document.getElementById('product-history-modal')) document.getElementById('product-history-modal').classList.add('is-open');
+    if(getEl('product-history-modal')) getEl('product-history-modal').classList.add('is-open');
 };
 
-// -----------------------------------------------------------------
-// 12. UTILIDADES FINALES
-// -----------------------------------------------------------------
+window.deleteProduct = async (id) => { if(confirm("¿Borrar ficha permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
+
+// --- UTILS FINALES ---
 
 function showMessage(msg, isError = false) { 
-    const t = document.getElementById('message-text'); 
+    const t = getEl('message-text'); 
     if(t) { t.textContent = msg; t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; }
     if(messageOverlay) messageOverlay.classList.add('is-open'); 
 }
@@ -1192,6 +978,8 @@ function saveRecurringSettings() {
     if(recurringSummary) { recurringSummary.textContent = `Serie activa: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]}.`; recurringSummary.classList.remove('is-hidden'); }
     if(recurringModal) recurringModal.classList.remove('is-open');
 }
+
+async function logKioscoTransaction(productId, desc, qty, cost, type) { await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail }); }
 
 window.hideMessage = hideMessage; window.closeModals = closeModals;
 console.log("Sistema v2026 Pro - Listo.");
