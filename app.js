@@ -73,98 +73,98 @@ let recurringSettings = { dayOfWeek: null, months: [] };
 // --- REFERENCIAS AL DOM ---
 const getEl = (id) => document.getElementById(id);
 
-const loginView = getEl('login-view');
-const registerView = getEl('register-view');
-const appContainer = getEl('app-container');
+const loginView = document.getElementById('login-view');
+const registerView = document.getElementById('register-view');
+const appContainer = document.getElementById('app-container');
 
 const views = {
-    calendar: getEl('calendar-view'),
-    caja: getEl('caja-view'),
-    stats: getEl('stats-view'),
-    historial: getEl('historial-view'),
-    configuracion: getEl('config-view'),
-    productos: getEl('productos-view') 
+    calendar: document.getElementById('calendar-view'),
+    caja: document.getElementById('caja-view'),
+    stats: document.getElementById('stats-view'),
+    historial: document.getElementById('historial-view'),
+    configuracion: document.getElementById('config-view'),
+    productos: document.getElementById('productos-view') 
 };
 
-const calendarGrid = getEl('calendar-grid');
-const currentMonthYearEl = getEl('current-month-year');
-const menuBtn = getEl('menu-btn');
-const mainMenu = getEl('main-menu');
-const menuOverlay = getEl('menu-overlay');
-const userEmailDisplay = getEl('user-email-display'); 
-const logoutBtn = getEl('logout-btn'); 
+const calendarGrid = document.getElementById('calendar-grid');
+const currentMonthYearEl = document.getElementById('current-month-year');
+const menuBtn = document.getElementById('menu-btn');
+const mainMenu = document.getElementById('main-menu');
+const menuOverlay = document.getElementById('menu-overlay');
+const userEmailDisplay = document.getElementById('user-email-display'); 
+const logoutBtn = document.getElementById('logout-btn'); 
 
-const loginForm = getEl('login-form');
-const registerForm = getEl('register-form');
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
 
-const cajaDailyList = getEl('caja-daily-list');
-const cajaTotalCombined = getEl('caja-total-combined');
-const cajaTotalBookings = getEl('caja-total-bookings');
-const cajaTotalSales = getEl('caja-total-sales');
-const cajaDateFrom = getEl('caja-date-from');
-const cajaDateTo = getEl('caja-date-to');
-const cajaFilterBtn = getEl('caja-filter-btn');
+const cajaDailyList = document.getElementById('caja-daily-list');
+const cajaTotalCombined = document.getElementById('caja-total-combined');
+const cajaTotalBookings = document.getElementById('caja-total-bookings');
+const cajaTotalSales = document.getElementById('caja-total-sales');
+const cajaDateFrom = document.getElementById('caja-date-from');
+const cajaDateTo = document.getElementById('caja-date-to');
+const cajaFilterBtn = document.getElementById('caja-filter-btn');
 
-const statsList = getEl('stats-list');
-const statsDateFrom = getEl('stats-date-from');
-const statsDateTo = getEl('stats-date-to');
-const statsFilterBtn = getEl('stats-filter-btn');
+const statsList = document.getElementById('stats-list');
+const statsDateFrom = document.getElementById('stats-date-from');
+const statsDateTo = document.getElementById('stats-date-to');
+const statsFilterBtn = document.getElementById('stats-filter-btn');
 
-const historialList = getEl('historial-list');
-const historialDateFrom = getEl('historial-date-from');
-const historialDateTo = getEl('historial-date-to');
-const historialFilterBtn = getEl('historial-filter-btn');
+const historialList = document.getElementById('historial-list');
+const historialDateFrom = document.getElementById('historial-date-from');
+const historialDateTo = document.getElementById('historial-date-to');
+const historialFilterBtn = document.getElementById('historial-filter-btn');
 
-const typeModal = getEl('type-modal'); 
-const bookingModal = getEl('booking-modal');
-const eventModal = getEl('event-modal'); 
-const optionsModal = getEl('options-modal');
-const viewModal = getEl('view-modal');
-const cajaDetailModal = getEl('caja-detail-modal');
-const deleteReasonModal = getEl('delete-reason-modal'); 
-const recurringModal = getEl('recurring-modal'); 
-const messageOverlay = getEl('message-overlay');
+const typeModal = document.getElementById('type-modal'); 
+const bookingModal = document.getElementById('booking-modal');
+const eventModal = document.getElementById('event-modal'); 
+const optionsModal = document.getElementById('options-modal');
+const viewModal = document.getElementById('view-modal');
+const cajaDetailModal = document.getElementById('caja-detail-modal');
+const deleteReasonModal = document.getElementById('delete-reason-modal'); 
+const recurringModal = document.getElementById('recurring-modal'); 
+const messageOverlay = document.getElementById('message-overlay');
 
-const bookingForm = getEl('booking-form');
-const teamNameInput = getEl('teamName');
-const teamNameSuggestions = getEl('teamName-suggestions');
-const costPerHourInput = getEl('costPerHour');
-const grillCostInput = getEl('grillCost');
-const rentGrillCheckbox = getEl('rentGrill');
-const grillHoursSection = getEl('grill-hours-section');
-const courtHoursList = getEl('court-hours-list');
-const grillHoursList = getEl('grill-hours-list');
-const bookingTotal = getEl('booking-total');
-const recurringToggle = getEl('recurring-toggle'); 
-const recurringSummary = getEl('recurring-summary'); 
+const bookingForm = document.getElementById('booking-form');
+const teamNameInput = document.getElementById('teamName');
+const teamNameSuggestions = document.getElementById('teamName-suggestions');
+const costPerHourInput = document.getElementById('costPerHour');
+const grillCostInput = document.getElementById('grillCost');
+const rentGrillCheckbox = document.getElementById('rentGrill');
+const grillHoursSection = document.getElementById('grill-hours-section');
+const courtHoursList = document.getElementById('court-hours-list');
+const grillHoursList = document.getElementById('grill-hours-list');
+const bookingTotal = document.getElementById('booking-total');
+const recurringToggle = document.getElementById('recurring-toggle'); 
+const recurringSummary = document.getElementById('recurring-summary'); 
 
-const eventForm = getEl('event-form');
-const eventBookingIdInput = getEl('event-booking-id'); 
-const eventDateInput = getEl('event-date'); 
-const eventNameInput = getEl('eventName');
-const contactPersonInput = getEl('contactPerson');
-const contactPhoneInput = getEl('contactPhone');
-const eventCostPerHourInput = getEl('eventCostPerHour');
-const eventHoursList = getEl('event-hours-list');
-const eventTotal = getEl('event-total');
+const eventForm = document.getElementById('event-form');
+const eventBookingIdInput = document.getElementById('event-booking-id'); 
+const eventDateInput = document.getElementById('event-date'); 
+const eventNameInput = document.getElementById('eventName');
+const contactPersonInput = document.getElementById('contactPerson');
+const contactPhoneInput = document.getElementById('contactPhone');
+const eventCostPerHourInput = document.getElementById('eventCostPerHour');
+const eventHoursList = document.getElementById('event-hours-list');
+const eventTotal = document.getElementById('event-total');
 
-const deleteReasonForm = getEl('delete-reason-form');
-const deleteReasonText = getEl('delete-reason-text');
-const deleteBookingIdInput = getEl('delete-booking-id');
+const deleteReasonForm = document.getElementById('delete-reason-form');
+const deleteReasonText = document.getElementById('delete-reason-text');
+const deleteBookingIdInput = document.getElementById('delete-booking-id');
 
-const configForm = getEl('config-form');
-const configCourt1Price = getEl('config-court1-price');
-const configCourt2Price = getEl('config-court2-price');
+const configForm = document.getElementById('config-form');
+const configCourt1Price = document.getElementById('config-court1-price');
+const configCourt2Price = document.getElementById('config-court2-price');
 
-const productForm = getEl('product-form');
-const productList = getEl('product-list');
-const inventorySearchInput = getEl('inventory-search-input');
-const restockForm = getEl('restock-form');
-const saleModal = getEl('sale-modal');
-const saleSearchInput = getEl('sale-search-input');
-const saleSearchResults = getEl('sale-search-results');
-const selectedProductInfo = getEl('selected-product-info');
-const confirmSaleBtn = getEl('confirm-sale-btn');
+const productForm = document.getElementById('product-form');
+const productList = document.getElementById('product-list');
+const inventorySearchInput = document.getElementById('inventory-search-input');
+const restockForm = document.getElementById('restock-form');
+const saleModal = document.getElementById('sale-modal');
+const saleSearchInput = document.getElementById('sale-search-input');
+const saleSearchResults = document.getElementById('sale-search-results');
+const selectedProductInfo = document.getElementById('selected-product-info');
+const confirmSaleBtn = document.getElementById('confirm-sale-btn');
 
 // --- INICIALIZACIÓN ---
 
@@ -229,32 +229,41 @@ function setupEventListeners() {
     if (loginForm) loginForm.onsubmit = handleLogin;
     if (registerForm) registerForm.onsubmit = handleRegister;
     
-    const sr = getEl('show-register');
-    if (sr) sr.onclick = (e) => { e.preventDefault(); loginView.classList.add('is-hidden'); registerView.classList.remove('is-hidden'); };
+    const showRegisterLink = document.getElementById('show-register');
+    if (showRegisterLink) {
+        showRegisterLink.onclick = (e) => {
+            e.preventDefault();
+            if (loginView) loginView.classList.add('is-hidden');
+            if (registerView) registerView.classList.remove('is-hidden');
+        };
+    }
     
-    const sl = getEl('show-login');
-    if (sl) sl.onclick = (e) => { e.preventDefault(); registerView.classList.add('is-hidden'); loginView.classList.remove('is-hidden'); };
+    const showLoginLink = document.getElementById('show-login');
+    if (showLoginLink) {
+        showLoginLink.onclick = (e) => {
+            e.preventDefault();
+            if (registerView) registerView.classList.add('is-hidden');
+            if (loginView) loginView.classList.remove('is-hidden');
+        };
+    }
     
-    const pm = getEl('prev-month-btn');
-    if (pm) pm.onclick = prevMonth;
-    
-    const nm = getEl('next-month-btn');
-    if (nm) nm.onclick = nextMonth;
+    if (document.getElementById('prev-month-btn')) document.getElementById('prev-month-btn').onclick = prevMonth;
+    if (document.getElementById('next-month-btn')) document.getElementById('next-month-btn').onclick = nextMonth;
     
     if (bookingForm) bookingForm.onsubmit = handleSaveSingleBooking;
     if (eventForm) eventForm.onsubmit = handleSaveEvent; 
     if (configForm) configForm.onsubmit = handleSaveConfig;
 
-    getEl('cancel-booking-btn').onclick = closeModals;
-    getEl('cancel-event-btn').onclick = closeModals; 
-    getEl('close-options-btn').onclick = closeModals;
-    getEl('close-view-btn').onclick = closeModals;
-    getEl('close-caja-detail-btn').onclick = closeModals;
+    document.getElementById('cancel-booking-btn').onclick = closeModals;
+    document.getElementById('cancel-event-btn').onclick = closeModals; 
+    document.getElementById('close-options-btn').onclick = closeModals;
+    document.getElementById('close-view-btn').onclick = closeModals;
+    document.getElementById('close-caja-detail-btn').onclick = closeModals;
 
-    getEl('add-new-booking-btn').onclick = () => { showBookingModal(optionsModal.dataset.date); };
-    getEl('type-btn-court').onclick = () => { showBookingModal(typeModal.dataset.date); };
-    getEl('type-btn-event').onclick = () => { showEventModal(typeModal.dataset.date); };
-    getEl('type-btn-cancel').onclick = closeModals;
+    document.getElementById('add-new-booking-btn').onclick = () => { showBookingModal(optionsModal.dataset.date); };
+    document.getElementById('type-btn-court').onclick = () => { showBookingModal(typeModal.dataset.date); };
+    document.getElementById('type-btn-event').onclick = () => { showEventModal(typeModal.dataset.date); };
+    document.getElementById('type-btn-cancel').onclick = closeModals;
 
     if (cajaFilterBtn) cajaFilterBtn.onclick = loadCajaData;
     if (statsFilterBtn) statsFilterBtn.onclick = loadStatsData;
@@ -272,27 +281,27 @@ function setupEventListeners() {
     if (eventCostPerHourInput) eventCostPerHourInput.oninput = updateEventTotalPrice;
     if (deleteReasonForm) deleteReasonForm.onsubmit = handleConfirmDelete;
     if (recurringToggle) recurringToggle.onchange = openRecurringModal;
-    getEl('confirm-recurring-btn').onclick = saveRecurringSettings;
+    document.getElementById('confirm-recurring-btn').onclick = saveRecurringSettings;
 
-    getEl('add-product-btn').onclick = () => getEl('product-form-container')?.classList.toggle('is-hidden');
-    getEl('cancel-product-btn').onclick = () => getEl('product-form-container')?.classList.add('is-hidden');
+    document.getElementById('add-product-btn').onclick = () => document.getElementById('product-form-container')?.classList.toggle('is-hidden');
+    document.getElementById('cancel-product-btn').onclick = () => document.getElementById('product-form-container')?.classList.add('is-hidden');
     if (productForm) productForm.onsubmit = handleSaveProduct;
     if (inventorySearchInput) inventorySearchInput.oninput = (e) => renderProducts(e.target.value);
     
-    const pbc = getEl('prod-batch-cost'); if (pbc) pbc.oninput = calculateProductPrices;
-    const pbq = getEl('prod-batch-qty'); if (pbq) pbq.oninput = calculateProductPrices;
-    const ppp = getEl('prod-profit-pct'); if (ppp) ppp.oninput = calculateProductPrices;
+    const prodBC = document.getElementById('prod-batch-cost'); if (prodBC) prodBC.oninput = calculateProductPrices;
+    const prodBQ = document.getElementById('prod-batch-qty'); if (prodBQ) prodBQ.oninput = calculateProductPrices;
+    const prodPP = document.getElementById('prod-profit-pct'); if (prodPP) prodPP.oninput = calculateProductPrices;
 
-    getEl('header-sale-btn').onclick = openSaleModal;
+    document.getElementById('header-sale-btn').onclick = openSaleModal;
     if (saleSearchInput) saleSearchInput.oninput = handleSaleSearch;
-    getEl('sale-qty-minus').onclick = () => updateSaleQty(-1);
-    getEl('sale-qty-plus').onclick = () => updateSaleQty(1);
+    document.getElementById('sale-qty-minus').onclick = () => updateSaleQty(-1);
+    document.getElementById('sale-qty-plus').onclick = () => updateSaleQty(1);
     if (confirmSaleBtn) confirmSaleBtn.onclick = handleConfirmSale;
     if (restockForm) restockForm.onsubmit = handleConfirmRestock;
-    getEl('edit-product-form').onsubmit = handleConfirmEditProduct;
+    document.getElementById('edit-product-form').onsubmit = handleConfirmEditProduct;
 
-    const allModals = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, getEl('restock-modal'), getEl('edit-product-modal'), getEl('product-history-modal')];
-    allModals.forEach(m => { if(m) m.onclick = (e) => { if (e.target === m) closeModals(); }; });
+    const modalList = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')];
+    modalList.forEach(m => { if(m) m.onclick = (e) => { if (e.target === m) closeModals(); }; });
 }
 
 // -----------------------------------------------------------------
@@ -331,8 +340,8 @@ function showView(viewName) {
 async function handleLogin(e) {
     e.preventDefault();
     showMessage("Validando acceso...");
-    const email = getEl('login-email').value;
-    const password = getEl('login-password').value;
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
     try {
         await signInWithEmailAndPassword(auth, email, password);
         hideMessage();
@@ -345,8 +354,8 @@ async function handleLogin(e) {
 async function handleRegister(e) {
     e.preventDefault();
     showMessage("Registrando administrador...");
-    const email = getEl('register-email').value;
-    const password = getEl('register-password').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
     try {
         await createUserWithEmailAndPassword(auth, email, password);
         hideMessage();
@@ -386,11 +395,9 @@ function loadConfigDataIntoForm() {
     if (!configCourt1Price) return;
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
-    
-    const grillEl = getEl('config-grill-price');
+    const grillEl = document.getElementById('config-grill-price');
     if(grillEl) grillEl.value = appSettings.grillPrice;
-    
-    const eventEl = getEl('config-event-price');
+    const eventEl = document.getElementById('config-event-price');
     if(eventEl) eventEl.value = appSettings.eventPrice;
 }
 
@@ -400,8 +407,8 @@ async function handleSaveConfig(e) {
     const newSettings = {
         court1Price: parseFloat(configCourt1Price.value) || 0,
         court2Price: parseFloat(configCourt2Price.value) || 0,
-        grillPrice: parseFloat(getEl('config-grill-price').value) || 0,
-        eventPrice: parseFloat(getEl('config-event-price').value) || 0
+        grillPrice: parseFloat(document.getElementById('config-grill-price').value) || 0,
+        eventPrice: parseFloat(document.getElementById('config-event-price').value) || 0
     };
     try {
         await setDoc(doc(db, settingsDocPath), newSettings);
@@ -414,27 +421,27 @@ async function handleSaveConfig(e) {
 }
 
 // -----------------------------------------------------------------
-// 6. FORMULARIOS DE RESERVA Y EVENTOS (DETALLADOS)
+// 6. FORMULARIOS DE RESERVA Y EVENTOS (FULL LOGIC)
 // -----------------------------------------------------------------
 
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     if(bookingForm) bookingForm.reset();
-    getEl('booking-date').value = dateStr;
-    const title = getEl('booking-modal-title');
+    document.getElementById('booking-date').value = dateStr;
+    const title = document.getElementById('booking-modal-title');
     
     if (bookingToEdit) {
         title.textContent = "Editar Turno";
-        getEl('booking-id').value = bookingToEdit.id;
-        getEl('teamName').value = bookingToEdit.teamName;
-        getEl('peopleCount').value = bookingToEdit.peopleCount;
+        document.getElementById('booking-id').value = bookingToEdit.id;
+        document.getElementById('teamName').value = bookingToEdit.teamName;
+        document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
         costPerHourInput.value = bookingToEdit.costPerHour;
         rentGrillCheckbox.checked = bookingToEdit.rentGrill;
         grillCostInput.value = bookingToEdit.grillCost;
         recurringToggle.disabled = true;
     } else {
         title.textContent = `Reservar Cancha (${dateStr})`;
-        getEl('booking-id').value = '';
+        document.getElementById('booking-id').value = '';
         costPerHourInput.value = appSettings.court1Price;
         grillCostInput.value = appSettings.grillPrice;
         recurringToggle.disabled = false;
@@ -447,19 +454,19 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
 async function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     if(eventForm) eventForm.reset();
-    getEl('event-date').value = dateStr;
-    const title = getEl('event-modal-title');
+    document.getElementById('event-date').value = dateStr;
+    const title = document.getElementById('event-modal-title');
 
     if (eventToEdit) {
         title.textContent = "Editar Evento";
-        getEl('event-booking-id').value = eventToEdit.id;
+        document.getElementById('event-booking-id').value = eventToEdit.id;
         eventNameInput.value = eventToEdit.teamName;
         contactPersonInput.value = eventToEdit.contactPerson;
         contactPhoneInput.value = eventToEdit.contactPhone;
         eventCostPerHourInput.value = eventToEdit.costPerHour;
     } else {
         title.textContent = `Reservar Evento (${dateStr})`;
-        getEl('event-booking-id').value = '';
+        document.getElementById('event-booking-id').value = '';
         eventCostPerHourInput.value = appSettings.eventPrice;
     }
     renderTimeSlots(eventHoursList, new Set(), eventToEdit ? eventToEdit.courtHours : []);
@@ -467,26 +474,16 @@ async function showEventModal(dateStr, eventToEdit = null) {
 }
 
 function updateCourtAvailability() {
-    const ds = getEl('booking-date').value;
+    const ds = document.getElementById('booking-date').value;
     const selCourt = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const editingId = getEl('booking-id').value;
+    const editingId = document.getElementById('booking-id').value;
     
     const occupied = new Set();
     allMonthBookings
         .filter(b => b.day === ds && b.courtId === selCourt && b.id !== editingId)
         .forEach(b => { if(b.courtHours) b.courtHours.forEach(h => occupied.add(h)); });
     
-    const currentBooking = allMonthBookings.find(b => b.id === editingId);
-    const selected = currentBooking ? currentBooking.courtHours : [];
-
-    renderTimeSlots(courtHoursList, occupied, selected);
-    
-    const grillOccupied = new Set();
-    allMonthBookings
-        .filter(b => b.day === ds && b.rentGrill && b.id !== editingId)
-        .forEach(b => { if(b.grillHours) b.grillHours.forEach(h => grillOccupied.add(h)); });
-    
-    renderTimeSlots(grillHoursList, grillOccupied, currentBooking ? currentBooking.grillHours : []);
+    renderTimeSlots(courtHoursList, occupied, []);
     updateTotalPrice();
 }
 
@@ -548,7 +545,7 @@ async function handleSaveSingleBooking(event) {
     const data = {
         type: 'court', teamName, 
         courtId: document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1', 
-        peopleCount: parseInt(getEl('peopleCount').value, 10),
+        peopleCount: parseInt(document.getElementById('peopleCount').value, 10),
         costPerHour: parseFloat(costPerHourInput.value),
         rentGrill: rentGrillCheckbox.checked,
         grillCost: parseFloat(grillCostInput.value),
@@ -571,7 +568,6 @@ async function handleSaveSingleBooking(event) {
         await logBookingEvent(action, { id: bookingId, ...data });
         await saveCustomer(teamName); 
         
-        // MUESTRA EL CARTEL Y VUELVE EN 2 SEGUNDOS
         showMessage("¡Guardado con éxito!"); 
         setTimeout(() => {
             closeModals();
@@ -588,8 +584,8 @@ async function handleSaveEvent(event) {
     const saveButton = eventForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
     
-    let bookingId = eventBookingIdInput.value;
-    const dateStr = eventDateInput.value;
+    let bookingId = document.getElementById('event-booking-id').value;
+    const dateStr = document.getElementById('event-date').value;
     const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
     if (selectedHours.length === 0) { alert("Elige horarios de ocupación."); saveButton.disabled = false; return; }
@@ -700,7 +696,7 @@ async function logBookingEvent(action, data, reason = null) {
 
 async function handleConfirmSale() {
     if(!currentSelectedProduct) return;
-    const qtyInput = getEl('sale-qty-input');
+    const qtyInput = document.getElementById('sale-qty-input');
     const qty = parseInt(qtyInput.value);
     const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
     try {
@@ -723,9 +719,9 @@ async function handleConfirmSale() {
 
 async function handleConfirmRestock(e) {
     e.preventDefault();
-    const id = getEl('restock-prod-id').value;
-    const addQ = parseInt(getEl('restock-qty').value);
-    const bCost = parseFloat(getEl('restock-batch-cost').value);
+    const id = document.getElementById('restock-prod-id').value;
+    const addQ = parseInt(document.getElementById('restock-qty').value);
+    const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
     const nUnit = bCost / addQ;
     const p = allProducts.find(x => x.id === id);
     const nSale = Math.ceil(nUnit * 1.40);
@@ -746,29 +742,29 @@ async function handleConfirmRestock(e) {
 
 async function handleSaveProduct(e) {
     e.preventDefault();
-    const n = getEl('prod-name').value.trim();
-    const s = parseInt(getEl('prod-stock').value);
-    const uc = parseFloat(getEl('prod-unit-cost').value);
-    const sp = parseFloat(getEl('prod-suggested-price').textContent.replace('$', ''));
+    const n = document.getElementById('prod-name').value.trim();
+    const s = parseInt(document.getElementById('prod-stock').value);
+    const uc = parseFloat(document.getElementById('prod-unit-cost').value);
+    const sp = parseFloat(document.getElementById('prod-suggested-price').textContent.replace('$', ''));
     try {
         const r = await addDoc(collection(db, productsCollectionPath), { 
             name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail
         });
         await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
-        e.target.reset(); getEl('product-form-container')?.classList.add('is-hidden');
+        e.target.reset(); document.getElementById('product-form-container')?.classList.add('is-hidden');
         showMessage("Ficha guardada con éxito!"); 
         setTimeout(() => { closeModals(); hideMessage(); }, 2000);
     } catch (err) { alert(err.message); }
 }
 
 function calculateProductPrices() {
-    const cost = parseFloat(getEl('prod-batch-cost').value) || 0;
-    const qty = parseInt(getEl('prod-batch-qty').value) || 1;
-    const margin = parseFloat(getEl('prod-profit-pct').value) || 40;
+    const cost = parseFloat(document.getElementById('prod-batch-cost').value) || 0;
+    const qty = parseInt(document.getElementById('prod-batch-qty').value) || 1;
+    const margin = parseFloat(document.getElementById('prod-profit-pct').value) || 40;
     const u = cost / qty;
     const s = Math.ceil(u * (1 + (margin / 100)));
-    getEl('prod-suggested-price').textContent = `$${s}`;
-    getEl('prod-unit-cost').value = u;
+    document.getElementById('prod-suggested-price').textContent = `$${s}`;
+    document.getElementById('prod-unit-cost').value = u;
 }
 
 function syncProducts() {
@@ -823,10 +819,10 @@ function handleSaleSearch() {
         i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
         i.onclick = () => {
             currentSelectedProduct = p; 
-            getEl('sel-prod-name').textContent = p.name;
-            getEl('sel-prod-stock').textContent = p.stock; 
-            getEl('sel-prod-price').textContent = `$${p.salePrice}`;
-            getEl('sale-qty-input').value = 1;
+            document.getElementById('sel-prod-name').textContent = p.name;
+            document.getElementById('sel-prod-stock').textContent = p.stock; 
+            document.getElementById('sel-prod-price').textContent = `$${p.salePrice}`;
+            document.getElementById('sale-qty-input').value = 1;
             selectedProductInfo.classList.remove('is-hidden');
             confirmSaleBtn.disabled = (p.stock <= 0); 
             updateSaleTotal();
@@ -836,16 +832,16 @@ function handleSaleSearch() {
 }
 
 function updateSaleQty(d) {
-    const i = getEl('sale-qty-input'); if(!i) return;
+    const i = document.getElementById('sale-qty-input'); if(!i) return;
     let v = parseInt(i.value) + d;
     if (v < 1) v = 1; if (v > currentSelectedProduct.stock) v = currentSelectedProduct.stock;
     i.value = v; updateSaleTotal();
 }
 
 function updateSaleTotal() {
-    const qEl = getEl('sale-qty-input'); if(!qEl) return;
+    const qEl = document.getElementById('sale-qty-input'); if(!qEl) return;
     const q = parseInt(qEl.value);
-    const disp = getEl('sale-total-display');
+    const disp = document.getElementById('sale-total-display');
     if(disp) disp.textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString('es-AR')}`;
 }
 
@@ -913,7 +909,7 @@ function renderCajaList(daily) {
 function showCajaDetail(date, data) {
     if(!cajaDetailModal) return;
     cajaDetailModal.classList.add('is-open'); 
-    getEl('caja-detail-title').textContent = date;
+    document.getElementById('caja-detail-title').textContent = date;
     
     let sumB = data.b.reduce((a, b) => a + (b.totalPrice || 0), 0);
     let sumS = data.s.reduce((a, s) => a + (s.total || 0), 0);
@@ -924,7 +920,7 @@ function showCajaDetail(date, data) {
     let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
                 data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + (s.total || 0), 0);
 
-    const sumEl = getEl('caja-detail-summary');
+    const sumEl = document.getElementById('caja-detail-summary');
     if(sumEl) sumEl.innerHTML = `
         <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] mb-8 shadow-2xl border-t-8 border-emerald-400 relative overflow-hidden text-left">
             <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter italic">BANK</div>
@@ -934,7 +930,7 @@ function showCajaDetail(date, data) {
         </div>
     `;
     
-    const list = getEl('caja-detail-booking-list');
+    const list = document.getElementById('caja-detail-booking-list');
     if(list) {
         list.innerHTML = '';
         data.b.forEach(b => {
@@ -973,7 +969,7 @@ function renderCalendar() {
         const cell = document.createElement('div');
         cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
         
-        // Número de día en negro sólido para visibilidad
+        // Número de día en negro sólido e itálico para visibilidad máxima
         cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter'>${i}</span>`;
         
         if (bks.length > 0) {
@@ -1003,7 +999,7 @@ function showOptionsModal(dateStr, bks) {
     if(!list) return;
     list.innerHTML = '';
     const hasEv = bks.some(b => b.type === 'event');
-    const addBtn = getEl('add-new-booking-btn');
+    const addBtn = document.getElementById('add-new-booking-btn');
     if (addBtn) addBtn.style.display = hasEv ? 'none' : 'block';
 
     bks.forEach(b => {
@@ -1030,7 +1026,7 @@ function showOptionsModal(dateStr, bks) {
 
 window.viewBookingDetail = async (id) => {
     const b = allMonthBookings.find(x => x.id === id);
-    const det = getEl('view-booking-details');
+    const det = document.getElementById('view-booking-details');
     if(det) {
         det.innerHTML = `
         <h3 class="text-4xl font-black italic uppercase text-emerald-900 tracking-tighter mb-8 tracking-tighter italic uppercase text-left">${b.teamName}</h3>
@@ -1052,16 +1048,16 @@ window.editBooking = (id) => {
 };
 
 window.deleteBooking = (id) => { 
-    if(getEl('delete-booking-id')) getEl('delete-booking-id').value = id; 
+    if(document.getElementById('delete-booking-id')) document.getElementById('delete-booking-id').value = id; 
     closeModals(); if(deleteReasonModal) deleteReasonModal.classList.add('is-open'); 
 };
 
 window.openRestock = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(getEl('restock-prod-id')) getEl('restock-prod-id').value = id;
-    if(getEl('restock-name')) getEl('restock-name').textContent = p.name;
-    if(getEl('restock-current-stock')) getEl('restock-current-stock').textContent = p.stock;
-    if(getEl('restock-modal')) getEl('restock-modal').classList.add('is-open');
+    if(document.getElementById('restock-prod-id')) document.getElementById('restock-prod-id').value = id;
+    if(document.getElementById('restock-name')) document.getElementById('restock-name').textContent = p.name;
+    if(document.getElementById('restock-current-stock')) document.getElementById('restock-current-stock').textContent = p.stock;
+    if(document.getElementById('restock-modal')) document.getElementById('restock-modal').classList.add('is-open');
 };
 
 window.showEventModal = showEventModal;
@@ -1071,32 +1067,32 @@ window.deleteProduct = async (id) => { if(confirm("¿Borrar ficha permanentement
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(getEl('edit-prod-id')) getEl('edit-prod-id').value = id;
-    if(getEl('edit-prod-name')) getEl('edit-prod-name').value = p.name;
-    if(getEl('edit-prod-cost')) getEl('edit-prod-cost').value = p.unitCost;
-    if(getEl('edit-prod-price')) getEl('edit-prod-price').value = p.salePrice;
-    if(getEl('edit-prod-stock')) getEl('edit-prod-stock').value = p.stock;
-    if(getEl('edit-product-modal')) getEl('edit-product-modal').classList.add('is-open');
+    if(document.getElementById('edit-prod-id')) document.getElementById('edit-prod-id').value = id;
+    if(document.getElementById('edit-prod-name')) document.getElementById('edit-prod-name').value = p.name;
+    if(document.getElementById('edit-prod-cost')) document.getElementById('edit-prod-cost').value = p.unitCost;
+    if(document.getElementById('edit-prod-price')) document.getElementById('edit-prod-price').value = p.salePrice;
+    if(document.getElementById('edit-prod-stock')) document.getElementById('edit-prod-stock').value = p.stock;
+    if(document.getElementById('edit-product-modal')) document.getElementById('edit-product-modal').classList.add('is-open');
 };
 
 async function handleConfirmEditProduct(e) {
     e.preventDefault();
-    const idVal = getEl('edit-prod-id').value;
-    const d = { name: getEl('edit-prod-name').value, unitCost: parseFloat(getEl('edit-prod-cost').value), salePrice: parseFloat(getEl('edit-prod-price').value), stock: parseInt(getEl('edit-prod-stock').value) };
+    const idVal = document.getElementById('edit-prod-id').value;
+    const d = { name: document.getElementById('edit-prod-name').value, unitCost: parseFloat(document.getElementById('edit-prod-cost').value), salePrice: parseFloat(document.getElementById('edit-prod-price').value), stock: parseInt(document.getElementById('edit-prod-stock').value) };
     await updateDoc(doc(db, productsCollectionPath, idVal), d);
     closeModals();
 }
 
 window.openHistory = async (id) => {
     const p = allProducts.find(x => x.id === id);
-    const hName = getEl('history-product-name'); if(hName) hName.textContent = p.name;
+    const hName = document.getElementById('history-product-name'); if(hName) hName.textContent = p.name;
     const s = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
-    const list = getEl('product-history-list'); if(!list) return; list.innerHTML = '';
+    const list = document.getElementById('product-history-list'); if(!list) return; list.innerHTML = '';
     s.forEach(doc => {
         const t = doc.data();
         list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100 text-left"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic tracking-widest">${t.timestamp.toDate().toLocaleString()}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
     });
-    if(getEl('product-history-modal')) getEl('product-history-modal').classList.add('is-open');
+    if(document.getElementById('product-history-modal')) document.getElementById('product-history-modal').classList.add('is-open');
 };
 
 // -----------------------------------------------------------------
@@ -1104,7 +1100,7 @@ window.openHistory = async (id) => {
 // -----------------------------------------------------------------
 
 function showMessage(msg, isError = false) { 
-    const t = getEl('message-text'); 
+    const t = document.getElementById('message-text'); 
     if(t) { t.textContent = msg; t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; }
     if(messageOverlay) messageOverlay.classList.add('is-open'); 
 }
