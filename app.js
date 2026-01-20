@@ -162,63 +162,65 @@ const saleSearchResults = document.getElementById('sale-search-results');
 const selectedProductInfo = document.getElementById('selected-product-info');
 const confirmSaleBtn = document.getElementById('confirm-sale-btn');
 
-// --- FUNCIONES DE UTILIDAD PARA MENSAJES (¡SOLO ÉXITO!) ---
+// --- INICIALIZACIÓN ---
 
-function showMessage(msg, isError = false) { 
-    const t = document.getElementById('message-text'); 
-    if(t) { 
-        t.textContent = msg; 
-        t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; 
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Cargado. Iniciando Sistema Pro v2026...");
+    setupEventListeners();
+    registerServiceWorker();
+    firebaseInit();
+});
+
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(error => {
+            console.error('Error Service Worker:', error);
+        });
     }
-    if(messageOverlay) messageOverlay.classList.add('is-open'); 
 }
 
-function hideMessage() { 
-    if(messageOverlay) messageOverlay.classList.remove('is-open'); 
-}
+async function firebaseInit() {
+    try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        await setPersistence(auth, browserLocalPersistence); 
 
-function closeModals() { 
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-open')); 
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log("Acceso autorizado:", user.email);
+                userId = user.uid;
+                userEmail = user.email;
+                await loadAppSettings(); 
+                
+                if (appContainer) appContainer.classList.remove('is-hidden');
+                if (loginView) loginView.classList.add('is-hidden');
+                if (registerView) registerView.classList.add('is-hidden');
+                if (userEmailDisplay) userEmailDisplay.textContent = userEmail;
+                
+                await loadBookingsForMonth(); 
+                syncProducts();
+            } else {
+                userId = null;
+                userEmail = null;
+                if (appContainer) appContainer.classList.add('is-hidden');
+                if (loginView) loginView.classList.remove('is-hidden');
+                if (registerView) registerView.classList.add('is-hidden');
+                if (currentBookingsUnsubscribe) {
+                    currentBookingsUnsubscribe();
+                    currentBookingsUnsubscribe = null;
+                }
+                allMonthBookings = [];
+            }
+        });
+    } catch (error) {
+        console.error("Fallo Firebase:", error);
+        showMessage(`Error de conexión: ${error.message}`, true);
+    }
 }
 
 // -----------------------------------------------------------------
-// 3. LÓGICA DE AUTENTICACIÓN
-// -----------------------------------------------------------------
-
-async function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
-        setTimeout(hideMessage, 3000);
-    }
-}
-
-async function handleRegister(e) {
-    e.preventDefault();
-    const email = document.getElementById('register-email').value;
-    const password = document.getElementById('register-password').value;
-    try {
-        await createUserWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
-        setTimeout(hideMessage, 3000);
-    }
-}
-
-async function handleLogout() {
-    try {
-        await signOut(auth);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-// -----------------------------------------------------------------
-// 4. CONFIGURACIÓN DE EVENT LISTENERS (PROTEGIDO)
+// 2. CONFIGURACIÓN DE EVENT LISTENERS (EXPLÍCITOS)
 // -----------------------------------------------------------------
 
 function setupEventListeners() {
@@ -256,48 +258,60 @@ function setupEventListeners() {
         };
     }
     
-    const prevMBtn = document.getElementById('prev-month-btn');
-    if (prevMBtn) prevMBtn.onclick = prevMonth;
+    const prevBtn = document.getElementById('prev-month-btn');
+    if (prevBtn) prevBtn.onclick = prevMonth;
     
-    const nextMBtn = document.getElementById('next-month-btn');
-    if (nextMBtn) nextMBtn.onclick = nextMonth;
+    const nextBtn = document.getElementById('next-month-btn');
+    if (nextBtn) nextBtn.onclick = nextMonth;
     
     if (bookingForm) bookingForm.onsubmit = handleSaveSingleBooking;
     if (eventForm) eventForm.onsubmit = handleSaveEvent; 
     if (configForm) configForm.onsubmit = handleSaveConfig;
 
-    const btnsCerrar = ['cancel-booking-btn', 'cancel-event-btn', 'close-options-btn', 'close-view-btn', 'close-caja-detail-btn', 'type-btn-cancel'];
-    btnsCerrar.forEach(id => {
-        const b = document.getElementById(id);
-        if (b) b.onclick = closeModals;
-    });
+    const cancelBookingBtn = document.getElementById('cancel-booking-btn');
+    if (cancelBookingBtn) cancelBookingBtn.onclick = closeModals;
 
-    const btnAddNew = document.getElementById('add-new-booking-btn');
-    if (btnAddNew) {
-        btnAddNew.onclick = () => {
+    const cancelEventBtn = document.getElementById('cancel-event-btn');
+    if (cancelEventBtn) cancelEventBtn.onclick = closeModals;
+
+    const closeOptionsBtn = document.getElementById('close-options-btn');
+    if (closeOptionsBtn) closeOptionsBtn.onclick = closeModals;
+
+    const closeViewBtn = document.getElementById('close-view-btn');
+    if (closeViewBtn) closeViewBtn.onclick = closeModals;
+
+    const closeCajaDetailBtn = document.getElementById('close-caja-detail-btn');
+    if (closeCajaDetailBtn) closeCajaDetailBtn.onclick = closeModals;
+
+    const addNewBookingBtn = document.getElementById('add-new-booking-btn');
+    if (addNewBookingBtn) {
+        addNewBookingBtn.onclick = () => {
             const ds = optionsModal.dataset.date;
             closeModals();
             showBookingModal(ds); 
         };
     }
 
-    const btnTypeCourt = document.getElementById('type-btn-court');
-    if (btnTypeCourt) {
-        btnTypeCourt.onclick = () => {
+    const typeBtnCourt = document.getElementById('type-btn-court');
+    if (typeBtnCourt) {
+        typeBtnCourt.onclick = () => {
             const ds = typeModal.dataset.date;
             closeModals();
             showBookingModal(ds);
         };
     }
 
-    const btnTypeEvent = document.getElementById('type-btn-event');
-    if (btnTypeEvent) {
-        btnTypeEvent.onclick = () => {
+    const typeBtnEvent = document.getElementById('type-btn-event');
+    if (typeBtnEvent) {
+        typeBtnEvent.onclick = () => {
             const ds = typeModal.dataset.date;
             closeModals();
             showEventModal(ds);
         };
     }
+
+    const typeBtnCancel = document.getElementById('type-btn-cancel');
+    if (typeBtnCancel) typeBtnCancel.onclick = closeModals;
 
     if (cajaFilterBtn) cajaFilterBtn.onclick = loadCajaData;
 
@@ -323,6 +337,9 @@ function setupEventListeners() {
     if (eventCostPerHourInput) eventCostPerHourInput.oninput = updateEventTotalPrice;
     
     if (deleteReasonForm) deleteReasonForm.onsubmit = handleConfirmDelete;
+    
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    if (cancelDeleteBtn) cancelDeleteBtn.onclick = closeModals;
 
     if (recurringToggle) recurringToggle.onchange = openRecurringModal;
     
@@ -365,11 +382,9 @@ function setupEventListeners() {
     if (productForm) productForm.onsubmit = handleSaveProduct;
     if (inventorySearchInput) inventorySearchInput.oninput = (e) => renderProducts(e.target.value);
     
-    const idsPrecios = ['prod-batch-cost', 'prod-batch-qty', 'prod-profit-pct'];
-    idsPrecios.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.oninput = calculateProductPrices;
-    });
+    if (document.getElementById('prod-batch-cost')) document.getElementById('prod-batch-cost').oninput = calculateProductPrices;
+    if (document.getElementById('prod-batch-qty')) document.getElementById('prod-batch-qty').oninput = calculateProductPrices;
+    if (document.getElementById('prod-profit-pct')) document.getElementById('prod-profit-pct').oninput = calculateProductPrices;
 
     const headerSaleBtn = document.getElementById('header-sale-btn');
     if (headerSaleBtn) headerSaleBtn.onclick = openSaleModal;
@@ -395,7 +410,76 @@ function setupEventListeners() {
 }
 
 // -----------------------------------------------------------------
-// 5. CONFIGURACIÓN Y PRECIOS
+// 3. LÓGICA DE VISTAS Y NAVEGACIÓN
+// -----------------------------------------------------------------
+
+function toggleMenu() {
+    if (mainMenu) mainMenu.classList.toggle('is-open');
+    if (menuOverlay) menuOverlay.classList.toggle('hidden');
+}
+
+function showView(viewName) {
+    for (const key in views) {
+        if (views[key]) views[key].classList.add('is-hidden');
+    }
+    const viewToShow = views[viewName];
+    if (viewToShow) {
+        viewToShow.classList.remove('is-hidden');
+        if (viewName === 'caja') {
+            const hoy = new Date().toISOString().split('T')[0];
+            if (!cajaDateFrom.value) cajaDateFrom.value = hoy;
+            if (!cajaDateTo.value) cajaDateTo.value = hoy;
+            loadCajaData();
+        }
+        else if (viewName === 'stats') loadStatsData();
+        else if (viewName === 'historial') loadHistorialData();
+        else if (viewName === 'configuracion') loadConfigDataIntoForm(); 
+        else if (viewName === 'productos') syncProducts();
+    }
+}
+
+// -----------------------------------------------------------------
+// 4. AUTENTICACIÓN
+// -----------------------------------------------------------------
+
+async function handleLogin(e) {
+    e.preventDefault();
+    showMessage("Validando acceso...");
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        hideMessage();
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    showMessage("Registrando administrador...");
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        hideMessage();
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleLogout() {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// -----------------------------------------------------------------
+// 5. CONFIGURACIÓN Y PRECIOS (CORREGIDO)
 // -----------------------------------------------------------------
 
 async function loadAppSettings() {
@@ -417,6 +501,7 @@ function loadConfigDataIntoForm() {
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
     
+    // CORRECCIÓN: Acceso directo a .value sin reasignar constantes
     const grillInput = document.getElementById('config-grill-price');
     if(grillInput) grillInput.value = appSettings.grillPrice;
     
@@ -426,6 +511,7 @@ function loadConfigDataIntoForm() {
 
 async function handleSaveConfig(e) {
     e.preventDefault();
+    showMessage("Sincronizando tarifas...");
     const newSettings = {
         court1Price: parseFloat(configCourt1Price.value) || 0,
         court2Price: parseFloat(configCourt2Price.value) || 0,
@@ -443,27 +529,27 @@ async function handleSaveConfig(e) {
 }
 
 // -----------------------------------------------------------------
-// 6. FORMULARIOS DE RESERVA Y EVENTOS
+// 6. FORMULARIOS DE RESERVA Y EVENTOS (FULL LOGIC)
 // -----------------------------------------------------------------
 
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     if(bookingForm) bookingForm.reset();
-    document.getElementById('booking-date').value = dateStr;
-    const title = document.getElementById('booking-modal-title');
+    getEl('booking-date').value = dateStr;
+    const title = getEl('booking-modal-title');
     
     if (bookingToEdit) {
         title.textContent = "Editar Reserva";
-        document.getElementById('booking-id').value = bookingToEdit.id;
-        document.getElementById('teamName').value = bookingToEdit.teamName;
-        document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
+        getEl('booking-id').value = bookingToEdit.id;
+        getEl('teamName').value = bookingToEdit.teamName;
+        getEl('peopleCount').value = bookingToEdit.peopleCount;
         costPerHourInput.value = bookingToEdit.costPerHour;
         rentGrillCheckbox.checked = bookingToEdit.rentGrill;
         grillCostInput.value = bookingToEdit.grillCost;
         if(recurringToggle) recurringToggle.disabled = true;
     } else {
         title.textContent = `Reservar Cancha (${dateStr})`;
-        document.getElementById('booking-id').value = '';
+        getEl('booking-id').value = '';
         costPerHourInput.value = appSettings.court1Price;
         grillCostInput.value = appSettings.grillPrice;
         if(recurringToggle) recurringToggle.disabled = false;
@@ -476,29 +562,33 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
 async function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     if(eventForm) eventForm.reset();
-    document.getElementById('event-date').value = dateStr;
-    const title = document.getElementById('event-modal-title');
+    
+    const dateInput = getEl('event-date');
+    if(dateInput) dateInput.value = dateStr;
+    
+    const title = getEl('event-modal-title');
 
     if (eventToEdit) {
-        title.textContent = "Editar Evento";
-        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = eventToEdit.id;
-        eventNameInput.value = eventToEdit.teamName;
-        contactPersonInput.value = eventToEdit.contactPerson;
-        contactPhoneInput.value = eventToEdit.contactPhone;
-        eventCostPerHourInput.value = eventToEdit.costPerHour;
+        if(title) title.textContent = "Editar Evento";
+        if(getEl('event-booking-id')) getEl('event-booking-id').value = eventToEdit.id;
+        if(eventNameInput) eventNameInput.value = eventToEdit.teamName;
+        if(contactPersonInput) contactPersonInput.value = eventToEdit.contactPerson;
+        if(contactPhoneInput) contactPhoneInput.value = eventToEdit.contactPhone;
+        if(eventCostPerHourInput) eventCostPerHourInput.value = eventToEdit.costPerHour;
     } else {
-        title.textContent = `Reservar Evento (${dateStr})`;
-        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = '';
-        eventCostPerHourInput.value = appSettings.eventPrice;
+        if(title) title.textContent = `Reservar Evento (${dateStr})`;
+        if(getEl('event-booking-id')) getEl('event-booking-id').value = '';
+        if(eventCostPerHourInput) eventCostPerHourInput.value = appSettings.eventPrice;
     }
+    
     renderTimeSlots(eventHoursList, new Set(), eventToEdit ? eventToEdit.courtHours : []);
     if(eventModal) eventModal.classList.add('is-open');
 }
 
 function updateCourtAvailability() {
-    const ds = document.getElementById('booking-date').value;
+    const ds = getEl('booking-date').value;
     const selCourt = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const editingId = document.getElementById('booking-id').value;
+    const editingId = getEl('booking-id').value;
     
     const occupied = new Set();
     allMonthBookings
@@ -529,26 +619,32 @@ function renderTimeSlots(container, occupied, selected) {
 }
 
 // -----------------------------------------------------------------
-// 7. GUARDADO (SIN BLOQUEOS Y CON CIERRE AUTOMÁTICO EN 2S)
+// 7. PERSISTENCIA Y GUARDADO (REGLA DE 2 SEGUNDOS)
 // -----------------------------------------------------------------
+
+async function loadBookingsForMonth() {
+    if (!db || !userId) return; 
+    if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
+    const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
+    const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
+    currentBookingsUnsubscribe = onSnapshot(q, (snapshot) => {
+        allMonthBookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderCalendar();
+    }, (error) => { console.error(error); });
+}
 
 async function handleSaveSingleBooking(event) {
     event.preventDefault();
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
 
-    // YA NO HAY CARTEL DE CARGA INICIAL
-    
-    let bookingId = document.getElementById('booking-id').value; // CORRECCIÓN: let en lugar de const
+    // ¡CORRECCIÓN!: let para permitir la reasignación en nuevos turnos
+    let bookingId = document.getElementById('booking-id').value;
     const dateStr = document.getElementById('booking-date').value;
     const teamName = teamNameInput.value.trim();
     const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
-    if (selectedHours.length === 0) {
-        alert("Debes marcar horarios.");
-        saveButton.disabled = false;
-        return;
-    }
+    if (selectedHours.length === 0) { alert("Debes marcar horarios."); saveButton.disabled = false; return; }
 
     const data = {
         type: 'court', teamName, 
@@ -575,7 +671,7 @@ async function handleSaveSingleBooking(event) {
         await logBookingEvent(bookingId ? 'updated' : 'created', { id: bookingId, ...data });
         await saveCustomer(teamName); 
         
-        // MUESTRA ÉXITO Y VUELVE EN 2 SEGUNDOS
+        // MOSTRAR ÉXITO Y VOLVER EN 2 SEGUNDOS
         showMessage("¡Reserva guardada con éxito!"); 
         setTimeout(() => {
             closeModals();
@@ -593,14 +689,10 @@ async function handleSaveEvent(event) {
     saveButton.disabled = true;
     
     let bookingId = document.getElementById('event-booking-id').value; // CORRECCIÓN: let
-    const dateStr = document.getElementById('event-date').value;
+    const dateStr = eventDateInput.value;
     const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
-    if (selectedHours.length === 0) {
-        alert("Elige horarios.");
-        saveButton.disabled = false;
-        return;
-    }
+    if (selectedHours.length === 0) { alert("Elige horarios."); saveButton.disabled = false; return; }
 
     const data = {
         type: 'event', teamName: eventNameInput.value.trim(), contactPerson: contactPersonInput.value.trim(), 
@@ -631,28 +723,8 @@ async function handleSaveEvent(event) {
     }
 }
 
-async function handleConfirmDelete(event) {
-    event.preventDefault();
-    const id = deleteBookingIdInput.value;
-    const reason = deleteReasonText.value.trim();
-    if (!reason) return alert("Motivo obligatorio.");
-    try {
-        const ref = doc(db, bookingsCollectionPath, id);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-            await logBookingEvent('deleted', { id: snap.id, ...snap.data() }, reason);
-            await deleteDoc(ref);
-            showMessage("Anulado con éxito.");
-        }
-        setTimeout(() => {
-            closeModals();
-            hideMessage();
-        }, 2000);
-    } catch (error) { showMessage(error.message, true); }
-}
-
 // -----------------------------------------------------------------
-// 8. CAJA Y ARQUEO
+// 8. ARQUEO DE CAJA (DESGLOSE POR MEDIO DE PAGO)
 // -----------------------------------------------------------------
 
 async function loadCajaData() {
@@ -725,8 +797,8 @@ function showCajaDetail(date, data) {
     `;
     
     const list = getEl('caja-detail-booking-list'); list.innerHTML = '';
-    data.b.forEach(b => list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between border"><span>${b.paymentMethod==='mercadopago'?'📱':'💵'} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${(b.totalPrice || 0).toLocaleString()}</strong></div>`);
-    data.s.forEach(s => list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between border"><span>${s.paymentMethod==='mercadopago'?'📱':'💵'} 🍭 ${s.name}</span><strong class="text-blue-700">$${(s.total || 0).toLocaleString()}</strong></div>`);
+    data.b.forEach(b => list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between border border-gray-100 text-left"><span>${b.paymentMethod==='mercadopago'?'📱':'💵'} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${(b.totalPrice || 0).toLocaleString()}</strong></div>`);
+    data.s.forEach(s => list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between border border-blue-100 text-left"><span>${s.paymentMethod==='mercadopago'?'📱':'💵'} 🍭 ${s.name}</span><strong class="text-blue-700">$${(s.total || 0).toLocaleString()}</strong></div>`);
 }
 
 // -----------------------------------------------------------------
@@ -870,10 +942,10 @@ async function handleConfirmEditProduct(e) {
 
 window.openHistory = async (id) => {
     const p = allProducts.find(x => x.id === id); getEl('history-product-name').textContent = p.name;
-    const snap = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
+    const s = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
     const list = getEl('product-history-list'); list.innerHTML = '';
-    snap.forEach(d => {
-        const t = d.data();
+    s.forEach(doc => {
+        const t = doc.data();
         list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100 text-left"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic tracking-widest">${t.timestamp.toDate().toLocaleString()}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
     });
     getEl('product-history-modal').classList.add('is-open');
@@ -884,7 +956,7 @@ function prevMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() - 1
 function nextMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); loadBookingsForMonth(); }
 function updateTotalPrice() { const h = courtHoursList?.querySelectorAll('.time-slot.selected').length || 0; const p = parseFloat(costPerHourInput?.value) || 0; const g = (rentGrillCheckbox && rentGrillCheckbox.checked) ? (parseFloat(grillCostInput?.value) || 0) : 0; const t = (h * p) + g; if(bookingTotal) bookingTotal.textContent = `$${t.toLocaleString()}`; return t; }
 function updateEventTotalPrice() { const h = eventHoursList?.querySelectorAll('.time-slot.selected').length || 0; const p = parseFloat(eventCostPerHourInput?.value) || 0; const t = h * p; if(eventTotal) eventTotal.textContent = `$${t.toLocaleString()}`; return t; }
-function calculateProductPrices() { const c = parseFloat(getEl('prod-batch-cost').value) || 0, q = parseInt(getEl('prod-batch-qty').value) || 1, m = parseFloat(getEl('prod-profit-pct').value) || 40; const u = c / q, s = Math.ceil(u * (1 + (m / 100))); getEl('prod-suggested-price').textContent = `$${s}`; getEl('prod-unit-cost').value = u; }
+function calculateProductPrices() { const cost = parseFloat(getEl('prod-batch-cost').value) || 0, qty = parseInt(getEl('prod-batch-qty').value) || 1, margin = parseFloat(getEl('prod-profit-pct').value) || 40; const u = cost / qty, s = Math.ceil(u * (1 + (margin / 100))); getEl('prod-suggested-price').textContent = `$${s}`; getEl('prod-unit-cost').value = u; }
 function openSaleModal() { saleSearchInput.value = ''; if(saleSearchResults) saleSearchResults.innerHTML = ''; selectedProductInfo?.classList.add('is-hidden'); confirmSaleBtn.disabled = true; saleModal?.classList.add('is-open'); setTimeout(() => saleSearchInput?.focus(), 100); }
 function handleSaleSearch() { const v = saleSearchInput.value.toLowerCase(); if (v.length < 2) { saleSearchResults.innerHTML = ''; return; } saleSearchResults.innerHTML = ''; allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => { const i = document.createElement('div'); i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 border shadow-sm'; i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic">$${p.salePrice}</strong>`; i.onclick = () => { currentSelectedProduct = p; getEl('sel-prod-name').textContent = p.name; getEl('sel-prod-stock').textContent = p.stock; getEl('sel-prod-price').textContent = `$${p.salePrice}`; getEl('sale-qty-input').value = 1; selectedProductInfo.classList.remove('is-hidden'); confirmSaleBtn.disabled = (p.stock <= 0); updateSaleTotal(); }; saleSearchResults.appendChild(i); }); }
 function updateSaleQty(d) { let v = parseInt(getEl('sale-qty-input').value) + d; if (v < 1) v = 1; if (v > currentSelectedProduct.stock) v = currentSelectedProduct.stock; getEl('sale-qty-input').value = v; updateSaleTotal(); }
