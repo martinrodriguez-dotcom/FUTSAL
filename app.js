@@ -296,7 +296,125 @@ function setupEventListeners() {
 }
 
 // -----------------------------------------------------------------
-// 3. LÓGICA DE MODALES (RESERVA Y EVENTOS COMPLETOS)
+// 3. LÓGICA DE VISTAS Y NAVEGACIÓN
+// -----------------------------------------------------------------
+
+function toggleMenu() {
+    if (mainMenu) mainMenu.classList.toggle('is-open');
+    if (menuOverlay) menuOverlay.classList.toggle('hidden');
+}
+
+function showView(viewName) {
+    for (const key in views) {
+        if (views[key]) views[key].classList.add('is-hidden');
+    }
+    const viewToShow = views[viewName];
+    if (viewToShow) {
+        viewToShow.classList.remove('is-hidden');
+        if (viewName === 'caja') {
+            const hoy = new Date().toISOString().split('T')[0];
+            if (!cajaDateFrom.value) cajaDateFrom.value = hoy;
+            if (!cajaDateTo.value) cajaDateTo.value = hoy;
+            loadCajaData();
+        }
+        else if (viewName === 'stats') loadStatsData();
+        else if (viewName === 'historial') loadHistorialData();
+        else if (viewName === 'configuracion') loadConfigDataIntoForm(); 
+        else if (viewName === 'productos') syncProducts();
+    }
+}
+
+// -----------------------------------------------------------------
+// 4. AUTENTICACIÓN
+// -----------------------------------------------------------------
+
+async function handleLogin(e) {
+    e.preventDefault();
+    showMessage("Validando acceso...");
+    const email = getEl('login-email').value;
+    const password = getEl('login-password').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        hideMessage();
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    showMessage("Registrando administrador...");
+    const email = getEl('register-email').value;
+    const password = getEl('register-password').value;
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        hideMessage();
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleLogout() {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// -----------------------------------------------------------------
+// 5. CONFIGURACIÓN Y PRECIOS
+// -----------------------------------------------------------------
+
+async function loadAppSettings() {
+    try {
+        const docRef = doc(db, settingsDocPath);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            appSettings = docSnap.data();
+        } else {
+            await setDoc(docRef, appSettings); 
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function loadConfigDataIntoForm() {
+    if (!configCourt1Price) return;
+    configCourt1Price.value = appSettings.court1Price;
+    configCourt2Price.value = appSettings.court2Price;
+    
+    const grillEl = getEl('config-grill-price');
+    if(grillEl) grillEl.value = appSettings.grillPrice;
+    
+    const eventEl = getEl('config-event-price');
+    if(eventEl) eventEl.value = appSettings.eventPrice;
+}
+
+async function handleSaveConfig(e) {
+    e.preventDefault();
+    showMessage("Sincronizando tarifas...");
+    const newSettings = {
+        court1Price: parseFloat(configCourt1Price.value) || 0,
+        court2Price: parseFloat(configCourt2Price.value) || 0,
+        grillPrice: parseFloat(getEl('config-grill-price').value) || 0,
+        eventPrice: parseFloat(getEl('config-event-price').value) || 0
+    };
+    try {
+        await setDoc(doc(db, settingsDocPath), newSettings);
+        appSettings = newSettings;
+        showMessage("¡Precios actualizados!");
+        setTimeout(hideMessage, 1500);
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+    }
+}
+
+// -----------------------------------------------------------------
+// 6. FORMULARIOS DE RESERVA Y EVENTOS (DETALLADOS)
 // -----------------------------------------------------------------
 
 async function showBookingModal(dateStr, bookingToEdit = null) {
@@ -304,6 +422,7 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
     if(bookingForm) bookingForm.reset();
     getEl('booking-date').value = dateStr;
     const title = getEl('booking-modal-title');
+    
     if (bookingToEdit) {
         title.textContent = "Editar Turno";
         getEl('booking-id').value = bookingToEdit.id;
@@ -320,6 +439,7 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
         grillCostInput.value = appSettings.grillPrice;
         recurringToggle.disabled = false;
     }
+    
     updateCourtAvailability();
     if(bookingModal) bookingModal.classList.add('is-open');
 }
@@ -329,6 +449,7 @@ async function showEventModal(dateStr, eventToEdit = null) {
     if(eventForm) eventForm.reset();
     getEl('event-date').value = dateStr;
     const title = getEl('event-modal-title');
+
     if (eventToEdit) {
         title.textContent = "Editar Evento";
         getEl('event-booking-id').value = eventToEdit.id;
@@ -347,270 +468,734 @@ async function showEventModal(dateStr, eventToEdit = null) {
 
 function updateCourtAvailability() {
     const ds = getEl('booking-date').value;
-    const selC = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const eId = getEl('booking-id').value;
-    const occ = new Set();
-    allMonthBookings.filter(b => b.day === ds && b.courtId === selC && b.id !== eId).forEach(b => { if(b.courtHours) b.courtHours.forEach(h => occ.add(h)); });
-    renderTimeSlots(courtHoursList, occ, []);
+    const selCourt = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
+    const editingId = getEl('booking-id').value;
+    
+    const occupied = new Set();
+    allMonthBookings
+        .filter(b => b.day === ds && b.courtId === selCourt && b.id !== editingId)
+        .forEach(b => { if(b.courtHours) b.courtHours.forEach(h => occupied.add(h)); });
+    
+    const currentBooking = allMonthBookings.find(b => b.id === editingId);
+    const selected = currentBooking ? currentBooking.courtHours : [];
+
+    renderTimeSlots(courtHoursList, occupied, selected);
+    
+    const grillOccupied = new Set();
+    allMonthBookings
+        .filter(b => b.day === ds && b.rentGrill && b.id !== editingId)
+        .forEach(b => { if(b.grillHours) b.grillHours.forEach(h => grillOccupied.add(h)); });
+    
+    renderTimeSlots(grillHoursList, grillOccupied, currentBooking ? currentBooking.grillHours : []);
     updateTotalPrice();
 }
 
 function renderTimeSlots(container, occupied, selected) {
-    if(!container) return; container.innerHTML = '';
+    if(!container) return;
+    container.innerHTML = '';
     OPERATING_HOURS.forEach(h => {
         const btn = document.createElement('button');
-        btn.type = "button"; btn.className = `time-slot ${occupied.has(h) ? 'disabled' : ''} ${selected.includes(h) ? 'selected' : ''}`;
+        btn.type = "button"; 
+        btn.className = `time-slot ${occupied.has(h) ? 'disabled' : ''} ${selected.includes(h) ? 'selected' : ''}`;
         btn.textContent = `${h}:00`; btn.dataset.hour = h;
-        if (!occupied.has(h)) btn.onclick = () => { btn.classList.toggle('selected'); updateTotalPrice(); updateEventTotalPrice(); };
+        if (!occupied.has(h)) {
+            btn.onclick = () => { 
+                btn.classList.toggle('selected'); 
+                updateTotalPrice(); 
+                updateEventTotalPrice(); 
+            };
+        }
         container.appendChild(btn);
     });
 }
 
 // -----------------------------------------------------------------
-// 4. GUARDADO SIN BLOQUEOS VISUALES (CORREGIDO)
+// 7. PERSISTENCIA DE RESERVAS (FLUJO SIN BLOQUEOS)
 // -----------------------------------------------------------------
 
-async function handleSaveSingleBooking(event) {
+async function loadBookingsForMonth() {
+    if (!db || !userId) return; 
+    if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
+    const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
+    const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
+    currentBookingsUnsubscribe = onSnapshot(q, (snapshot) => {
+        allMonthBookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderCalendar();
+    }, (error) => { console.error(error); });
+}
+
+async function handleSaveBooking(event) {
     event.preventDefault();
-    const btn = bookingForm.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    
-    let bId = getEl('booking-id').value;
-    const dStr = getEl('booking-date').value;
-    const tName = teamNameInput.value.trim();
-    const selH = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
+    if (recurringToggle && recurringToggle.checked && recurringSettings.dayOfWeek !== null && recurringSettings.months.length > 0) {
+        await handleSaveRecurringBooking(event);
+    } else {
+        await handleSaveSingleBooking(event);
+    }
+}
 
-    if (selH.length === 0) { alert("Elige horarios."); btn.disabled = false; return; }
+async function handleSaveSingleBooking(event) {
+    const saveButton = bookingForm.querySelector('button[type="submit"]');
+    saveButton.disabled = true;
 
-    const payload = {
-        type: 'court', teamName: tName, courtId: document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1', 
-        peopleCount: parseInt(getEl('peopleCount').value, 10), costPerHour: parseFloat(costPerHourInput.value),
-        rentGrill: rentGrillCheckbox.checked, grillCost: parseFloat(grillCostInput.value), day: dStr, monthYear: dStr.substring(0, 7),
-        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked')?.value || 'efectivo', courtHours: selH,
+    // ¡CORRECCIÓN!: let en lugar de const para el ID
+    let bookingId = document.getElementById('booking-id').value;
+    const dateStr = document.getElementById('booking-date').value;
+    const teamName = teamNameInput.value.trim();
+    const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
+
+    if (selectedHours.length === 0) { alert("Debes marcar horarios."); saveButton.disabled = false; return; }
+
+    const data = {
+        type: 'court', teamName, 
+        courtId: document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1', 
+        peopleCount: parseInt(getEl('peopleCount').value, 10),
+        costPerHour: parseFloat(costPerHourInput.value),
+        rentGrill: rentGrillCheckbox.checked,
+        grillCost: parseFloat(grillCostInput.value),
+        day: dateStr, monthYear: dateStr.substring(0, 7),
+        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked')?.value || 'efectivo',
+        courtHours: selectedHours,
         grillHours: (rentGrillCheckbox && rentGrillCheckbox.checked) ? Array.from(grillHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10)) : [],
-        totalPrice: updateTotalPrice(), timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail
+        totalPrice: updateTotalPrice(),
+        timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail
     };
 
     try {
-        if (bId) { await setDoc(doc(db, bookingsCollectionPath, bId), payload, { merge: true }); } 
-        else { const dRef = await addDoc(collection(db, bookingsCollectionPath), payload); bId = dRef.id; }
-        await logBookingEvent(bId ? 'updated' : 'created', { id: bId, ...payload });
-        await saveCustomer(tName); 
-        showMessage("¡Reserva guardada!"); 
-        setTimeout(() => { closeModals(); hideMessage(); }, 1200);
-    } catch (e) { showMessage(e.message, true); } finally { btn.disabled = false; }
+        let action = bookingId ? 'updated' : 'created';
+        if (bookingId) { 
+            await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true }); 
+        } else { 
+            const docRef = await addDoc(collection(db, bookingsCollectionPath), data); 
+            bookingId = docRef.id; 
+        }
+        await logBookingEvent(action, { id: bookingId, ...data });
+        await saveCustomer(teamName); 
+        
+        // MUESTRA EL CARTEL Y VUELVE EN 2 SEGUNDOS
+        showMessage("¡Guardado con éxito!"); 
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
+    } catch (error) { 
+        showMessage(error.message, true); 
+        saveButton.disabled = false;
+    }
 }
 
 async function handleSaveEvent(event) {
     event.preventDefault();
-    const btn = eventForm.querySelector('button[type="submit"]');
-    btn.disabled = true;
+    const saveButton = eventForm.querySelector('button[type="submit"]');
+    saveButton.disabled = true;
+    
+    let bookingId = eventBookingIdInput.value;
+    const dateStr = eventDateInput.value;
+    const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
-    let bId = eventBookingIdInput.value;
-    const selH = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
-    if (selH.length === 0) { alert("Elige horarios."); btn.disabled = false; return; }
+    if (selectedHours.length === 0) { alert("Elige horarios de ocupación."); saveButton.disabled = false; return; }
 
-    const payload = {
+    const data = {
         type: 'event', teamName: eventNameInput.value.trim(), contactPerson: contactPersonInput.value.trim(), 
         contactPhone: contactPhoneInput.value.trim(), costPerHour: parseFloat(eventCostPerHourInput.value), 
-        day: eventDateInput.value, monthYear: eventDateInput.value.substring(0, 7), paymentMethod: 'efectivo', 
-        courtHours: selH, totalPrice: updateEventTotalPrice(), timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail
+        day: dateStr, monthYear: dateStr.substring(0, 7), 
+        paymentMethod: document.querySelector('input[name="eventPaymentMethod"]:checked')?.value || 'efectivo', 
+        courtHours: selectedHours, totalPrice: updateEventTotalPrice(),
+        timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail
     };
 
     try {
-        if (bId) { await setDoc(doc(db, bookingsCollectionPath, bId), payload, { merge: true }); }
-        else { const dRef = await addDoc(collection(db, bookingsCollectionPath), payload); bId = dRef.id; }
-        await logBookingEvent(bId ? 'updated' : 'created', { id: bId, ...payload });
-        showMessage("¡Evento registrado!"); 
-        setTimeout(() => { closeModals(); hideMessage(); }, 1200);
-    } catch (e) { showMessage(e.message, true); } finally { btn.disabled = false; }
+        let action = bookingId ? 'updated' : 'created';
+        if (bookingId) {
+            await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true });
+        } else {
+            const docRef = await addDoc(collection(db, bookingsCollectionPath), data);
+            bookingId = docRef.id;
+        }
+        await logBookingEvent(action, { id: bookingId, ...data });
+        
+        showMessage("¡Guardado con éxito!"); 
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
+    } catch (error) { 
+        showMessage(error.message, true); 
+        saveButton.disabled = false;
+    }
+}
+
+async function handleSaveRecurringBooking(event) {
+    const saveButton = bookingForm.querySelector('button[type="submit"]');
+    saveButton.disabled = true;
+
+    const teamName = teamNameInput.value.trim();
+    const courtId = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
+    const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
+
+    const { dayOfWeek, months } = recurringSettings;
+    let dates = [];
+    months.forEach(m => {
+        const y = parseInt(m.year, 10), mon = parseInt(m.month, 10);
+        const lastDay = new Date(y, mon + 1, 0).getDate();
+        for (let d = 1; d <= lastDay; d++) {
+            const date = new Date(y, mon, d);
+            if (date.getDay() == dayOfWeek) dates.push(date.toISOString().split('T')[0]);
+        }
+    });
+
+    try {
+        const batch = writeBatch(db);
+        for (const d of dates) {
+            const docRef = doc(collection(db, bookingsCollectionPath));
+            const data = { 
+                type: 'court', teamName, courtId, day: d, monthYear: d.substring(0, 7), 
+                courtHours: selectedHours, totalPrice: updateTotalPrice(), 
+                paymentMethod: 'efectivo', timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail,
+                peopleCount: 10, costPerHour: parseFloat(costPerHourInput.value), rentGrill: false, grillCost: 0, grillHours: []
+            };
+            batch.set(docRef, data);
+            await logBookingEvent('created-recurring', data);
+        }
+        await batch.commit();
+        showMessage("¡Serie guardada con éxito!"); 
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
+    } catch (e) { showMessage(e.message, true); saveButton.disabled = false; }
+}
+
+async function handleConfirmDelete(event) {
+    event.preventDefault();
+    const id = deleteBookingIdInput.value;
+    const reason = deleteReasonText.value.trim();
+    if (!reason) return alert("Motivo obligatorio.");
+    try {
+        const ref = doc(db, bookingsCollectionPath, id);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+            await logBookingEvent('deleted', { id: snap.id, ...snap.data() }, reason);
+            await deleteDoc(ref);
+            showMessage("Anulado con éxito.");
+        }
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
+    } catch (error) { showMessage(error.message, true); }
+}
+
+async function logBookingEvent(action, data, reason = null) {
+    try {
+        const log = { ...data, action, timestamp: Timestamp.now(), loggedBy: userEmail, adminId: userId };
+        if (reason) log.deleteReason = reason;
+        delete log.id;
+        await addDoc(collection(db, logCollectionPath), log);
+    } catch (e) { console.error(e); }
 }
 
 // -----------------------------------------------------------------
-// 5. CAJA Y ARQUEO CON DESGLOSE POR PAGO
+// 8. KIOSCO PRO: ÚLTIMO PRECIO Y VENTAS (FULL)
+// -----------------------------------------------------------------
+
+async function handleConfirmSale() {
+    if(!currentSelectedProduct) return;
+    const qtyInput = getEl('sale-qty-input');
+    const qty = parseInt(qtyInput.value);
+    const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
+    try {
+        await addDoc(collection(db, salesCollectionPath), { 
+            name: currentSelectedProduct.name, qty, total: qty * currentSelectedProduct.salePrice, 
+            paymentMethod: method, day: new Date().toISOString().split('T')[0], 
+            monthYear: new Date().toISOString().substring(0, 7), timestamp: Timestamp.now(),
+            adminId: userId, adminEmail: userEmail
+        });
+        await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
+        await logKioscoTransaction(currentSelectedProduct.id, `Venta (${method})`, qty, currentSelectedProduct.unitCost, 'out');
+        
+        showMessage("¡Venta completada!"); 
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
+    } catch (e) { alert(e.message); }
+}
+
+async function handleConfirmRestock(e) {
+    e.preventDefault();
+    const id = getEl('restock-prod-id').value;
+    const addQ = parseInt(getEl('restock-qty').value);
+    const bCost = parseFloat(getEl('restock-batch-cost').value);
+    const nUnit = bCost / addQ;
+    const p = allProducts.find(x => x.id === id);
+    const nSale = Math.ceil(nUnit * 1.40);
+
+    try {
+        await updateDoc(doc(db, productsCollectionPath, id), { 
+            stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale 
+        });
+        await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnit, 'in');
+        
+        showMessage("¡Stock actualizado!"); 
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
+    } catch (err) { alert(err.message); }
+}
+
+async function handleSaveProduct(e) {
+    e.preventDefault();
+    const n = getEl('prod-name').value.trim();
+    const s = parseInt(getEl('prod-stock').value);
+    const uc = parseFloat(getEl('prod-unit-cost').value);
+    const sp = parseFloat(getEl('prod-suggested-price').textContent.replace('$', ''));
+    try {
+        const r = await addDoc(collection(db, productsCollectionPath), { 
+            name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail
+        });
+        await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
+        e.target.reset(); getEl('product-form-container')?.classList.add('is-hidden');
+        showMessage("Ficha guardada con éxito!"); 
+        setTimeout(() => { closeModals(); hideMessage(); }, 2000);
+    } catch (err) { alert(err.message); }
+}
+
+function calculateProductPrices() {
+    const cost = parseFloat(getEl('prod-batch-cost').value) || 0;
+    const qty = parseInt(getEl('prod-batch-qty').value) || 1;
+    const margin = parseFloat(getEl('prod-profit-pct').value) || 40;
+    const u = cost / qty;
+    const s = Math.ceil(u * (1 + (margin / 100)));
+    getEl('prod-suggested-price').textContent = `$${s}`;
+    getEl('prod-unit-cost').value = u;
+}
+
+function syncProducts() {
+    onSnapshot(collection(db, productsCollectionPath), (snap) => {
+        allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderProducts();
+    });
+}
+
+function renderProducts(f = "") {
+    if (!productList) return;
+    productList.innerHTML = '';
+    allProducts.filter(p => p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
+        const d = document.createElement('div');
+        d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
+        d.innerHTML = `
+            <div class="flex justify-between items-start text-left">
+                <div>
+                    <h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4>
+                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Precio</p>
+                    <p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <button class="p-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
+                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
+                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
+                <button class="p-3 bg-red-50 text-red-500 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
+            </div>`;
+        productList.appendChild(d);
+    });
+}
+
+function openSaleModal() {
+    saleSearchInput.value = ''; if(saleSearchResults) saleSearchResults.innerHTML = ''; 
+    selectedProductInfo?.classList.add('is-hidden');
+    confirmSaleBtn.disabled = true; 
+    saleModal?.classList.add('is-open'); 
+    setTimeout(() => saleSearchInput?.focus(), 100);
+}
+
+function handleSaleSearch() {
+    const v = saleSearchInput.value.toLowerCase(); if (v.length < 2) { if(saleSearchResults) saleSearchResults.innerHTML = ''; return; }
+    if(!saleSearchResults) return;
+    saleSearchResults.innerHTML = '';
+    allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
+        const i = document.createElement('div');
+        i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
+        i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
+        i.onclick = () => {
+            currentSelectedProduct = p; 
+            getEl('sel-prod-name').textContent = p.name;
+            getEl('sel-prod-stock').textContent = p.stock; 
+            getEl('sel-prod-price').textContent = `$${p.salePrice}`;
+            getEl('sale-qty-input').value = 1;
+            selectedProductInfo.classList.remove('is-hidden');
+            confirmSaleBtn.disabled = (p.stock <= 0); 
+            updateSaleTotal();
+        };
+        saleSearchResults.appendChild(i);
+    });
+}
+
+function updateSaleQty(d) {
+    const i = getEl('sale-qty-input'); if(!i) return;
+    let v = parseInt(i.value) + d;
+    if (v < 1) v = 1; if (v > currentSelectedProduct.stock) v = currentSelectedProduct.stock;
+    i.value = v; updateSaleTotal();
+}
+
+function updateSaleTotal() {
+    const qEl = getEl('sale-qty-input'); if(!qEl) return;
+    const q = parseInt(qEl.value);
+    const disp = getEl('sale-total-display');
+    if(disp) disp.textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString('es-AR')}`;
+}
+
+async function logKioscoTransaction(productId, desc, qty, cost, type) {
+    await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail });
+}
+
+// -----------------------------------------------------------------
+// 9. CAJA: ARQUEO AUTOMÁTICO Y DESGLOSE DETALLADO
 // -----------------------------------------------------------------
 
 async function loadCajaData() {
+    const hoy = new Date().toISOString().split('T')[0];
+    if (!cajaDateFrom.value) cajaDateFrom.value = hoy;
+    if (!cajaDateTo.value) cajaDateTo.value = hoy;
+
     const from = cajaDateFrom.value, to = cajaDateTo.value;
-    if(!from || !to) return;
     try {
         const qB = query(collection(db, bookingsCollectionPath), where("day", ">=", from), where("day", "<=", to));
         const qS = query(collection(db, salesCollectionPath), where("day", ">=", from), where("day", "<=", to));
-        const [sB, sS] = await Promise.all([getDocs(qB), getDocs(qS)]);
-        let tB = 0, tS = 0; const daily = {};
-        sB.forEach(d => { const b = d.data(); tB += (b.totalPrice || 0); if(!daily[b.day]) daily[b.day] = {t:0, b:[], s:[]}; daily[b.day].t += (b.totalPrice || 0); daily[b.day].b.push({id: d.id, ...b}); });
-        sS.forEach(d => { const s = d.data(); tS += (s.total || 0); if(!daily[s.day]) daily[s.day] = {t:0, b:[], s:[]}; daily[s.day].t += (s.total || 0); daily[s.day].s.push({id: d.id, ...s}); });
-        cajaTotalBookings.textContent = `$${tB.toLocaleString()}`; cajaTotalSales.textContent = `$${tS.toLocaleString()}`; cajaTotalCombined.textContent = `$${(tB + tS).toLocaleString()}`;
+        const [snapB, snapS] = await Promise.all([getDocs(qB), getDocs(qS)]);
+        
+        let tB = 0, tS = 0; 
+        const daily = {};
+
+        snapB.docs.forEach(doc => { 
+            const b = doc.data(); tB += (b.totalPrice || 0); 
+            if(!daily[b.day]) daily[b.day] = {t:0, b:[], s:[]}; 
+            daily[b.day].t += (b.totalPrice || 0); daily[b.day].b.push({id: doc.id, ...b}); 
+        });
+        snapS.docs.forEach(doc => { 
+            const s = doc.data(); tS += (s.total || 0); 
+            if(!daily[s.day]) daily[s.day] = {t:0, b:[], s:[]}; 
+            daily[s.day].t += (s.total || 0); daily[s.day].s.push({id: doc.id, ...s}); 
+        });
+
+        cajaTotalBookings.textContent = `$${tB.toLocaleString('es-AR')}`;
+        cajaTotalSales.textContent = `$${tS.toLocaleString('es-AR')}`;
+        cajaTotalCombined.textContent = `$${(tB + tS).toLocaleString('es-AR')}`;
+        
         renderCajaList(daily);
     } catch (e) { console.error(e); }
 }
 
 function renderCajaList(daily) {
-    if(!cajaDailyList) return; cajaDailyList.innerHTML = '';
+    if(!cajaDailyList) return;
+    cajaDailyList.innerHTML = '';
     const sorted = Object.keys(daily).sort((a,b) => b.localeCompare(a));
-    if(sorted.length === 0) { cajaDailyList.innerHTML = '<p class="text-center p-8 opacity-40 uppercase font-black text-[10px]">Sin movimientos</p>'; return; }
+    
+    if(sorted.length === 0) {
+        cajaDailyList.innerHTML = '<p class="text-center text-gray-400 font-black p-8 italic uppercase text-[10px]">Sin movimientos registrados</p>';
+        return;
+    }
+
     sorted.forEach(day => {
         const data = daily[day], [y, m, d] = day.split('-');
-        const item = document.createElement('div'); item.className = 'data-card p-6 flex justify-between items-center cursor-pointer mb-3 border-l-8 border-emerald-500';
-        item.innerHTML = `<div><strong class="text-gray-900 text-xl font-black italic">${d}/${m}/${y}</strong><p class="text-[9px] uppercase font-bold opacity-40">${data.b.length} Turnos | ${data.s.length} Ventas</p></div><strong class="text-2xl text-emerald-600 italic">$${data.t.toLocaleString()}</strong>`;
+        const item = document.createElement('div');
+        item.className = 'data-card p-6 flex justify-between items-center cursor-pointer mb-3 border-l-8 border-emerald-500 hover:scale-[1.01] transition-transform shadow-lg';
+        item.innerHTML = `<div><strong class="text-gray-900 text-xl font-black italic">${d}/${m}/${y}</strong><p class="text-[9px] text-gray-400 font-bold uppercase mt-1 tracking-widest">${data.b.length} Turnos | ${data.s.length} Ventas Kiosco</p></div><div class="text-right"><strong class="text-2xl font-black text-emerald-600 tracking-tighter italic">$${data.t.toLocaleString('es-AR')}</strong></div>`;
         item.onclick = () => showCajaDetail(`${d}/${m}/${y}`, data);
         cajaDailyList.appendChild(item);
     });
 }
 
 function showCajaDetail(date, data) {
-    if(!cajaDetailModal) return; cajaDetailModal.classList.add('is-open'); getEl('caja-detail-title').textContent = date;
-    let efSum = data.b.filter(x => x.paymentMethod === 'efectivo').reduce((a, b) => a + (b.totalPrice || 0), 0) + data.s.filter(x => x.paymentMethod === 'efectivo').reduce((a, s) => a + (s.total || 0), 0);
-    let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + (b.totalPrice || 0), 0) + data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + (s.total || 0), 0);
-    getEl('caja-detail-summary').innerHTML = `<div class="bg-gray-900 text-white p-6 rounded-[2rem] shadow-xl border-t-8 border-emerald-400 mb-6 text-left"><div class="flex justify-between text-xs mb-2"><span>Efectivo:</span> <strong>$${efSum.toLocaleString()}</strong></div><div class="flex justify-between text-xs mb-4"><span>MP / Transf:</span> <strong>$${mpSum.toLocaleString()}</strong></div><div class="flex justify-between text-2xl font-black border-t border-white/20 pt-4 italic"><span>CIERRE:</span> <span>$${data.t.toLocaleString()}</span></div></div>`;
-    const list = getEl('caja-detail-booking-list'); list.innerHTML = '';
-    data.b.forEach(b => list.innerHTML += `<div class="text-[11px] font-bold p-3 bg-gray-50 rounded-xl mb-1 flex justify-between border"><span>${b.paymentMethod === 'mercadopago'?'📱':'💵'} ${b.teamName}</span><strong>$${(b.totalPrice || 0).toLocaleString()}</strong></div>`);
-    data.s.forEach(s => list.innerHTML += `<div class="text-[11px] font-bold p-3 bg-blue-50 rounded-xl mb-1 flex justify-between border"><span>${s.paymentMethod === 'mercadopago'?'📱':'💵'} ${s.name}</span><strong>$${(s.total || 0).toLocaleString()}</strong></div>`);
+    if(!cajaDetailModal) return;
+    cajaDetailModal.classList.add('is-open'); 
+    getEl('caja-detail-title').textContent = date;
+    
+    let sumB = data.b.reduce((a, b) => a + (b.totalPrice || 0), 0);
+    let sumS = data.s.reduce((a, s) => a + (s.total || 0), 0);
+    
+    let efSum = data.b.filter(x => x.paymentMethod === 'efectivo').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
+                data.s.filter(x => x.paymentMethod === 'efectivo').reduce((a, s) => a + (s.total || 0), 0);
+                
+    let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
+                data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + (s.total || 0), 0);
+
+    const sumEl = getEl('caja-detail-summary');
+    if(sumEl) sumEl.innerHTML = `
+        <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] mb-8 shadow-2xl border-t-8 border-emerald-400 relative overflow-hidden text-left">
+            <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter italic">BANK</div>
+            <div class="flex justify-between mb-2"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">En Efectivo:</span> <strong class="text-emerald-400 text-lg">$${efSum.toLocaleString()}</strong></div>
+            <div class="flex justify-between mb-6"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">MP / Transf:</span> <strong class="text-blue-400 text-lg">$${mpSum.toLocaleString()}</strong></div>
+            <div class="flex justify-between text-3xl font-black border-t border-white/20 pt-6 italic tracking-tighter"><span>CIERRE:</span> <span class="text-white">$${data.t.toLocaleString()}</span></div>
+        </div>
+    `;
+    
+    const list = getEl('caja-detail-booking-list');
+    if(list) {
+        list.innerHTML = '';
+        data.b.forEach(b => {
+            const icon = b.paymentMethod === 'mercadopago' ? '📱' : '💵';
+            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-gray-100"><span>${icon} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${(b.totalPrice || 0).toLocaleString()}</strong></div>`;
+        });
+        data.s.forEach(s => {
+            const icon = s.paymentMethod === 'mercadopago' ? '📱' : '💵';
+            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-blue-100"><span>${icon} 🍭 ${s.name} (x${s.qty})</span><strong class="text-blue-700">$${(s.total || 0).toLocaleString()}</strong></div>`;
+        });
+    }
 }
 
 // -----------------------------------------------------------------
-// 6. CALENDARIO (CONTRASTE MÁXIMO Y TURNOS VISIBLES)
+// 10. CALENDARIO: RENDERIZADO VISIBLE (ALTO CONTRASTE)
 // -----------------------------------------------------------------
 
 function renderCalendar() {
-    if(!calendarGrid) return; calendarGrid.innerHTML = '';
+    if(!calendarGrid) return;
+    calendarGrid.innerHTML = '';
     const year = currentMonthDate.getFullYear(), month = currentMonthDate.getMonth();
     currentMonthYearEl.textContent = `${monthNames[month]} ${year}`;
-    const firstDay = new Date(year, month, 1).getDay(), lastDate = new Date(year, month + 1, 0).getDate();
-    for (let i = 0; i < firstDay; i++) { calendarGrid.appendChild(Object.assign(document.createElement('div'), { className: 'h-20 md:h-28 bg-gray-50 opacity-10' })); }
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+        const d = document.createElement('div');
+        d.className = 'other-month-day h-20 md:h-28 bg-gray-50 opacity-20 border border-gray-100 rounded-xl';
+        calendarGrid.appendChild(d);
+    }
+
     for (let i = 1; i <= lastDate; i++) {
         const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         const bks = allMonthBookings.filter(b => b.day === ds);
         const cell = document.createElement('div');
-        cell.className = `day-cell h-20 md:h-28 border-2 p-3 bg-white cursor-pointer relative rounded-2xl shadow-sm hover:border-emerald-300 transition-all`;
-        cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic'>${i}</span>`;
+        cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
+        
+        // Número de día en negro sólido para visibilidad
+        cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter'>${i}</span>`;
+        
         if (bks.length > 0) {
             const hasEv = bks.some(b => b.type === 'event');
             if(hasEv) cell.classList.add('day-cell-locked');
-            const badge = document.createElement('span'); badge.className = `booking-count ${hasEv ? 'event' : ''}`;
-            badge.textContent = bks.length; cell.appendChild(badge);
+            const badge = document.createElement('span');
+            badge.className = `booking-count ${hasEv ? 'event' : ''}`;
+            badge.textContent = bks.length;
+            cell.appendChild(badge);
         }
-        cell.onclick = () => { if (bks.length > 0) showOptionsModal(ds, bks); else { typeModal.dataset.date = ds; typeModal.classList.add('is-open'); } };
+        
+        cell.onclick = () => {
+            if (bks.length > 0) {
+                showOptionsModal(ds, bks);
+            } else {
+                typeModal.dataset.date = ds;
+                document.getElementById('type-modal').classList.add('is-open');
+            }
+        };
         calendarGrid.appendChild(cell);
     }
 }
 
 function showOptionsModal(dateStr, bks) {
     optionsModal.dataset.date = dateStr;
-    const list = getEl('daily-bookings-list'); list.innerHTML = '';
+    const list = document.getElementById('daily-bookings-list');
+    if(!list) return;
+    list.innerHTML = '';
     const hasEv = bks.some(b => b.type === 'event');
-    getEl('add-new-booking-btn').style.display = hasEv ? 'none' : 'block';
+    const addBtn = getEl('add-new-booking-btn');
+    if (addBtn) addBtn.style.display = hasEv ? 'none' : 'block';
+
     bks.forEach(b => {
-        list.innerHTML += `<div class='flex justify-between items-center p-4 bg-gray-50 border rounded-2xl mb-2 shadow-sm'><div class="text-left"><p class='font-black text-sm uppercase italic'>${b.type==='event'?'★ '+b.teamName:b.teamName}</p><p class='text-[9px] font-bold opacity-40'>${b.courtHours?.join(', ')}hs</p></div><div class='flex gap-1'><button class='px-2 py-2 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase' onclick="window.viewBookingDetail('${b.id}')">VER</button><button class='px-2 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-[9px] font-black uppercase' onclick="window.editBooking('${b.id}')">EDT</button><button class='px-2 py-2 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase' onclick="window.deleteBooking('${b.id}')">X</button></div></div>`;
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-2xl mb-3 shadow-sm';
+        item.innerHTML = `
+            <div class="text-left">
+                <p class="font-black text-sm uppercase italic tracking-tighter text-gray-800">${b.type === 'event' ? '★ ' + b.teamName : b.teamName}</p>
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${b.courtHours ? b.courtHours.join(', ') : 'S/H'}hs</p>
+            </div>
+            <div class="flex gap-1">
+                <button class="px-2 py-2 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase" onclick="window.viewBookingDetail('${b.id}')">VER</button>
+                <button class="px-2 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-[9px] font-black uppercase" onclick="window.editBooking('${b.id}')">EDT</button>
+                <button class="px-2 py-2 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase" onclick="window.deleteBooking('${b.id}')">X</button>
+            </div>`;
+        list.appendChild(item);
     });
     optionsModal.classList.add('is-open');
 }
 
 // -----------------------------------------------------------------
-// 7. KIOSCO (LÓGICA ÚLTIMO PRECIO Y VENTAS)
-// -----------------------------------------------------------------
-
-async function handleConfirmSale() {
-    if(!currentSelectedProduct) return;
-    const qty = parseInt(getEl('sale-qty-input').value), method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
-    try {
-        await addDoc(collection(db, salesCollectionPath), { name: currentSelectedProduct.name, qty, total: qty * currentSelectedProduct.salePrice, paymentMethod: method, day: new Date().toISOString().split('T')[0], monthYear: new Date().toISOString().substring(0, 7), timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail });
-        await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
-        closeModals(); showMessage("¡Cobrado!"); setTimeout(hideMessage, 1500);
-    } catch (e) { alert(e.message); }
-}
-
-async function handleConfirmRestock(e) {
-    e.preventDefault();
-    const id = getEl('restock-prod-id').value, addQ = parseInt(getEl('restock-qty').value), bCost = parseFloat(getEl('restock-batch-cost').value);
-    const nUnit = bCost / addQ, p = allProducts.find(x => x.id === id);
-    try { await updateDoc(doc(db, productsCollectionPath, id), { stock: p.stock + addQ, unitCost: nUnit, salePrice: Math.ceil(nUnit * 1.40) }); closeModals(); showMessage("Stock Sincronizado."); setTimeout(hideMessage, 1500); } catch (err) { alert(err.message); }
-}
-
-async function handleSaveProduct(e) {
-    e.preventDefault();
-    const n = getEl('prod-name').value.trim(), s = parseInt(getEl('prod-stock').value), uc = parseFloat(getEl('prod-unit-cost').value), sp = parseFloat(getEl('prod-suggested-price').textContent.replace('$', ''));
-    try { await addDoc(collection(db, productsCollectionPath), { name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail }); e.target.reset(); getEl('product-form-container')?.classList.add('is-hidden'); showMessage("Guardado."); setTimeout(hideMessage, 1200); } catch (err) { alert(err.message); }
-}
-
-function renderProducts() {
-    if (!productList) return; productList.innerHTML = '';
-    allProducts.forEach(p => {
-        const d = document.createElement('div'); d.className = 'product-card bg-white p-6 rounded-[2rem] border shadow-md flex flex-col gap-4';
-        d.innerHTML = `<div class="flex justify-between items-start"><div><h4 class="font-black italic text-gray-800 text-xl tracking-tighter uppercase">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase">Stock: ${p.stock} un.</span></div><div class="text-right"><p class="text-[8px] font-bold text-gray-400 uppercase">P. Venta</p><p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter">$${p.salePrice}</p></div></div>
-                       <div class="grid grid-cols-2 gap-2 mt-2">
-                           <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
-                           <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
-                       </div>`;
-        productList.appendChild(d);
-    });
-}
-
-function syncProducts() { onSnapshot(collection(db, productsCollectionPath), (snap) => { allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); renderProducts(); }); }
-
-// -----------------------------------------------------------------
-// 8. GLOBALIZACIÓN WINDOW PARA HTML
+// 11. GLOBALIZACIÓN WINDOW PARA BOTONES DINÁMICOS
 // -----------------------------------------------------------------
 
 window.viewBookingDetail = async (id) => {
     const b = allMonthBookings.find(x => x.id === id);
-    getEl('view-booking-details').innerHTML = `<h3 class='text-4xl font-black italic uppercase text-emerald-900 mb-8 text-left'>${b.teamName}</h3><div class='space-y-4 font-bold text-sm text-gray-500 text-left'><div class='flex justify-between border-b pb-2'><span>Día</span> <span class='text-gray-900'>${b.day}</span></div><div class='flex justify-between border-b pb-2'><span>Horario</span> <span class='text-gray-900'>${b.courtHours?.join(', ')}hs</span></div><div class='flex justify-between border-b pb-2'><span>Pago</span> <span class='text-gray-900 italic'>${b.paymentMethod || 'Efectivo'}</span></div><div class='flex justify-between pt-8 items-center'><span class='text-emerald-900 uppercase font-black text-xs'>TOTAL</span> <span class='text-4xl font-black text-emerald-600 italic'>$${(b.totalPrice || 0).toLocaleString()}</span></div></div>`;
-    viewModal.classList.add('is-open');
+    const det = getEl('view-booking-details');
+    if(det) {
+        det.innerHTML = `
+        <h3 class="text-4xl font-black italic uppercase text-emerald-900 tracking-tighter mb-8 tracking-tighter italic uppercase text-left">${b.teamName}</h3>
+        <div class="space-y-4 font-bold text-sm text-gray-500 text-left">
+            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Tipo</span> <span class="text-gray-900">${b.type}</span></div>
+            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Día</span> <span class="text-gray-900">${b.day}</span></div>
+            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Horario</span> <span class="text-gray-900">${b.courtHours ? b.courtHours.join(', ') : 'S/H'}hs</span></div>
+            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Pago</span> <span class="text-gray-900 uppercase italic tracking-tighter italic tracking-tighter italic">${b.paymentMethod || 'Efectivo'}</span></div>
+            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest uppercase">Total</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter tracking-tighter tracking-tighter tracking-tighter italic italic italic">$${(b.totalPrice || 0).toLocaleString()}</span></div>
+        </div>`;
+    }
+    if(viewModal) viewModal.classList.add('is-open');
 };
 
-window.editBooking = (id) => { const b = allMonthBookings.find(x => x.id === id); closeModals(); if(b.type === 'court') showBookingModal(b.day, b); else showEventModal(b.day, b); };
-window.deleteBooking = (id) => { getEl('delete-booking-id').value = id; closeModals(); deleteReasonModal.classList.add('is-open'); };
-window.openRestock = (id) => { const p = allProducts.find(x => x.id === id); getEl('restock-prod-id').value = id; getEl('restock-name').textContent = p.name; getEl('restock-current-stock').textContent = p.stock; getEl('restock-modal').classList.add('is-open'); };
-window.deleteProduct = async (id) => { if(confirm("¿Eliminar ficha?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
+window.editBooking = (id) => { 
+    const b = allMonthBookings.find(x => x.id === id); 
+    closeModals(); 
+    if(b.type === 'court') showBookingModal(b.day, b); else showEventModal(b.day, b); 
+};
+
+window.deleteBooking = (id) => { 
+    if(getEl('delete-booking-id')) getEl('delete-booking-id').value = id; 
+    closeModals(); if(deleteReasonModal) deleteReasonModal.classList.add('is-open'); 
+};
+
+window.openRestock = (id) => {
+    const p = allProducts.find(x => x.id === id);
+    if(getEl('restock-prod-id')) getEl('restock-prod-id').value = id;
+    if(getEl('restock-name')) getEl('restock-name').textContent = p.name;
+    if(getEl('restock-current-stock')) getEl('restock-current-stock').textContent = p.stock;
+    if(getEl('restock-modal')) getEl('restock-modal').classList.add('is-open');
+};
+
+window.showEventModal = showEventModal;
+window.showBookingModal = showBookingModal;
+
+window.deleteProduct = async (id) => { if(confirm("¿Borrar ficha permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
-    getEl('edit-prod-id').value = id; getEl('edit-prod-name').value = p.name; getEl('edit-prod-cost').value = p.unitCost; getEl('edit-prod-price').value = p.salePrice; getEl('edit-prod-stock').value = p.stock;
-    getEl('edit-product-modal').classList.add('is-open');
+    if(getEl('edit-prod-id')) getEl('edit-prod-id').value = id;
+    if(getEl('edit-prod-name')) getEl('edit-prod-name').value = p.name;
+    if(getEl('edit-prod-cost')) getEl('edit-prod-cost').value = p.unitCost;
+    if(getEl('edit-prod-price')) getEl('edit-prod-price').value = p.salePrice;
+    if(getEl('edit-prod-stock')) getEl('edit-prod-stock').value = p.stock;
+    if(getEl('edit-product-modal')) getEl('edit-product-modal').classList.add('is-open');
 };
 
 async function handleConfirmEditProduct(e) {
     e.preventDefault();
+    const idVal = getEl('edit-prod-id').value;
     const d = { name: getEl('edit-prod-name').value, unitCost: parseFloat(getEl('edit-prod-cost').value), salePrice: parseFloat(getEl('edit-prod-price').value), stock: parseInt(getEl('edit-prod-stock').value) };
-    await updateDoc(doc(db, productsCollectionPath, getEl('edit-prod-id').value), d); closeModals();
+    await updateDoc(doc(db, productsCollectionPath, idVal), d);
+    closeModals();
 }
 
 window.openHistory = async (id) => {
-    const p = allProducts.find(x => x.id === id); getEl('history-product-name').textContent = p.name;
-    const snap = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
-    const list = getEl('product-history-list'); list.innerHTML = '';
-    snap.forEach(d => { const t = d.data(); list.innerHTML += `<div class='p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between border-l-4 ${t.type==='in'?'border-emerald-500':'border-red-500'}'><div class="text-left"><p class='font-black text-sm uppercase italic'>${t.desc}</p><p class='text-[9px] font-bold opacity-40'>${t.timestamp.toDate().toLocaleString()}</p></div><strong class='text-xl italic ${t.type==='in'?'text-emerald-600':'text-red-500'}'>${t.type==='in'?'+':'-'}${t.qty}</strong></div>`; });
-    getEl('product-history-modal').classList.add('is-open');
+    const p = allProducts.find(x => x.id === id);
+    const hName = getEl('history-product-name'); if(hName) hName.textContent = p.name;
+    const s = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
+    const list = getEl('product-history-list'); if(!list) return; list.innerHTML = '';
+    s.forEach(doc => {
+        const t = doc.data();
+        list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100 text-left"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic tracking-widest">${t.timestamp.toDate().toLocaleString()}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
+    });
+    if(getEl('product-history-modal')) getEl('product-history-modal').classList.add('is-open');
 };
 
-// --- RECURRENCIA ---
-async function openRecurringModal() { if (recurringToggle && recurringToggle.checked) { renderRecurringModal(); recurringModal.classList.add('is-open'); } }
-function renderRecurringModal() { recurringMonthList.innerHTML = ''; const now = new Date(); for (let i = 0; i < 12; i++) { const d = new Date(now.getFullYear(), now.getMonth() + i, 1); const btn = document.createElement('button'); btn.className = 'month-toggle-btn'; btn.dataset.month = d.getMonth(); btn.dataset.year = d.getFullYear(); btn.textContent = d.toLocaleString('es-AR', { month: 'short', year: 'numeric' }); btn.onclick = (e) => e.currentTarget.classList.toggle('selected'); recurringMonthList.appendChild(btn); } }
+// -----------------------------------------------------------------
+// 12. UTILIDADES FINALES
+// -----------------------------------------------------------------
+
+function showMessage(msg, isError = false) { 
+    const t = getEl('message-text'); 
+    if(t) { t.textContent = msg; t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; }
+    if(messageOverlay) messageOverlay.classList.add('is-open'); 
+}
+
+function hideMessage() { if(messageOverlay) messageOverlay.classList.remove('is-open'); }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-open')); }
+function prevMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() - 1); loadBookingsForMonth(); }
+function nextMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); loadBookingsForMonth(); }
+
+function updateTotalPrice() {
+    const h = courtHoursList?.querySelectorAll('.time-slot.selected').length || 0;
+    const p = parseFloat(costPerHourInput?.value) || 0;
+    const g = (rentGrillCheckbox && rentGrillCheckbox.checked) ? (parseFloat(grillCostInput?.value) || 0) : 0;
+    const total = (h * p) + g;
+    if(bookingTotal) bookingTotal.textContent = `$${total.toLocaleString('es-AR')}`;
+    return total;
+}
+
+function updateEventTotalPrice() {
+    const h = eventHoursList?.querySelectorAll('.time-slot.selected').length || 0;
+    const p = parseFloat(eventCostPerHourInput?.value) || 0;
+    const total = h * p;
+    if(eventTotal) eventTotal.textContent = `$${total.toLocaleString('es-AR')}`;
+    return total;
+}
+
+async function loadStatsData() {
+    if(!db) return; try {
+        const snap = await getDocs(collection(db, bookingsCollectionPath));
+        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "sin nombre"; if(!st[n]) st[n] = {n: b.teamName || "S/N", c:0, t:0}; st[n].c++; st[n].t += (b.totalPrice || 0); });
+        if(statsList) {
+            statsList.innerHTML = ''; Object.values(st).sort((a,b)=>b.c-a.c).forEach(c => {
+                statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 uppercase italic tracking-tighter italic text-left"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic tracking-tighter italic">$${c.t.toLocaleString()}</strong></div>`;
+            });
+        }
+    } catch(e) {}
+}
+
+async function loadHistorialData() {
+    if(!db) return; try {
+        const snap = await getDocs(query(collection(db, logCollectionPath), orderBy("timestamp", "desc")));
+        if(historialList) {
+            historialList.innerHTML = ''; snap.forEach(d => { const e = d.data();
+                historialList.innerHTML += `<div class="data-card p-5 mb-3 flex justify-between items-start border shadow-sm rounded-3xl text-left"><div><strong class="font-black italic uppercase tracking-tighter text-gray-800 tracking-tighter italic">${e.teamName || "EVENTO"}</strong><p class="text-[9px] mt-2 text-gray-400 font-bold uppercase tracking-widest">${e.timestamp.toDate().toLocaleString()} | ADMIN: ${e.loggedBy || "SISTEMA"}</p></div><span class="text-[8px] font-black uppercase px-2 py-1 bg-gray-100 rounded-lg italic">${e.action}</span></div>`;
+            });
+        }
+    } catch(e) {}
+}
+
+async function handleTeamNameInput() {
+    if(!teamNameInput || !teamNameSuggestions) return; 
+    const qText = teamNameInput.value.trim().toLowerCase(); 
+    if(qText.length < 2) { teamNameSuggestions.style.display = 'none'; return; }
+    try {
+        const q = query(collection(db, customersCollectionPath), where(documentId(), ">=", qText), where(documentId(), "<=", qText + '\uf8ff'));
+        const snap = await getDocs(q); teamNameSuggestions.innerHTML = '';
+        if(snap.empty) { teamNameSuggestions.style.display = 'none'; return; }
+        snap.forEach(d => { 
+            const n = d.data().name, i = document.createElement('div'); i.className = 'suggestion-item font-black text-sm p-4 hover:bg-emerald-50 cursor-pointer border-b italic uppercase'; i.textContent = n;
+            i.onmousedown = () => { teamNameInput.value = n; teamNameSuggestions.style.display = 'none'; }; teamNameSuggestions.appendChild(i);
+        }); 
+        teamNameSuggestions.style.display = 'block';
+    } catch (e) {}
+}
+
+async function saveCustomer(name) { if(!name) return; try { await setDoc(doc(db, customersCollectionPath, name.trim().toLowerCase()), { name: name.trim(), lastBooked: new Date().toISOString() }, { merge: true }); } catch(e) {} }
+
+async function openRecurringModal() { if (recurringToggle && recurringToggle.checked) { renderRecurringModal(); if(recurringModal) recurringModal.classList.add('is-open'); } }
+
+function renderRecurringModal() {
+    if(!recurringMonthList) return; 
+    recurringMonthList.innerHTML = ''; const now = new Date();
+    for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const btn = document.createElement('button'); 
+        btn.className = 'month-toggle-btn'; btn.dataset.month = d.getMonth(); btn.dataset.year = d.getFullYear();
+        btn.textContent = d.toLocaleString('es-AR', { month: 'short', year: 'numeric' }); btn.onclick = (e) => e.currentTarget.classList.toggle('selected');
+        recurringMonthList.appendChild(btn);
+    }
+}
+
 function selectRecurringDay(btn) { document.querySelector('.day-selector-grid')?.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); }
+
 function saveRecurringSettings() {
     const dBtn = document.querySelector('.day-toggle-btn.selected'), mBtns = document.querySelectorAll('.month-toggle-btn.selected');
     if (!dBtn || mBtns.length === 0) return alert("Selecciona día y meses.");
     recurringSettings.dayOfWeek = parseInt(dBtn.dataset.day, 10);
     recurringSettings.months = Array.from(mBtns).map(b => ({ month: b.dataset.month, year: b.dataset.year, name: b.textContent }));
-    recurringSummary.textContent = `Ciclo: cada ${WEEKDAYS_ES[recurringSettings.dayOfWeek]}.`;
-    recurringSummary.classList.remove('is-hidden'); recurringModal.classList.remove('is-open');
+    if(recurringSummary) { recurringSummary.textContent = `Serie activa: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]}.`; recurringSummary.classList.remove('is-hidden'); }
+    if(recurringModal) recurringModal.classList.remove('is-open');
 }
 
-// --- UTILS FINALES ---
-function showMessage(msg, isError = false) { const t = getEl('message-text'); if(t) { t.textContent = msg; t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; } if(messageOverlay) messageOverlay.classList.add('is-open'); }
-function hideMessage() { if(messageOverlay) messageOverlay.classList.remove('is-open'); }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-open')); }
-function prevMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() - 1); loadBookingsForMonth(); }
-function nextMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); loadBookingsForMonth(); }
-function updateTotalPrice() { const h = courtHoursList?.querySelectorAll('.time-slot.selected').length || 0; const p = parseFloat(costPerHourInput?.value) || 0; const g = (rentGrillCheckbox && rentGrillCheckbox.checked) ? (parseFloat(grillCostInput?.value) || 0) : 0; const t = (h * p) + g; if(bookingTotal) bookingTotal.textContent = `$${t.toLocaleString()}`; return t; }
-function updateEventTotalPrice() { const h = eventHoursList?.querySelectorAll('.time-slot.selected').length || 0; const p = parseFloat(eventCostPerHourInput?.value) || 0; const t = h * p; if(eventTotal) eventTotal.textContent = `$${t.toLocaleString()}`; return t; }
-async function handleStatsData() { if(!db) return; try { const snap = await getDocs(collection(db, bookingsCollectionPath)); const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "sin nombre"; if(!st[n]) st[n] = {n: b.teamName || "S/N", c:0, t:0}; st[n].c++; st[n].t += (b.totalPrice || 0); }); if(statsList) { statsList.innerHTML = ''; Object.values(st).sort((a,b)=>b.c-a.c).forEach(c => { statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 text-left"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic">$${c.t.toLocaleString()}</strong></div>`; }); } } catch(e) {} }
-async function loadHistorialData() { if(!db) return; try { const snap = await getDocs(query(collection(db, logCollectionPath), orderBy("timestamp", "desc"))); if(historialList) { historialList.innerHTML = ''; snap.forEach(d => { const e = d.data(); historialList.innerHTML += `<div class="data-card p-5 mb-3 flex justify-between items-start border shadow-sm rounded-3xl text-left"><div><strong class="font-black italic uppercase tracking-tighter text-gray-800">${e.teamName || "EVENTO"}</strong><p class="text-[9px] mt-2 text-gray-400 font-bold uppercase tracking-widest">${e.timestamp.toDate().toLocaleString()} | ADMIN: ${e.loggedBy || "SISTEMA"}</p></div><span class="text-[8px] font-black uppercase px-2 py-1 bg-gray-100 rounded-lg italic">${e.action}</span></div>`; }); } } catch(e) {} }
-async function handleTeamNameInput() { if(!teamNameInput) return; const qText = teamNameInput.value.trim().toLowerCase(); if(qText.length < 2) { teamNameSuggestions.style.display = 'none'; return; } try { const q = query(collection(db, customersCollectionPath), where(documentId(), ">=", qText), where(documentId(), "<=", qText + '\uf8ff')); const snap = await getDocs(q); teamNameSuggestions.innerHTML = ''; if(snap.empty) { teamNameSuggestions.style.display = 'none'; return; } snap.forEach(d => { const n = d.data().name, i = document.createElement('div'); i.className = 'suggestion-item font-black text-sm p-4 hover:bg-emerald-50 cursor-pointer border-b italic uppercase'; i.textContent = n; i.onmousedown = () => { teamNameInput.value = n; teamNameSuggestions.style.display = 'none'; }; teamNameSuggestions.appendChild(i); }); teamNameSuggestions.style.display = 'block'; } catch (e) {} }
-async function saveCustomer(name) { if(!name) return; try { await setDoc(doc(db, customersCollectionPath, name.trim().toLowerCase()), { name: name.trim(), lastBooked: new Date().toISOString() }, { merge: true }); } catch(e) {} }
-async function logKioscoTransaction(productId, desc, qty, cost, type) { await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail }); }
-
 window.hideMessage = hideMessage; window.closeModals = closeModals;
-console.log("Sistema Pro v2026 - Versión Definitiva 100% Funcional.");
+console.log("Sistema v2026 Pro - Listo.");
