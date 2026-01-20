@@ -73,96 +73,103 @@ let recurringSettings = { dayOfWeek: null, months: [] };
 // --- REFERENCIAS AL DOM ---
 const getEl = (id) => document.getElementById(id);
 
-const loginView = document.getElementById('login-view');
-const registerView = document.getElementById('register-view');
-const appContainer = document.getElementById('app-container');
+const loginView = getEl('login-view');
+const registerView = getEl('register-view');
+const appContainer = getEl('app-container');
 
 const views = {
-    calendar: document.getElementById('calendar-view'),
-    caja: document.getElementById('caja-view'),
-    stats: document.getElementById('stats-view'),
-    historial: document.getElementById('historial-view'),
-    configuracion: document.getElementById('config-view'),
-    productos: document.getElementById('productos-view') 
+    calendar: getEl('calendar-view'),
+    caja: getEl('caja-view'),
+    stats: getEl('stats-view'),
+    historial: getEl('historial-view'),
+    configuracion: getEl('config-view'),
+    productos: getEl('productos-view') 
 };
 
-const calendarGrid = document.getElementById('calendar-grid');
-const currentMonthYearEl = document.getElementById('current-month-year');
-const menuBtn = document.getElementById('menu-btn');
-const mainMenu = document.getElementById('main-menu');
-const menuOverlay = document.getElementById('menu-overlay');
-const userEmailDisplay = document.getElementById('user-email-display'); 
-const logoutBtn = document.getElementById('logout-btn'); 
+const calendarGrid = getEl('calendar-grid');
+const currentMonthYearEl = getEl('current-month-year');
+const menuBtn = getEl('menu-btn');
+const mainMenu = getEl('main-menu');
+const menuOverlay = getEl('menu-overlay');
+const userEmailDisplay = getEl('user-email-display'); 
+const logoutBtn = getEl('logout-btn'); 
 
-const loginForm = document.getElementById('login-form');
-const registerForm = document.getElementById('register-form');
+const loginForm = getEl('login-form');
+const registerForm = getEl('register-form');
 
-const cajaDailyList = document.getElementById('caja-daily-list');
-const cajaTotalCombined = document.getElementById('caja-total-combined');
-const cajaTotalBookings = document.getElementById('caja-total-bookings');
-const cajaTotalSales = document.getElementById('caja-total-sales');
-const cajaDateFrom = document.getElementById('caja-date-from');
-const cajaDateTo = document.getElementById('caja-date-to');
-const cajaFilterBtn = document.getElementById('caja-filter-btn');
+const cajaDailyList = getEl('caja-daily-list');
+const cajaTotalCombined = getEl('caja-total-combined');
+const cajaTotalBookings = getEl('caja-total-bookings');
+const cajaTotalSales = getEl('caja-total-sales');
+const cajaDateFrom = getEl('caja-date-from');
+const cajaDateTo = getEl('caja-date-to');
+const cajaFilterBtn = getEl('caja-filter-btn');
 
-const statsList = document.getElementById('stats-list');
-const historialList = document.getElementById('historial-list');
+const statsList = getEl('stats-list');
+const statsDateFrom = getEl('stats-date-from');
+const statsDateTo = getEl('stats-date-to');
+const statsFilterBtn = getEl('stats-filter-btn');
 
-const typeModal = document.getElementById('type-modal'); 
-const bookingModal = document.getElementById('booking-modal');
-const eventModal = document.getElementById('event-modal'); 
-const optionsModal = document.getElementById('options-modal');
-const viewModal = document.getElementById('view-modal');
-const cajaDetailModal = document.getElementById('caja-detail-modal');
-const deleteReasonModal = document.getElementById('delete-reason-modal'); 
-const recurringModal = document.getElementById('recurring-modal'); 
-const messageOverlay = document.getElementById('message-overlay');
+const historialList = getEl('historial-list');
+const historialDateFrom = getEl('historial-date-from');
+const historialDateTo = getEl('historial-date-to');
+const historialFilterBtn = getEl('historial-filter-btn');
 
-const bookingForm = document.getElementById('booking-form');
-const teamNameInput = document.getElementById('teamName');
-const teamNameSuggestions = document.getElementById('teamName-suggestions');
-const costPerHourInput = document.getElementById('costPerHour');
-const grillCostInput = document.getElementById('grillCost');
-const rentGrillCheckbox = document.getElementById('rentGrill');
-const grillHoursSection = document.getElementById('grill-hours-section');
-const courtHoursList = document.getElementById('court-hours-list');
-const grillHoursList = document.getElementById('grill-hours-list');
-const bookingTotal = document.getElementById('booking-total');
-const recurringToggle = document.getElementById('recurring-toggle'); 
-const recurringSummary = document.getElementById('recurring-summary'); 
+const typeModal = getEl('type-modal'); 
+const bookingModal = getEl('booking-modal');
+const eventModal = getEl('event-modal'); 
+const optionsModal = getEl('options-modal');
+const viewModal = getEl('view-modal');
+const cajaDetailModal = getEl('caja-detail-modal');
+const deleteReasonModal = getEl('delete-reason-modal'); 
+const recurringModal = getEl('recurring-modal'); 
+const messageOverlay = getEl('message-overlay');
 
-const eventForm = document.getElementById('event-form');
-const eventBookingIdInput = document.getElementById('event-booking-id'); 
-const eventDateInput = document.getElementById('event-date'); 
-const eventNameInput = document.getElementById('eventName');
-const contactPersonInput = document.getElementById('contactPerson');
-const contactPhoneInput = document.getElementById('contactPhone');
-const eventCostPerHourInput = document.getElementById('eventCostPerHour');
-const eventHoursList = document.getElementById('event-hours-list');
-const eventTotal = document.getElementById('event-total');
+const bookingForm = getEl('booking-form');
+const teamNameInput = getEl('teamName');
+const teamNameSuggestions = getEl('teamName-suggestions');
+const costPerHourInput = getEl('costPerHour');
+const grillCostInput = getEl('grillCost');
+const rentGrillCheckbox = getEl('rentGrill');
+const grillHoursSection = getEl('grill-hours-section');
+const courtHoursList = getEl('court-hours-list');
+const grillHoursList = getEl('grill-hours-list');
+const bookingTotal = getEl('booking-total');
+const recurringToggle = getEl('recurring-toggle'); 
+const recurringSummary = getEl('recurring-summary'); 
 
-const deleteReasonForm = document.getElementById('delete-reason-form');
-const deleteReasonText = document.getElementById('delete-reason-text');
-const deleteBookingIdInput = document.getElementById('delete-booking-id');
+const eventForm = getEl('event-form');
+const eventBookingIdInput = getEl('event-booking-id'); 
+const eventDateInput = getEl('event-date'); 
+const eventNameInput = getEl('eventName');
+const contactPersonInput = getEl('contactPerson');
+const contactPhoneInput = getEl('contactPhone');
+const eventCostPerHourInput = getEl('eventCostPerHour');
+const eventHoursList = getEl('event-hours-list');
+const eventTotal = getEl('event-total');
 
-const configForm = document.getElementById('config-form');
-const configCourt1Price = document.getElementById('config-court1-price');
-const configCourt2Price = document.getElementById('config-court2-price');
+const deleteReasonForm = getEl('delete-reason-form');
+const deleteReasonText = getEl('delete-reason-text');
+const deleteBookingIdInput = getEl('delete-booking-id');
 
-const productForm = document.getElementById('product-form');
-const productList = document.getElementById('product-list');
-const inventorySearchInput = document.getElementById('inventory-search-input');
-const restockForm = document.getElementById('restock-form');
-const saleModal = document.getElementById('sale-modal');
-const saleSearchInput = document.getElementById('sale-search-input');
-const saleSearchResults = document.getElementById('sale-search-results');
-const selectedProductInfo = document.getElementById('selected-product-info');
-const confirmSaleBtn = document.getElementById('confirm-sale-btn');
+const configForm = getEl('config-form');
+const configCourt1Price = getEl('config-court1-price');
+const configCourt2Price = getEl('config-court2-price');
+
+const productForm = getEl('product-form');
+const productList = getEl('product-list');
+const inventorySearchInput = getEl('inventory-search-input');
+const restockForm = getEl('restock-form');
+const saleModal = getEl('sale-modal');
+const saleSearchInput = getEl('sale-search-input');
+const saleSearchResults = getEl('sale-search-results');
+const selectedProductInfo = getEl('selected-product-info');
+const confirmSaleBtn = getEl('confirm-sale-btn');
 
 // --- INICIALIZACIÓN ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Cargado. Iniciando Sistema Pro v2026...");
+    console.log("Iniciando Panza Verde v2026 Pro...");
     setupEventListeners();
     registerServiceWorker();
     firebaseInit();
@@ -185,7 +192,6 @@ async function firebaseInit() {
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                console.log("Acceso autorizado para:", user.email);
                 userId = user.uid;
                 userEmail = user.email;
                 await loadAppSettings(); 
@@ -211,17 +217,16 @@ async function firebaseInit() {
             }
         });
     } catch (error) {
-        console.error("Fallo Firebase:", error);
+        console.error("Error Firebase:", error);
         showMessage(`Error de conexión: ${error.message}`, true);
     }
 }
 
 // -----------------------------------------------------------------
-// 2. CONFIGURACIÓN DE EVENT LISTENERS (EXPLÍCITOS)
+// 2. CONFIGURACIÓN DE EVENT LISTENERS (EXPLÍCITOS Y SEGUROS)
 // -----------------------------------------------------------------
 
 function setupEventListeners() {
-    // Menú y Navegación
     if (menuBtn) menuBtn.onclick = toggleMenu;
     if (menuOverlay) menuOverlay.onclick = toggleMenu;
     if (logoutBtn) logoutBtn.onclick = handleLogout; 
@@ -235,7 +240,6 @@ function setupEventListeners() {
         };
     });
     
-    // Autenticación
     if (loginForm) loginForm.onsubmit = handleLogin;
     if (registerForm) registerForm.onsubmit = handleRegister;
     
@@ -257,66 +261,43 @@ function setupEventListeners() {
         };
     }
     
-    const prevBtn = document.getElementById('prev-month-btn');
-    if (prevBtn) prevBtn.onclick = prevMonth;
+    const prevMBtn = document.getElementById('prev-month-btn');
+    if (prevMBtn) prevMBtn.onclick = prevMonth;
     
-    const nextBtn = document.getElementById('next-month-btn');
-    if (nextBtn) nextBtn.onclick = nextMonth;
+    const nextMBtn = document.getElementById('next-month-btn');
+    if (nextMBtn) nextMBtn.onclick = nextMonth;
     
-    // Formularios Reservas
     if (bookingForm) bookingForm.onsubmit = handleSaveBooking;
     if (eventForm) eventForm.onsubmit = handleSaveEvent; 
     if (configForm) configForm.onsubmit = handleSaveConfig;
 
-    const cancelBookingBtn = document.getElementById('cancel-booking-btn');
-    if (cancelBookingBtn) cancelBookingBtn.onclick = closeModals;
+    getEl('cancel-booking-btn').onclick = closeModals;
+    getEl('cancel-event-btn').onclick = closeModals; 
+    getEl('close-options-btn').onclick = closeModals;
+    getEl('close-view-btn').onclick = closeModals;
+    getEl('close-caja-detail-btn').onclick = closeModals;
 
-    const cancelEventBtn = document.getElementById('cancel-event-btn');
-    if (cancelEventBtn) cancelEventBtn.onclick = closeModals;
+    getEl('add-new-booking-btn').onclick = () => {
+        const ds = optionsModal.dataset.date;
+        closeModals();
+        showBookingModal(ds); 
+    };
 
-    const closeOptionsBtn = document.getElementById('close-options-btn');
-    if (closeOptionsBtn) closeOptionsBtn.onclick = closeModals;
+    getEl('type-btn-court').onclick = () => {
+        const ds = typeModal.dataset.date;
+        closeModals();
+        showBookingModal(ds);
+    };
 
-    const closeViewBtn = document.getElementById('close-view-btn');
-    if (closeViewBtn) closeViewBtn.onclick = closeModals;
+    getEl('type-btn-event').onclick = () => {
+        const ds = typeModal.dataset.date;
+        closeModals();
+        showEventModal(ds);
+    };
 
-    const closeCajaDetailBtn = document.getElementById('close-caja-detail-btn');
-    if (closeCajaDetailBtn) closeCajaDetailBtn.onclick = closeModals;
-
-    // Botones de acción desde modales
-    const addNewBookingBtn = document.getElementById('add-new-booking-btn');
-    if (addNewBookingBtn) {
-        addNewBookingBtn.onclick = () => {
-            const ds = optionsModal.dataset.date;
-            closeModals();
-            showBookingModal(ds); 
-        };
-    }
-
-    const typeBtnCourt = document.getElementById('type-btn-court');
-    if (typeBtnCourt) {
-        typeBtnCourt.onclick = () => {
-            const ds = typeModal.dataset.date;
-            closeModals();
-            showBookingModal(ds);
-        };
-    }
-
-    const typeBtnEvent = document.getElementById('type-btn-event');
-    if (typeBtnEvent) {
-        typeBtnEvent.onclick = () => {
-            const ds = typeModal.dataset.date;
-            closeModals();
-            showEventModal(ds);
-        };
-    }
-
-    const typeBtnCancel = document.getElementById('type-btn-cancel');
-    if (typeBtnCancel) typeBtnCancel.onclick = closeModals;
+    getEl('type-btn-cancel').onclick = closeModals;
 
     if (cajaFilterBtn) cajaFilterBtn.onclick = loadCajaData;
-    if (statsFilterBtn) statsFilterBtn.onclick = loadStatsData;
-    if (historialFilterBtn) historialFilterBtn.onclick = loadHistorialData;
 
     if (teamNameInput) {
         teamNameInput.oninput = handleTeamNameInput;
@@ -340,25 +321,15 @@ function setupEventListeners() {
     if (eventCostPerHourInput) eventCostPerHourInput.oninput = updateEventTotalPrice;
     
     if (deleteReasonForm) deleteReasonForm.onsubmit = handleConfirmDelete;
-    
-    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-    if (cancelDeleteBtn) cancelDeleteBtn.onclick = closeModals;
 
-    // Recurrencia
     if (recurringToggle) recurringToggle.onchange = openRecurringModal;
-    
-    const confirmRecurBtn = document.getElementById('confirm-recurring-btn');
-    if (confirmRecurBtn) confirmRecurBtn.onclick = saveRecurringSettings;
-
-    const cancelRecurBtn = document.getElementById('cancel-recurring-btn');
-    if (cancelRecurBtn) {
-        cancelRecurBtn.onclick = () => {
-            if (recurringModal) recurringModal.classList.remove('is-open');
-            if (recurringToggle) recurringToggle.checked = false;
-            if (recurringSummary) recurringSummary.classList.add('is-hidden');
-            recurringSettings = { dayOfWeek: null, months: [] };
-        };
-    }
+    getEl('confirm-recurring-btn').onclick = saveRecurringSettings;
+    getEl('cancel-recurring-btn').onclick = () => {
+        if (recurringModal) recurringModal.classList.remove('is-open');
+        if (recurringToggle) recurringToggle.checked = false;
+        if (recurringSummary) recurringSummary.classList.add('is-hidden');
+        recurringSettings = { dayOfWeek: null, months: [] };
+    };
     
     const dayGrid = document.querySelector('.day-selector-grid');
     if (dayGrid) {
@@ -367,47 +338,27 @@ function setupEventListeners() {
         });
     }
 
-    const addProductBtn = document.getElementById('add-product-btn');
-    if (addProductBtn) {
-        addProductBtn.onclick = () => {
-            const container = document.getElementById('product-form-container');
-            if(container) container.classList.toggle('is-hidden');
-        };
-    }
-    
-    const cancelProductBtn = document.getElementById('cancel-product-btn');
-    if (cancelProductBtn) {
-        cancelProductBtn.onclick = () => {
-            const container = document.getElementById('product-form-container');
-            if(container) container.classList.add('is-hidden');
-        };
-    }
-
+    // KIOSCO
+    getEl('add-product-btn').onclick = () => getEl('product-form-container')?.classList.toggle('is-hidden');
+    getEl('cancel-product-btn').onclick = () => getEl('product-form-container')?.classList.add('is-hidden');
     if (productForm) productForm.onsubmit = handleSaveProduct;
     if (inventorySearchInput) inventorySearchInput.oninput = (e) => renderProducts(e.target.value);
     
-    if (document.getElementById('prod-batch-cost')) document.getElementById('prod-batch-cost').oninput = calculateProductPrices;
-    if (document.getElementById('prod-batch-qty')) document.getElementById('prod-batch-qty').oninput = calculateProductPrices;
-    if (document.getElementById('prod-profit-pct')) document.getElementById('prod-profit-pct').oninput = calculateProductPrices;
+    if (getEl('prod-batch-cost')) getEl('prod-batch-cost').oninput = calculateProductPrices;
+    if (getEl('prod-batch-qty')) getEl('prod-batch-qty').oninput = calculateProductPrices;
+    if (getEl('prod-profit-pct')) getEl('prod-profit-pct').oninput = calculateProductPrices;
 
-    const headerSaleBtn = document.getElementById('header-sale-btn');
-    if (headerSaleBtn) headerSaleBtn.onclick = openSaleModal;
+    getEl('header-sale-btn').onclick = openSaleModal;
     if (saleSearchInput) saleSearchInput.oninput = handleSaleSearch;
-    
-    const qtyMinusBtn = document.getElementById('sale-qty-minus');
-    if (qtyMinusBtn) qtyMinusBtn.onclick = () => updateSaleQty(-1);
-    const qtyPlusBtn = document.getElementById('sale-qty-plus');
-    if (qtyPlusBtn) qtyPlusBtn.onclick = () => updateSaleQty(1);
+    getEl('sale-qty-minus').onclick = () => updateSaleQty(-1);
+    getEl('sale-qty-plus').onclick = () => updateSaleQty(1);
     if (confirmSaleBtn) confirmSaleBtn.onclick = handleConfirmSale;
-
-    const closeSaleBtn = document.getElementById('close-sale-modal-btn');
-    if (closeSaleBtn) closeSaleBtn.onclick = closeModals;
+    getEl('close-sale-modal-btn').onclick = closeModals;
 
     if (restockForm) restockForm.onsubmit = handleConfirmRestock;
-    const editFormEl = document.getElementById('edit-product-form');
-    if (editFormEl) editFormEl.onsubmit = handleConfirmEditProduct;
+    getEl('edit-product-form').onsubmit = handleConfirmEditProduct;
 
-    const modalList = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, document.getElementById('restock-modal'), document.getElementById('edit-product-modal'), document.getElementById('product-history-modal')];
+    const modalList = [typeModal, bookingModal, eventModal, optionsModal, viewModal, cajaDetailModal, deleteReasonModal, recurringModal, saleModal, getEl('restock-modal'), getEl('edit-product-modal'), getEl('product-history-modal')];
     modalList.forEach(m => {
         if(m) { m.onclick = (e) => { if (e.target === m) closeModals(); }; }
     });
@@ -443,7 +394,47 @@ function showView(viewName) {
 }
 
 // -----------------------------------------------------------------
-// 4. CONFIGURACIÓN Y PRECIOS
+// 4. AUTENTICACIÓN
+// -----------------------------------------------------------------
+
+async function handleLogin(e) {
+    e.preventDefault();
+    showMessage("Validando acceso...");
+    const email = getEl('login-email').value;
+    const password = getEl('login-password').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        hideMessage();
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    showMessage("Registrando administrador...");
+    const email = getEl('register-email').value;
+    const password = getEl('register-password').value;
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        hideMessage();
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleLogout() {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// -----------------------------------------------------------------
+// 5. CONFIGURACIÓN Y PRECIOS
 // -----------------------------------------------------------------
 
 async function loadAppSettings() {
@@ -465,10 +456,11 @@ function loadConfigDataIntoForm() {
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
     
-    const grillEl = document.getElementById('config-grill-price');
+    // CORRECCIÓN: No reasignamos las constantes del DOM
+    const grillEl = getEl('config-grill-price');
     if(grillEl) grillEl.value = appSettings.grillPrice;
     
-    const eventEl = document.getElementById('config-event-price');
+    const eventEl = getEl('config-event-price');
     if(eventEl) eventEl.value = appSettings.eventPrice;
 }
 
@@ -478,8 +470,8 @@ async function handleSaveConfig(e) {
     const newSettings = {
         court1Price: parseFloat(configCourt1Price.value) || 0,
         court2Price: parseFloat(configCourt2Price.value) || 0,
-        grillPrice: parseFloat(document.getElementById('config-grill-price').value) || 0,
-        eventPrice: parseFloat(document.getElementById('config-event-price').value) || 0
+        grillPrice: parseFloat(getEl('config-grill-price').value) || 0,
+        eventPrice: parseFloat(getEl('config-event-price').value) || 0
     };
     try {
         await setDoc(doc(db, settingsDocPath), newSettings);
@@ -492,27 +484,27 @@ async function handleSaveConfig(e) {
 }
 
 // -----------------------------------------------------------------
-// 5. FORMULARIOS DE RESERVA Y EVENTOS (DETALLADOS)
+// 6. FORMULARIOS DE RESERVA Y EVENTOS (FULL LOGIC)
 // -----------------------------------------------------------------
 
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     if(bookingForm) bookingForm.reset();
-    document.getElementById('booking-date').value = dateStr;
-    const title = document.getElementById('booking-modal-title');
+    getEl('booking-date').value = dateStr;
+    const title = getEl('booking-modal-title');
     
     if (bookingToEdit) {
         title.textContent = "Editar Reserva";
-        document.getElementById('booking-id').value = bookingToEdit.id;
-        document.getElementById('teamName').value = bookingToEdit.teamName;
-        document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
+        getEl('booking-id').value = bookingToEdit.id;
+        getEl('teamName').value = bookingToEdit.teamName;
+        getEl('peopleCount').value = bookingToEdit.peopleCount;
         costPerHourInput.value = bookingToEdit.costPerHour;
         rentGrillCheckbox.checked = bookingToEdit.rentGrill;
         grillCostInput.value = bookingToEdit.grillCost;
         if(recurringToggle) recurringToggle.disabled = true;
     } else {
         title.textContent = `Reservar Cancha (${dateStr})`;
-        document.getElementById('booking-id').value = '';
+        getEl('booking-id').value = '';
         costPerHourInput.value = appSettings.court1Price;
         grillCostInput.value = appSettings.grillPrice;
         if(recurringToggle) recurringToggle.disabled = false;
@@ -526,21 +518,21 @@ async function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     if(eventForm) eventForm.reset();
     
-    const dateInput = document.getElementById('event-date');
+    const dateInput = getEl('event-date');
     if(dateInput) dateInput.value = dateStr;
     
-    const title = document.getElementById('event-modal-title');
+    const title = getEl('event-modal-title');
 
     if (eventToEdit) {
         if(title) title.textContent = "Editar Evento";
-        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = eventToEdit.id;
+        if(getEl('event-booking-id')) getEl('event-booking-id').value = eventToEdit.id;
         if(eventNameInput) eventNameInput.value = eventToEdit.teamName;
         if(contactPersonInput) contactPersonInput.value = eventToEdit.contactPerson;
         if(contactPhoneInput) contactPhoneInput.value = eventToEdit.contactPhone;
         if(eventCostPerHourInput) eventCostPerHourInput.value = eventToEdit.costPerHour;
     } else {
         if(title) title.textContent = `Reservar Evento (${dateStr})`;
-        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = '';
+        if(getEl('event-booking-id')) getEl('event-booking-id').value = '';
         if(eventCostPerHourInput) eventCostPerHourInput.value = appSettings.eventPrice;
     }
     
@@ -549,9 +541,9 @@ async function showEventModal(dateStr, eventToEdit = null) {
 }
 
 function updateCourtAvailability() {
-    const ds = document.getElementById('booking-date').value;
+    const ds = getEl('booking-date').value;
     const selCourt = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const editingId = document.getElementById('booking-id').value;
+    const editingId = getEl('booking-id').value;
     
     const occupied = new Set();
     allMonthBookings
@@ -592,7 +584,7 @@ function renderTimeSlots(container, occupied, selected) {
 }
 
 // -----------------------------------------------------------------
-// 6. PERSISTENCIA DE RESERVAS Y EVENTOS (CORREGIDO CONST ERROR)
+// 7. PERSISTENCIA DE RESERVAS (CORREGIDO ERROR 'CONST')
 // -----------------------------------------------------------------
 
 async function loadBookingsForMonth() {
@@ -622,10 +614,10 @@ async function handleSaveSingleBooking(event) {
     saveButton.disabled = true;
     showMessage("Procesando reserva...");
 
-    // ¡CORRECCIÓN CRÍTICA!: 'const' a 'let' para permitir reasignación de ID en nuevos turnos
+    // ¡CORRECCIÓN!: 'let' en lugar de 'const' para permitir reasignar el ID de Firebase
     let bookingId = document.getElementById('booking-id').value;
     const dateStr = document.getElementById('booking-date').value;
-    const teamName = document.getElementById('teamName').value.trim();
+    const teamName = teamNameInput.value.trim();
     const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
     if (selectedHours.length === 0) {
@@ -638,7 +630,7 @@ async function handleSaveSingleBooking(event) {
     const data = {
         type: 'court', teamName, 
         courtId: document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1', 
-        peopleCount: parseInt(document.getElementById('peopleCount').value, 10),
+        peopleCount: parseInt(getEl('peopleCount').value, 10),
         costPerHour: parseFloat(costPerHourInput.value),
         rentGrill: rentGrillCheckbox.checked,
         grillCost: parseFloat(grillCostInput.value),
@@ -662,16 +654,11 @@ async function handleSaveSingleBooking(event) {
         await saveCustomer(teamName); 
         
         showMessage("¡Turno guardado!"); 
-        // Cerramos modales y ocultamos mensaje de éxito tras un breve retardo
         setTimeout(() => {
             closeModals();
             hideMessage();
-        }, 1500);
-    } catch (error) { 
-        showMessage(error.message, true); 
-    } finally { 
-        saveButton.disabled = false; 
-    }
+        }, 1200);
+    } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
 }
 
 async function handleSaveEvent(event) {
@@ -712,12 +699,8 @@ async function handleSaveEvent(event) {
         setTimeout(() => {
             closeModals();
             hideMessage();
-        }, 1500);
-    } catch (error) { 
-        showMessage(error.message, true); 
-    } finally { 
-        saveButton.disabled = false; 
-    }
+        }, 1200);
+    } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
 }
 
 async function handleSaveRecurringBooking(event) {
@@ -725,7 +708,7 @@ async function handleSaveRecurringBooking(event) {
     saveButton.disabled = true;
     showMessage("Generando serie...");
 
-    const teamName = document.getElementById('teamName').value.trim();
+    const teamName = teamNameInput.value.trim();
     const courtId = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
     const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
@@ -754,7 +737,7 @@ async function handleSaveRecurringBooking(event) {
             await logBookingEvent('created-recurring', data);
         }
         await batch.commit();
-        showMessage(`¡Serie creada! (${dates.length} turnos)`);
+        showMessage(`Serie creada (${dates.length} turnos)`);
         setTimeout(() => {
             closeModals();
             hideMessage();
@@ -779,7 +762,7 @@ async function handleConfirmDelete(event) {
         setTimeout(() => {
             closeModals();
             hideMessage();
-        }, 1500);
+        }, 1200);
     } catch (error) { showMessage(error.message, true); }
 }
 
@@ -798,7 +781,7 @@ async function logBookingEvent(action, data, reason = null) {
 
 async function handleConfirmSale() {
     if(!currentSelectedProduct) return;
-    const qtyInput = document.getElementById('sale-qty-input');
+    const qtyInput = getEl('sale-qty-input');
     const qty = parseInt(qtyInput.value);
     const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
     try {
@@ -817,47 +800,45 @@ async function handleConfirmSale() {
 
 async function handleConfirmRestock(e) {
     e.preventDefault();
-    const id = document.getElementById('restock-prod-id').value;
-    const addQ = parseInt(document.getElementById('restock-qty').value);
-    const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
+    const id = getEl('restock-prod-id').value;
+    const addQ = parseInt(getEl('restock-qty').value);
+    const bCost = parseFloat(getEl('restock-batch-cost').value);
     const nUnit = bCost / addQ;
     const p = allProducts.find(x => x.id === id);
     const nSale = Math.ceil(nUnit * 1.40);
 
     try {
-        showMessage("Sincronizando costos...");
-        await updateDoc(doc(db, productsCollectionPath, id), { 
-            stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale 
-        });
+        showMessage("Sincronizando precios...");
+        await updateDoc(doc(db, productsCollectionPath, id), { stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale });
         await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnit, 'in');
-        closeModals(); showMessage("¡Todo el inventario actualizado!"); setTimeout(hideMessage, 2000);
+        closeModals(); showMessage("¡Stock actualizado!"); setTimeout(hideMessage, 2000);
     } catch (err) { alert(err.message); }
 }
 
 async function handleSaveProduct(e) {
     e.preventDefault();
-    const n = document.getElementById('prod-name').value.trim();
-    const s = parseInt(document.getElementById('prod-stock').value);
-    const uc = parseFloat(document.getElementById('prod-unit-cost').value);
-    const sp = parseFloat(document.getElementById('prod-suggested-price').textContent.replace('$', ''));
+    const n = getEl('prod-name').value.trim();
+    const s = parseInt(getEl('prod-stock').value);
+    const uc = parseFloat(getEl('prod-unit-cost').value);
+    const sp = parseFloat(getEl('prod-suggested-price').textContent.replace('$', ''));
     try {
         const r = await addDoc(collection(db, productsCollectionPath), { 
             name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail
         });
         await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
-        e.target.reset(); document.getElementById('product-form-container')?.classList.add('is-hidden');
-        showMessage("Ficha guardada."); setTimeout(hideMessage, 1500);
+        e.target.reset(); getEl('product-form-container')?.classList.add('is-hidden');
+        showMessage("Ficha creada."); setTimeout(hideMessage, 1500);
     } catch (err) { alert(err.message); }
 }
 
 function calculateProductPrices() {
-    const cost = parseFloat(document.getElementById('prod-batch-cost').value) || 0;
-    const qty = parseInt(document.getElementById('prod-batch-qty').value) || 1;
-    const margin = parseFloat(document.getElementById('prod-profit-pct').value) || 40;
+    const cost = parseFloat(getEl('prod-batch-cost').value) || 0;
+    const qty = parseInt(getEl('prod-batch-qty').value) || 1;
+    const margin = parseFloat(getEl('prod-profit-pct').value) || 40;
     const u = cost / qty;
     const s = Math.ceil(u * (1 + (margin / 100)));
-    const disp = document.getElementById('prod-suggested-price'); if(disp) disp.textContent = `$${s}`;
-    const hidden = document.getElementById('prod-unit-cost'); if(hidden) hidden.value = u;
+    getEl('prod-suggested-price').textContent = `$${s}`;
+    getEl('prod-unit-cost').value = u;
 }
 
 function syncProducts() {
@@ -873,23 +854,13 @@ function renderProducts(f = "") {
     allProducts.filter(p => p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
         const d = document.createElement('div');
         d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
-        d.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4>
-                    <span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span>
-                </div>
-                <div class="text-right">
-                    <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">P. Venta</p>
-                    <p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mt-2">
-                <button class="p-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
-                <button class="p-3 bg-red-50 text-red-500 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
-            </div>`;
+        d.innerHTML = `<div class="flex justify-between items-start"><div><h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span></div><div class="text-right"><p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Precio</p><p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p></div></div>
+                       <div class="grid grid-cols-2 gap-2 mt-2">
+                           <button class="p-3 bg-blue-50 text-blue-700 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
+                           <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
+                           <button class="p-3 bg-gray-50 text-gray-600 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
+                           <button class="p-3 bg-red-50 text-red-500 rounded-2xl font-black text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
+                       </div>`;
         productList.appendChild(d);
     });
 }
@@ -909,14 +880,14 @@ function handleSaleSearch() {
     saleSearchResults.innerHTML = '';
     allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
         const i = document.createElement('div');
-        i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 border-2 border-transparent hover:border-emerald-200 transition-all shadow-sm';
-        i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
+        i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
+        i.innerHTML = `<div><span class="font-black text-gray-900 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
         i.onclick = () => {
             currentSelectedProduct = p; 
-            document.getElementById('sel-prod-name').textContent = p.name;
-            document.getElementById('sel-prod-stock').textContent = p.stock; 
-            document.getElementById('sel-prod-price').textContent = `$${p.salePrice}`;
-            document.getElementById('sale-qty-input').value = 1;
+            getEl('sel-prod-name').textContent = p.name;
+            getEl('sel-prod-stock').textContent = p.stock; 
+            getEl('sel-prod-price').textContent = `$${p.salePrice}`;
+            getEl('sale-qty-input').value = 1;
             selectedProductInfo.classList.remove('is-hidden');
             confirmSaleBtn.disabled = (p.stock <= 0); 
             updateSaleTotal();
@@ -926,16 +897,16 @@ function handleSaleSearch() {
 }
 
 function updateSaleQty(d) {
-    const i = document.getElementById('sale-qty-input'); if(!i) return;
+    const i = getEl('sale-qty-input'); if(!i) return;
     let v = parseInt(i.value) + d;
     if (v < 1) v = 1; if (v > currentSelectedProduct.stock) v = currentSelectedProduct.stock;
     i.value = v; updateSaleTotal();
 }
 
 function updateSaleTotal() {
-    const qEl = document.getElementById('sale-qty-input'); if(!qEl) return;
+    const qEl = getEl('sale-qty-input'); if(!qEl) return;
     const q = parseInt(qEl.value);
-    const disp = document.getElementById('sale-total-display');
+    const disp = getEl('sale-total-display');
     if(disp) disp.textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString('es-AR')}`;
 }
 
@@ -996,14 +967,7 @@ function renderCajaList(daily) {
         const data = daily[day], [y, m, d] = day.split('-');
         const item = document.createElement('div');
         item.className = 'data-card p-6 flex justify-between items-center cursor-pointer mb-3 border-l-8 border-emerald-500 hover:scale-[1.01] transition-transform shadow-lg';
-        item.innerHTML = `
-            <div>
-                <strong class="text-gray-900 text-xl font-black italic tracking-tighter">${d}/${m}/${y}</strong>
-                <p class="text-[9px] text-gray-400 font-bold uppercase mt-1 tracking-widest">${data.b.length} Turnos | ${data.s.length} Ventas Kiosco</p>
-            </div>
-            <div class="text-right">
-                <strong class="text-2xl font-black text-emerald-600 tracking-tighter italic">$${data.t.toLocaleString('es-AR')}</strong>
-            </div>`;
+        item.innerHTML = `<div><strong class="text-gray-900 text-xl font-black italic tracking-tighter">${d}/${m}/${y}</strong><p class="text-[9px] text-gray-400 font-bold uppercase mt-1 tracking-widest">${data.b.length} Turnos | ${data.s.length} Ventas Kiosco</p></div><div class="text-right"><strong class="text-2xl font-black text-emerald-600 tracking-tighter italic">$${data.t.toLocaleString('es-AR')}</strong></div>`;
         item.onclick = () => showCajaDetail(`${d}/${m}/${y}`, data);
         cajaDailyList.appendChild(item);
     });
@@ -1012,7 +976,7 @@ function renderCajaList(daily) {
 function showCajaDetail(date, data) {
     if(!cajaDetailModal) return;
     cajaDetailModal.classList.add('is-open'); 
-    document.getElementById('caja-detail-title').textContent = date;
+    getEl('caja-detail-title').textContent = date;
     
     let sumB = data.b.reduce((a, b) => a + (b.totalPrice || 0), 0);
     let sumS = data.s.reduce((a, s) => a + (s.total || 0), 0);
@@ -1023,7 +987,7 @@ function showCajaDetail(date, data) {
     let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
                 data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + (s.total || 0), 0);
 
-    const sumEl = document.getElementById('caja-detail-summary');
+    const sumEl = getEl('caja-detail-summary');
     if(sumEl) sumEl.innerHTML = `
         <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] mb-8 shadow-2xl border-t-8 border-emerald-400 relative overflow-hidden text-left">
             <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter italic">BANK</div>
@@ -1033,7 +997,7 @@ function showCajaDetail(date, data) {
         </div>
     `;
     
-    const list = document.getElementById('caja-detail-booking-list');
+    const list = getEl('caja-detail-booking-list');
     if(list) {
         list.innerHTML = '';
         data.b.forEach(b => {
@@ -1088,7 +1052,7 @@ function renderCalendar() {
                 showOptionsModal(ds, bks);
             } else {
                 typeModal.dataset.date = ds;
-                document.getElementById('type-modal').classList.add('is-open');
+                getEl('type-modal').classList.add('is-open');
             }
         };
         calendarGrid.appendChild(cell);
@@ -1097,11 +1061,11 @@ function renderCalendar() {
 
 function showOptionsModal(dateStr, bks) {
     optionsModal.dataset.date = dateStr;
-    const list = document.getElementById('daily-bookings-list');
+    const list = getEl('daily-bookings-list');
     if(!list) return;
     list.innerHTML = '';
     const hasEv = bks.some(b => b.type === 'event');
-    const addBtn = document.getElementById('add-new-booking-btn');
+    const addBtn = getEl('add-new-booking-btn');
     if (addBtn) addBtn.style.display = hasEv ? 'none' : 'block';
 
     bks.forEach(b => {
@@ -1128,7 +1092,7 @@ function showOptionsModal(dateStr, bks) {
 
 window.viewBookingDetail = async (id) => {
     const b = allMonthBookings.find(x => x.id === id);
-    const det = document.getElementById('view-booking-details');
+    const det = getEl('view-booking-details');
     if(det) {
         det.innerHTML = `
         <h3 class="text-4xl font-black italic uppercase text-emerald-900 tracking-tighter mb-8 tracking-tighter italic uppercase text-left">${b.teamName}</h3>
@@ -1137,7 +1101,7 @@ window.viewBookingDetail = async (id) => {
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Día</span> <span class="text-gray-900">${b.day}</span></div>
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Horario</span> <span class="text-gray-900">${b.courtHours ? b.courtHours.join(', ') : 'S/H'}hs</span></div>
             <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Pago</span> <span class="text-gray-900 uppercase italic tracking-tighter italic tracking-tighter italic">${b.paymentMethod || 'Efectivo'}</span></div>
-            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest uppercase">Total</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter italic italic italic">$${(b.totalPrice || 0).toLocaleString()}</span></div>
+            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest uppercase">Total</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter tracking-tighter tracking-tighter tracking-tighter italic italic italic">$${(b.totalPrice || 0).toLocaleString()}</span></div>
         </div>`;
     }
     if(viewModal) viewModal.classList.add('is-open');
@@ -1150,59 +1114,59 @@ window.editBooking = (id) => {
 };
 
 window.deleteBooking = (id) => { 
-    if(document.getElementById('delete-booking-id')) document.getElementById('delete-booking-id').value = id; 
+    if(getEl('delete-booking-id')) getEl('delete-booking-id').value = id; 
     closeModals(); if(deleteReasonModal) deleteReasonModal.classList.add('is-open'); 
 };
 
 window.openRestock = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(document.getElementById('restock-prod-id')) document.getElementById('restock-prod-id').value = id;
-    if(document.getElementById('restock-name')) document.getElementById('restock-name').textContent = p.name;
-    if(document.getElementById('restock-current-stock')) document.getElementById('restock-current-stock').textContent = p.stock;
-    if(document.getElementById('restock-modal')) document.getElementById('restock-modal').classList.add('is-open');
+    if(getEl('restock-prod-id')) getEl('restock-prod-id').value = id;
+    if(getEl('restock-name')) getEl('restock-name').textContent = p.name;
+    if(getEl('restock-current-stock')) getEl('restock-current-stock').textContent = p.stock;
+    if(getEl('restock-modal')) getEl('restock-modal').classList.add('is-open');
 };
 
 window.showEventModal = showEventModal;
 window.showBookingModal = showBookingModal;
 
-window.deleteProduct = async (id) => { if(confirm("¿Borrar ficha permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
+window.deleteProduct = async (id) => { if(confirm("¿Borrar permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(document.getElementById('edit-prod-id')) document.getElementById('edit-prod-id').value = id;
-    if(document.getElementById('edit-prod-name')) document.getElementById('edit-prod-name').value = p.name;
-    if(document.getElementById('edit-prod-cost')) document.getElementById('edit-prod-cost').value = p.unitCost;
-    if(document.getElementById('edit-prod-price')) document.getElementById('edit-prod-price').value = p.salePrice;
-    if(document.getElementById('edit-prod-stock')) document.getElementById('edit-prod-stock').value = p.stock;
-    if(document.getElementById('edit-product-modal')) document.getElementById('edit-product-modal').classList.add('is-open');
+    if(getEl('edit-prod-id')) getEl('edit-prod-id').value = id;
+    if(getEl('edit-prod-name')) getEl('edit-prod-name').value = p.name;
+    if(getEl('edit-prod-cost')) getEl('edit-prod-cost').value = p.unitCost;
+    if(getEl('edit-prod-price')) getEl('edit-prod-price').value = p.salePrice;
+    if(getEl('edit-prod-stock')) getEl('edit-prod-stock').value = p.stock;
+    if(getEl('edit-product-modal')) getEl('edit-product-modal').classList.add('is-open');
 };
 
 async function handleConfirmEditProduct(e) {
     e.preventDefault();
-    const idVal = document.getElementById('edit-prod-id').value;
-    const d = { name: document.getElementById('edit-prod-name').value, unitCost: parseFloat(document.getElementById('edit-prod-cost').value), salePrice: parseFloat(document.getElementById('edit-prod-price').value), stock: parseInt(document.getElementById('edit-prod-stock').value) };
+    const idVal = getEl('edit-prod-id').value;
+    const d = { name: getEl('edit-prod-name').value, unitCost: parseFloat(getEl('edit-prod-cost').value), salePrice: parseFloat(getEl('edit-prod-price').value), stock: parseInt(getEl('edit-prod-stock').value) };
     await updateDoc(doc(db, productsCollectionPath, idVal), d);
     closeModals();
 }
 
 window.openHistory = async (id) => {
     const p = allProducts.find(x => x.id === id);
-    const hName = document.getElementById('history-product-name'); if(hName) hName.textContent = p.name;
+    const hName = getEl('history-product-name'); if(hName) hName.textContent = p.name;
     const s = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
-    const list = document.getElementById('product-history-list'); if(!list) return; list.innerHTML = '';
+    const list = getEl('product-history-list'); if(!list) return; list.innerHTML = '';
     s.forEach(doc => {
         const t = doc.data();
-        list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
+        list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic tracking-widest">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
     });
-    if(document.getElementById('product-history-modal')) document.getElementById('product-history-modal').classList.add('is-open');
+    if(getEl('product-history-modal')) getEl('product-history-modal').classList.add('is-open');
 };
 
 // -----------------------------------------------------------------
-// 12. UTILIDADES
+// 12. UTILIDADES FINALES
 // -----------------------------------------------------------------
 
 function showMessage(msg, isError = false) { 
-    const t = document.getElementById('message-text'); 
+    const t = getEl('message-text'); 
     if(t) { t.textContent = msg; t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; }
     if(messageOverlay) messageOverlay.classList.add('is-open'); 
 }
@@ -1232,7 +1196,7 @@ function updateEventTotalPrice() {
 async function loadStatsData() {
     if(!db) return; try {
         const snap = await getDocs(collection(db, bookingsCollectionPath));
-        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "sin nombre"; if(!st[n]) st[n] = {n: b.teamName || "SIN NOMBRE", c:0, t:0}; st[n].c++; st[n].t += (b.totalPrice || 0); });
+        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "consumidor final"; if(!st[n]) st[n] = {n: b.teamName || "S/N", c:0, t:0}; st[n].c++; st[n].t += (b.totalPrice || 0); });
         if(statsList) {
             statsList.innerHTML = ''; Object.values(st).sort((a,b)=>b.c-a.c).forEach(c => {
                 statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 uppercase italic tracking-tighter italic text-left"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic tracking-tighter italic">$${c.t.toLocaleString()}</strong></div>`;
@@ -1285,9 +1249,9 @@ function renderRecurringModal() {
 }
 
 function selectRecurringDay(btn) { 
-    const grid = document.querySelector('.day-selector-grid');
-    if(!grid) return;
-    grid.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); 
+    const dayGridContainer = document.querySelector('.day-selector-grid');
+    if(!dayGridContainer) return;
+    dayGridContainer.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); 
     btn.classList.add('selected'); 
 }
 
@@ -1302,4 +1266,4 @@ function saveRecurringSettings() {
 }
 
 window.hideMessage = hideMessage; window.closeModals = closeModals;
-console.log("Sistema v2026 Pro - Integridad Total Verificada.");
+console.log("Sistema Pro v2026 - Versión Absoluta Corregida.");
