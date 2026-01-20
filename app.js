@@ -73,29 +73,6 @@ let appSettings = {
 };
 let recurringSettings = { dayOfWeek: null, months: [] };
 
-// -----------------------------------------------------------------
-// FUNCIONES DE UTILIDAD (DEFINIDAS ARRIBA PARA EVITAR ERRORES)
-// -----------------------------------------------------------------
-
-function showMessage(msg, isError = false) { 
-    const t = document.getElementById('message-text'); 
-    if(t) { 
-        t.textContent = msg; 
-        t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; 
-    }
-    const messageOverlay = document.getElementById('message-overlay');
-    if(messageOverlay) messageOverlay.classList.add('is-open'); 
-}
-
-function hideMessage() { 
-    const messageOverlay = document.getElementById('message-overlay');
-    if(messageOverlay) messageOverlay.classList.remove('is-open'); 
-}
-
-function closeModals() { 
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-open')); 
-}
-
 // --- REFERENCIAS AL DOM ---
 const getEl = (id) => document.getElementById(id);
 
@@ -462,7 +439,47 @@ function showView(viewName) {
 }
 
 // -----------------------------------------------------------------
-// 4. CONFIGURACIÓN Y PRECIOS
+// 4. AUTENTICACIÓN
+// -----------------------------------------------------------------
+
+async function handleLogin(e) {
+    e.preventDefault();
+    showMessage("Validando acceso...");
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        hideMessage();
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    showMessage("Registrando administrador...");
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        hideMessage();
+    } catch (error) {
+        showMessage(`Error: ${error.message}`, true);
+        setTimeout(hideMessage, 3000);
+    }
+}
+
+async function handleLogout() {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// -----------------------------------------------------------------
+// 5. CONFIGURACIÓN Y PRECIOS
 // -----------------------------------------------------------------
 
 async function loadAppSettings() {
@@ -484,7 +501,6 @@ function loadConfigDataIntoForm() {
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
     
-    // CORRECCIÓN: Acceso directo a .value sin reasignar constantes
     const grillInput = document.getElementById('config-grill-price');
     if(grillInput) grillInput.value = appSettings.grillPrice;
     
@@ -512,27 +528,27 @@ async function handleSaveConfig(e) {
 }
 
 // -----------------------------------------------------------------
-// 5. FORMULARIOS DE RESERVA Y EVENTOS
+// 6. FORMULARIOS DE RESERVA Y EVENTOS
 // -----------------------------------------------------------------
 
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     if(bookingForm) bookingForm.reset();
-    getEl('booking-date').value = dateStr;
-    const title = getEl('booking-modal-title');
+    document.getElementById('booking-date').value = dateStr;
+    const title = document.getElementById('booking-modal-title');
     
     if (bookingToEdit) {
         title.textContent = "Editar Reserva";
-        getEl('booking-id').value = bookingToEdit.id;
-        getEl('teamName').value = bookingToEdit.teamName;
-        getEl('peopleCount').value = bookingToEdit.peopleCount;
+        document.getElementById('booking-id').value = bookingToEdit.id;
+        document.getElementById('teamName').value = bookingToEdit.teamName;
+        document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
         costPerHourInput.value = bookingToEdit.costPerHour;
         rentGrillCheckbox.checked = bookingToEdit.rentGrill;
         grillCostInput.value = bookingToEdit.grillCost;
         if(recurringToggle) recurringToggle.disabled = true;
     } else {
         title.textContent = `Reservar Cancha (${dateStr})`;
-        getEl('booking-id').value = '';
+        document.getElementById('booking-id').value = '';
         costPerHourInput.value = appSettings.court1Price;
         grillCostInput.value = appSettings.grillPrice;
         if(recurringToggle) recurringToggle.disabled = false;
@@ -545,19 +561,19 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
 async function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     if(eventForm) eventForm.reset();
-    getEl('event-date').value = dateStr;
-    const title = getEl('event-modal-title');
+    document.getElementById('event-date').value = dateStr;
+    const title = document.getElementById('event-modal-title');
 
     if (eventToEdit) {
         title.textContent = "Editar Evento";
-        if(getEl('event-booking-id')) getEl('event-booking-id').value = eventToEdit.id;
+        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = eventToEdit.id;
         eventNameInput.value = eventToEdit.teamName;
         contactPersonInput.value = eventToEdit.contactPerson;
         contactPhoneInput.value = eventToEdit.contactPhone;
         eventCostPerHourInput.value = eventToEdit.costPerHour;
     } else {
         title.textContent = `Reservar Evento (${dateStr})`;
-        if(getEl('event-booking-id')) getEl('event-booking-id').value = '';
+        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = '';
         eventCostPerHourInput.value = appSettings.eventPrice;
     }
     renderTimeSlots(eventHoursList, new Set(), eventToEdit ? eventToEdit.courtHours : []);
@@ -565,9 +581,9 @@ async function showEventModal(dateStr, eventToEdit = null) {
 }
 
 function updateCourtAvailability() {
-    const ds = getEl('booking-date').value;
+    const ds = document.getElementById('booking-date').value;
     const selCourt = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const editingId = getEl('booking-id').value;
+    const editingId = document.getElementById('booking-id').value;
     
     const occupied = new Set();
     allMonthBookings
@@ -598,7 +614,7 @@ function renderTimeSlots(container, occupied, selected) {
 }
 
 // -----------------------------------------------------------------
-// 6. GUARDADO DEFINITIVO (REGLA DE 2 SEGUNDOS Y SIN BLOQUEOS)
+// 7. GUARDADO DEFINITIVO (SIN BLOQUEOS Y CON CIERRE AUTOMÁTICO EN 2S)
 // -----------------------------------------------------------------
 
 async function handleSaveSingleBooking(event) {
@@ -606,14 +622,18 @@ async function handleSaveSingleBooking(event) {
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
 
-    // YA NO HAY CARTEL DE "ASIGNANDO VARIABLE" INICIAL
+    // Se eliminó el mensaje de carga visual "Asignando variable"
     
-    let bookingId = document.getElementById('booking-id').value; // CORRECCIÓN: let
+    let bookingId = document.getElementById('booking-id').value; // CORRECCIÓN: let en lugar de const
     const dateStr = document.getElementById('booking-date').value;
     const teamName = teamNameInput.value.trim();
     const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
-    if (selectedHours.length === 0) { alert("Debes marcar horarios."); saveButton.disabled = false; return; }
+    if (selectedHours.length === 0) {
+        alert("Debes marcar horarios.");
+        saveButton.disabled = false;
+        return;
+    }
 
     const data = {
         type: 'court', teamName, 
@@ -661,7 +681,11 @@ async function handleSaveEvent(event) {
     const dateStr = eventDateInput.value;
     const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
-    if (selectedHours.length === 0) { alert("Elige horarios."); saveButton.disabled = false; return; }
+    if (selectedHours.length === 0) {
+        alert("Elige horarios.");
+        saveButton.disabled = false;
+        return;
+    }
 
     const data = {
         type: 'event', teamName: eventNameInput.value.trim(), contactPerson: contactPersonInput.value.trim(), 
@@ -693,7 +717,7 @@ async function handleSaveEvent(event) {
 }
 
 // -----------------------------------------------------------------
-// 7. PERSISTENCIA Y CARGA
+// 8. PERSISTENCIA Y CARGA
 // -----------------------------------------------------------------
 
 async function loadBookingsForMonth() {
@@ -737,7 +761,7 @@ async function logBookingEvent(action, data, reason = null) {
 }
 
 // -----------------------------------------------------------------
-// 8. ARQUEO DE CAJA
+// 9. ARQUEO DE CAJA
 // -----------------------------------------------------------------
 
 async function loadCajaData() {
@@ -802,7 +826,7 @@ function showCajaDetail(date, data) {
 
     getEl('caja-detail-summary').innerHTML = `
         <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] mb-8 shadow-2xl border-t-8 border-emerald-400 text-left">
-            <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter italic">BANK</div>
+            <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter">BANK</div>
             <div class="flex justify-between mb-2"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">En Efectivo:</span> <strong class="text-emerald-400 text-lg">$${efSum.toLocaleString()}</strong></div>
             <div class="flex justify-between mb-6"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">MP / Transf:</span> <strong class="text-blue-400 text-lg">$${mpSum.toLocaleString()}</strong></div>
             <div class="flex justify-between text-3xl font-black border-t border-white/20 pt-6 italic tracking-tighter"><span>CIERRE:</span> <span class="text-white">$${data.t.toLocaleString()}</span></div>
@@ -815,7 +839,7 @@ function showCajaDetail(date, data) {
 }
 
 // -----------------------------------------------------------------
-// 9. CALENDARIO (RESTAURADO ALTA VISIBILIDAD)
+// 10. CALENDARIO (RESTAURADO ALTA VISIBILIDAD)
 // -----------------------------------------------------------------
 
 function renderCalendar() {
@@ -860,7 +884,7 @@ function showOptionsModal(dateStr, bks) {
 }
 
 // -----------------------------------------------------------------
-// 10. KIOSCO PRO Y VENTAS
+// 11. KIOSCO PRO Y VENTAS
 // -----------------------------------------------------------------
 
 async function handleConfirmSale() {
@@ -926,7 +950,7 @@ function renderProducts() {
 }
 
 // -----------------------------------------------------------------
-// 11. GLOBALIZACIÓN WINDOW PARA HTML
+// 12. GLOBALIZACIÓN WINDOW PARA HTML
 // -----------------------------------------------------------------
 
 window.viewBookingDetail = async (id) => {
@@ -990,7 +1014,6 @@ function saveRecurringSettings() {
     if(recurringSummary) { recurringSummary.textContent = `Serie activa: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]}.`; recurringSummary.classList.remove('is-hidden'); }
     recurringModal.classList.remove('is-open');
 }
-async function logKioscoTransaction(productId, desc, qty, cost, type) { await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail }); }
 
 window.hideMessage = hideMessage; window.closeModals = closeModals;
 window.showEventModal = showEventModal; window.showBookingModal = showBookingModal;
