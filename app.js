@@ -1,3 +1,6 @@
+// =================================================================
+// CEREBRO DE GESTIÓN INTEGRAL PANZA VERDE V2026 PRO
+// =================================================================
 // Importaciones de Firebase SDK (v11.6.1)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { 
@@ -71,6 +74,8 @@ let appSettings = {
 let recurringSettings = { dayOfWeek: null, months: [] };
 
 // --- REFERENCIAS AL DOM ---
+const getEl = (id) => document.getElementById(id);
+
 const loginView = document.getElementById('login-view');
 const registerView = document.getElementById('register-view');
 const appContainer = document.getElementById('app-container');
@@ -259,7 +264,7 @@ function setupEventListeners() {
     const nextBtn = document.getElementById('next-month-btn');
     if (nextBtn) nextBtn.onclick = nextMonth;
     
-    if (bookingForm) bookingForm.onsubmit = handleSaveBooking;
+    if (bookingForm) bookingForm.onsubmit = handleSaveSingleBooking;
     if (eventForm) eventForm.onsubmit = handleSaveEvent; 
     if (configForm) configForm.onsubmit = handleSaveConfig;
 
@@ -434,47 +439,7 @@ function showView(viewName) {
 }
 
 // -----------------------------------------------------------------
-// 4. AUTENTICACIÓN
-// -----------------------------------------------------------------
-
-async function handleLogin(e) {
-    e.preventDefault();
-    showMessage("Validando acceso...");
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        hideMessage();
-    } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
-        setTimeout(hideMessage, 3000);
-    }
-}
-
-async function handleRegister(e) {
-    e.preventDefault();
-    showMessage("Registrando administrador...");
-    const email = document.getElementById('register-email').value;
-    const password = document.getElementById('register-password').value;
-    try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        hideMessage();
-    } catch (error) {
-        showMessage(`Error: ${error.message}`, true);
-        setTimeout(hideMessage, 3000);
-    }
-}
-
-async function handleLogout() {
-    try {
-        await signOut(auth);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-// -----------------------------------------------------------------
-// 5. CONFIGURACIÓN Y PRECIOS
+// 4. CONFIGURACIÓN Y PRECIOS (CORREGIDO)
 // -----------------------------------------------------------------
 
 async function loadAppSettings() {
@@ -496,11 +461,12 @@ function loadConfigDataIntoForm() {
     configCourt1Price.value = appSettings.court1Price;
     configCourt2Price.value = appSettings.court2Price;
     
-    const grillEl = document.getElementById('config-grill-price');
-    if(grillEl) grillEl.value = appSettings.grillPrice;
+    // CORRECCIÓN: Acceso directo a .value sin reasignar constantes
+    const grillInput = document.getElementById('config-grill-price');
+    if(grillInput) grillInput.value = appSettings.grillPrice;
     
-    const eventEl = document.getElementById('config-event-price');
-    if(eventEl) eventEl.value = appSettings.eventPrice;
+    const eventInput = document.getElementById('config-event-price');
+    if(eventInput) eventInput.value = appSettings.eventPrice;
 }
 
 async function handleSaveConfig(e) {
@@ -523,30 +489,30 @@ async function handleSaveConfig(e) {
 }
 
 // -----------------------------------------------------------------
-// 6. FORMULARIOS DE RESERVA Y EVENTOS (DETALLADOS)
+// 5. FORMULARIOS DE RESERVA Y EVENTOS (SIN BLOQUEO VISUAL)
 // -----------------------------------------------------------------
 
 async function showBookingModal(dateStr, bookingToEdit = null) {
     closeModals();
     if(bookingForm) bookingForm.reset();
-    document.getElementById('booking-date').value = dateStr;
-    const title = document.getElementById('booking-modal-title');
+    getEl('booking-date').value = dateStr;
+    const title = getEl('booking-modal-title');
     
     if (bookingToEdit) {
         title.textContent = "Editar Reserva";
-        document.getElementById('booking-id').value = bookingToEdit.id;
-        document.getElementById('teamName').value = bookingToEdit.teamName;
-        document.getElementById('peopleCount').value = bookingToEdit.peopleCount;
+        getEl('booking-id').value = bookingToEdit.id;
+        getEl('teamName').value = bookingToEdit.teamName;
+        getEl('peopleCount').value = bookingToEdit.peopleCount;
         costPerHourInput.value = bookingToEdit.costPerHour;
         rentGrillCheckbox.checked = bookingToEdit.rentGrill;
         grillCostInput.value = bookingToEdit.grillCost;
-        if(recurringToggle) recurringToggle.disabled = true;
+        recurringToggle.disabled = true;
     } else {
         title.textContent = `Reservar Cancha (${dateStr})`;
-        document.getElementById('booking-id').value = '';
+        getEl('booking-id').value = '';
         costPerHourInput.value = appSettings.court1Price;
         grillCostInput.value = appSettings.grillPrice;
-        if(recurringToggle) recurringToggle.disabled = false;
+        recurringToggle.disabled = false;
     }
     
     updateCourtAvailability();
@@ -556,50 +522,36 @@ async function showBookingModal(dateStr, bookingToEdit = null) {
 async function showEventModal(dateStr, eventToEdit = null) {
     closeModals();
     if(eventForm) eventForm.reset();
-    
-    const dateInput = document.getElementById('event-date');
-    if(dateInput) dateInput.value = dateStr;
-    
-    const title = document.getElementById('event-modal-title');
+    getEl('event-date').value = dateStr;
+    const title = getEl('event-modal-title');
 
     if (eventToEdit) {
-        if(title) title.textContent = "Editar Evento";
-        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = eventToEdit.id;
-        if(eventNameInput) eventNameInput.value = eventToEdit.teamName;
-        if(contactPersonInput) contactPersonInput.value = eventToEdit.contactPerson;
-        if(contactPhoneInput) contactPhoneInput.value = eventToEdit.contactPhone;
-        if(eventCostPerHourInput) eventCostPerHourInput.value = eventToEdit.costPerHour;
+        title.textContent = "Editar Evento";
+        getEl('event-booking-id').value = eventToEdit.id;
+        eventNameInput.value = eventToEdit.teamName;
+        contactPersonInput.value = eventToEdit.contactPerson;
+        contactPhoneInput.value = eventToEdit.contactPhone;
+        eventCostPerHourInput.value = eventToEdit.costPerHour;
     } else {
-        if(title) title.textContent = `Reservar Evento (${dateStr})`;
-        if(document.getElementById('event-booking-id')) document.getElementById('event-booking-id').value = '';
-        if(eventCostPerHourInput) eventCostPerHourInput.value = appSettings.eventPrice;
+        title.textContent = `Reservar Evento (${dateStr})`;
+        getEl('event-booking-id').value = '';
+        eventCostPerHourInput.value = appSettings.eventPrice;
     }
-    
     renderTimeSlots(eventHoursList, new Set(), eventToEdit ? eventToEdit.courtHours : []);
     if(eventModal) eventModal.classList.add('is-open');
 }
 
 function updateCourtAvailability() {
-    const ds = document.getElementById('booking-date').value;
+    const ds = getEl('booking-date').value;
     const selCourt = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const editingId = document.getElementById('booking-id').value;
+    const editingId = getEl('booking-id').value;
     
     const occupied = new Set();
     allMonthBookings
         .filter(b => b.day === ds && b.courtId === selCourt && b.id !== editingId)
         .forEach(b => { if(b.courtHours) b.courtHours.forEach(h => occupied.add(h)); });
     
-    const currentBooking = allMonthBookings.find(b => b.id === editingId);
-    const selected = currentBooking ? currentBooking.courtHours : [];
-
-    renderTimeSlots(courtHoursList, occupied, selected);
-    
-    const grillOccupied = new Set();
-    allMonthBookings
-        .filter(b => b.day === ds && b.rentGrill && b.id !== editingId)
-        .forEach(b => { if(b.grillHours) b.grillHours.forEach(h => grillOccupied.add(h)); });
-    
-    renderTimeSlots(grillHoursList, grillOccupied, currentBooking ? currentBooking.grillHours : []);
+    renderTimeSlots(courtHoursList, occupied, []);
     updateTotalPrice();
 }
 
@@ -623,47 +575,22 @@ function renderTimeSlots(container, occupied, selected) {
 }
 
 // -----------------------------------------------------------------
-// 7. PERSISTENCIA DE RESERVAS Y EVENTOS
+// 6. GUARDADO DEFINITIVO (REGLA DE 2 SEGUNDOS)
 // -----------------------------------------------------------------
 
-async function loadBookingsForMonth() {
-    if (!db || !userId) return; 
-    showMessage("Sincronizando calendario...");
-    if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
-    const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
-    const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
-    currentBookingsUnsubscribe = onSnapshot(q, (snapshot) => {
-        allMonthBookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderCalendar();
-        hideMessage();
-    }, (error) => { console.error(error); hideMessage(); });
-}
-
-async function handleSaveBooking(event) {
-    event.preventDefault();
-    if (recurringToggle && recurringToggle.checked && recurringSettings.dayOfWeek !== null && recurringSettings.months.length > 0) {
-        await handleSaveRecurringBooking(event);
-    } else {
-        await handleSaveSingleBooking(event);
-    }
-}
-
 async function handleSaveSingleBooking(event) {
+    event.preventDefault();
     const saveButton = bookingForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
-    showMessage("Procesando reserva...");
 
-    const bookingId = document.getElementById('booking-id').value;
+    // YA NO HAY CARTEL DE "PROCESANDO" INICIAL
+    
+    let bookingId = document.getElementById('booking-id').value; // CORRECCIÓN: let en lugar de const
     const dateStr = document.getElementById('booking-date').value;
-    const teamName = document.getElementById('teamName').value.trim();
+    const teamName = teamNameInput.value.trim();
     const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
-    if (selectedHours.length === 0) {
-        showMessage("Debes marcar horarios.", true);
-        setTimeout(hideMessage, 2000); 
-        saveButton.disabled = false;
-        return;
-    }
+    if (selectedHours.length === 0) { alert("Debes marcar horarios."); saveButton.disabled = false; return; }
 
     const data = {
         type: 'court', teamName, 
@@ -681,29 +608,37 @@ async function handleSaveSingleBooking(event) {
     };
 
     try {
-        let action = bookingId ? 'updated' : 'created';
-        if (bookingId) { await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true }); } 
-        else { const docRef = await addDoc(collection(db, bookingsCollectionPath), data); bookingId = docRef.id; }
-        await logBookingEvent(action, { id: bookingId, ...data });
+        if (bookingId) { 
+            await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true }); 
+        } else { 
+            const docRef = await addDoc(collection(db, bookingsCollectionPath), data); 
+            bookingId = docRef.id; 
+        }
+        await logBookingEvent(bookingId ? 'updated' : 'created', { id: bookingId, ...data });
         await saveCustomer(teamName); 
-        showMessage("¡Turno guardado!"); closeModals(); setTimeout(hideMessage, 1500); 
-    } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
+        
+        // MOSTRAR ÉXITO Y VOLVER EN 2 SEGUNDOS
+        showMessage("¡Guardado con éxito!"); 
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
+    } catch (error) { 
+        showMessage(error.message, true); 
+        saveButton.disabled = false;
+    }
 }
 
 async function handleSaveEvent(event) {
     event.preventDefault();
     const saveButton = eventForm.querySelector('button[type="submit"]');
     saveButton.disabled = true;
-    showMessage("Guardando evento...");
-    const bookingId = eventBookingIdInput.value;
+    
+    let bookingId = eventBookingIdInput.value; // CORRECCIÓN: let
     const dateStr = eventDateInput.value;
     const selectedHours = Array.from(eventHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
 
-    if (selectedHours.length === 0) {
-        showMessage("Elige horarios de ocupación.", true);
-        saveButton.disabled = false;
-        return;
-    }
+    if (selectedHours.length === 0) { alert("Elige horarios de ocupación."); saveButton.disabled = false; return; }
 
     const data = {
         type: 'event', teamName: eventNameInput.value.trim(), contactPerson: contactPersonInput.value.trim(), 
@@ -715,51 +650,38 @@ async function handleSaveEvent(event) {
     };
 
     try {
-        let action = bookingId ? 'updated' : 'created';
-        if (bookingId) await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true });
-        else { const docRef = await addDoc(collection(db, bookingsCollectionPath), data); }
-        await logBookingEvent(action, data);
-        showMessage("¡Evento guardado!"); closeModals(); setTimeout(hideMessage, 1500);
-    } catch (error) { showMessage(error.message, true); } finally { saveButton.disabled = false; }
+        if (bookingId) {
+            await setDoc(doc(db, bookingsCollectionPath, bookingId), data, { merge: true });
+        } else {
+            const docRef = await addDoc(collection(db, bookingsCollectionPath), data);
+            bookingId = docRef.id;
+        }
+        await logBookingEvent(bookingId ? 'updated' : 'created', { id: bookingId, ...data });
+        
+        showMessage("¡Evento registrado con éxito!"); 
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
+    } catch (error) { 
+        showMessage(error.message, true); 
+        saveButton.disabled = false;
+    }
 }
 
-async function handleSaveRecurringBooking(event) {
-    const saveButton = bookingForm.querySelector('button[type="submit"]');
-    saveButton.disabled = true;
-    showMessage("Generando serie de turnos...");
+// -----------------------------------------------------------------
+// 7. PERSISTENCIA DE DATOS
+// -----------------------------------------------------------------
 
-    const teamName = document.getElementById('teamName').value.trim();
-    const courtId = document.querySelector('input[name="courtSelection"]:checked')?.value || 'cancha1';
-    const selectedHours = Array.from(courtHoursList.querySelectorAll('.time-slot.selected')).map(el => parseInt(el.dataset.hour, 10));
-
-    const { dayOfWeek, months } = recurringSettings;
-    let dates = [];
-    months.forEach(m => {
-        const y = parseInt(m.year, 10), mon = parseInt(m.month, 10);
-        const lastDay = new Date(y, mon + 1, 0).getDate();
-        for (let d = 1; d <= lastDay; d++) {
-            const date = new Date(y, mon, d);
-            if (date.getDay() == dayOfWeek) dates.push(date.toISOString().split('T')[0]);
-        }
-    });
-
-    try {
-        const batch = writeBatch(db);
-        for (const d of dates) {
-            const docRef = doc(collection(db, bookingsCollectionPath));
-            const data = { 
-                type: 'court', teamName, courtId, day: d, monthYear: d.substring(0, 7), 
-                courtHours: selectedHours, totalPrice: updateTotalPrice(), 
-                paymentMethod: 'efectivo', timestamp: Timestamp.now(), adminId: userId, adminEmail: userEmail,
-                peopleCount: 10, costPerHour: parseFloat(costPerHourInput.value), rentGrill: false, grillCost: 0, grillHours: []
-            };
-            batch.set(docRef, data);
-            await logBookingEvent('created-recurring', data);
-        }
-        await batch.commit();
-        showMessage(`¡Serie creada! (${dates.length} turnos)`);
-        closeModals(); setTimeout(hideMessage, 2000);
-    } catch (e) { showMessage(e.message, true); } finally { saveButton.disabled = false; }
+async function loadBookingsForMonth() {
+    if (!db || !userId) return; 
+    if (currentBookingsUnsubscribe) currentBookingsUnsubscribe(); 
+    const monthYear = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
+    const q = query(collection(db, bookingsCollectionPath), where("monthYear", "==", monthYear));
+    currentBookingsUnsubscribe = onSnapshot(q, (snapshot) => {
+        allMonthBookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderCalendar();
+    }, (error) => { console.error(error); });
 }
 
 async function handleConfirmDelete(event) {
@@ -767,16 +689,18 @@ async function handleConfirmDelete(event) {
     const id = deleteBookingIdInput.value;
     const reason = deleteReasonText.value.trim();
     if (!reason) return alert("Motivo obligatorio.");
-    showMessage("Eliminando...");
     try {
         const ref = doc(db, bookingsCollectionPath, id);
         const snap = await getDoc(ref);
         if (snap.exists()) {
             await logBookingEvent('deleted', { id: snap.id, ...snap.data() }, reason);
             await deleteDoc(ref);
-            showMessage("Reserva anulada.");
+            showMessage("Anulado con éxito.");
         }
-        closeModals(); setTimeout(hideMessage, 1500); 
+        setTimeout(() => {
+            closeModals();
+            hideMessage();
+        }, 2000);
     } catch (error) { showMessage(error.message, true); }
 }
 
@@ -790,156 +714,12 @@ async function logBookingEvent(action, data, reason = null) {
 }
 
 // -----------------------------------------------------------------
-// 8. KIOSCO PRO: ÚLTIMO PRECIO Y VENTAS (FULL)
-// -----------------------------------------------------------------
-
-async function handleConfirmSale() {
-    if(!currentSelectedProduct) return;
-    const qtyInput = document.getElementById('sale-qty-input');
-    const qty = parseInt(qtyInput.value);
-    const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
-    try {
-        showMessage("Procesando cobro...");
-        await addDoc(collection(db, salesCollectionPath), { 
-            name: currentSelectedProduct.name, qty, total: qty * currentSelectedProduct.salePrice, 
-            paymentMethod: method, day: new Date().toISOString().split('T')[0], 
-            monthYear: new Date().toISOString().substring(0, 7), timestamp: Timestamp.now(),
-            adminId: userId, adminEmail: userEmail
-        });
-        await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
-        await logKioscoTransaction(currentSelectedProduct.id, `Venta (${method})`, qty, currentSelectedProduct.unitCost, 'out');
-        closeModals(); showMessage("¡Venta completada!"); setTimeout(hideMessage, 1500);
-    } catch (e) { alert(e.message); }
-}
-
-async function handleConfirmRestock(e) {
-    e.preventDefault();
-    const id = document.getElementById('restock-prod-id').value;
-    const addQ = parseInt(document.getElementById('restock-qty').value);
-    const bCost = parseFloat(document.getElementById('restock-batch-cost').value);
-    const nUnit = bCost / addQ;
-    const p = allProducts.find(x => x.id === id);
-    const nSale = Math.ceil(nUnit * 1.40); // 40% margen sobre reposición
-
-    try {
-        showMessage("Sincronizando precios...");
-        await updateDoc(doc(db, productsCollectionPath, id), { 
-            stock: p.stock + addQ, unitCost: nUnit, salePrice: nSale 
-        });
-        await logKioscoTransaction(id, `Reposición (+${addQ} un.)`, addQ, nUnit, 'in');
-        closeModals(); showMessage("¡Todo el stock actualizado!"); setTimeout(hideMessage, 2000);
-    } catch (err) { alert(err.message); }
-}
-
-async function handleSaveProduct(e) {
-    e.preventDefault();
-    const n = document.getElementById('prod-name').value.trim();
-    const s = parseInt(document.getElementById('prod-stock').value);
-    const uc = parseFloat(document.getElementById('prod-unit-cost').value);
-    const sp = parseFloat(document.getElementById('prod-suggested-price').textContent.replace('$', ''));
-    try {
-        const r = await addDoc(collection(db, productsCollectionPath), { 
-            name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail
-        });
-        await logKioscoTransaction(r.id, 'Alta Inicial', s, uc, 'in');
-        e.target.reset(); document.getElementById('product-form-container')?.classList.add('is-hidden');
-        showMessage("Ficha creada."); setTimeout(hideMessage, 1500);
-    } catch (err) { alert(err.message); }
-}
-
-function calculateProductPrices() {
-    const cost = parseFloat(document.getElementById('prod-batch-cost').value) || 0;
-    const qty = parseInt(document.getElementById('prod-batch-qty').value) || 1;
-    const margin = parseFloat(document.getElementById('prod-profit-pct').value) || 40;
-    const u = cost / qty;
-    const s = Math.ceil(u * (1 + (margin / 100)));
-    document.getElementById('prod-suggested-price').textContent = `$${s}`;
-    document.getElementById('prod-unit-cost').value = u;
-}
-
-function syncProducts() {
-    onSnapshot(collection(db, productsCollectionPath), (snap) => {
-        allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderProducts();
-    });
-}
-
-function renderProducts(f = "") {
-    if (!productList) return;
-    productList.innerHTML = '';
-    allProducts.filter(p => p.name.toLowerCase().includes(f.toLowerCase())).forEach(p => {
-        const d = document.createElement('div');
-        d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
-        d.innerHTML = `<div class="flex justify-between items-start"><div><h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Stock: ${p.stock} un.</span></div><div class="text-right"><p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Precio</p><p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p></div></div>
-                       <div class="grid grid-cols-2 gap-2 mt-2">
-                           <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
-                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
-                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
-                           <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
-                       </div>`;
-        productList.appendChild(d);
-    });
-}
-
-function openSaleModal() {
-    saleSearchInput.value = ''; if(saleSearchResults) saleSearchResults.innerHTML = ''; 
-    selectedProductInfo?.classList.add('is-hidden');
-    confirmSaleBtn.disabled = true; 
-    saleModal?.classList.add('is-open'); 
-    setTimeout(() => saleSearchInput?.focus(), 100);
-}
-
-function handleSaleSearch() {
-    const v = saleSearchInput.value.toLowerCase(); if (v.length < 2) { if(saleSearchResults) saleSearchResults.innerHTML = ''; return; }
-    if(!saleSearchResults) return;
-    saleSearchResults.innerHTML = '';
-    allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => {
-        const i = document.createElement('div');
-        i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 transition-all shadow-sm';
-        i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic tracking-tighter">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic italic tracking-tighter">$${p.salePrice}</strong>`;
-        i.onclick = () => {
-            currentSelectedProduct = p; 
-            document.getElementById('sel-prod-name').textContent = p.name;
-            document.getElementById('sel-prod-stock').textContent = p.stock; 
-            document.getElementById('sel-prod-price').textContent = `$${p.salePrice}`;
-            document.getElementById('sale-qty-input').value = 1;
-            selectedProductInfo.classList.remove('is-hidden');
-            confirmSaleBtn.disabled = (p.stock <= 0); 
-            updateSaleTotal();
-        };
-        saleSearchResults.appendChild(i);
-    });
-}
-
-function updateSaleQty(d) {
-    const i = document.getElementById('sale-qty-input'); if(!i) return;
-    let v = parseInt(i.value) + d;
-    if (v < 1) v = 1; if (v > currentSelectedProduct.stock) v = currentSelectedProduct.stock;
-    i.value = v; updateSaleTotal();
-}
-
-function updateSaleTotal() {
-    const qEl = document.getElementById('sale-qty-input'); if(!qEl) return;
-    const q = parseInt(qEl.value);
-    const disp = document.getElementById('sale-total-display');
-    if(disp) disp.textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString('es-AR')}`;
-}
-
-async function logKioscoTransaction(productId, desc, qty, cost, type) {
-    await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail });
-}
-
-// -----------------------------------------------------------------
-// 9. CAJA: ARQUEO AUTOMÁTICO Y DESGLOSE DETALLADO
+// 8. ARQUEO DE CAJA (DESGLOSE POR MEDIO DE PAGO)
 // -----------------------------------------------------------------
 
 async function loadCajaData() {
-    const hoy = new Date().toISOString().split('T')[0];
-    if (!cajaDateFrom.value) cajaDateFrom.value = hoy;
-    if (!cajaDateTo.value) cajaDateTo.value = hoy;
-
     const from = cajaDateFrom.value, to = cajaDateTo.value;
-    showMessage("Generando balance...");
+    if(!from || !to) return;
     try {
         const qB = query(collection(db, bookingsCollectionPath), where("day", ">=", from), where("day", "<=", to));
         const qS = query(collection(db, salesCollectionPath), where("day", ">=", from), where("day", "<=", to));
@@ -959,22 +739,20 @@ async function loadCajaData() {
             daily[s.day].t += (s.total || 0); daily[s.day].s.push({id: doc.id, ...s}); 
         });
 
-        cajaTotalBookings.textContent = `$${tB.toLocaleString('es-AR')}`;
-        cajaTotalSales.textContent = `$${tS.toLocaleString('es-AR')}`;
-        cajaTotalCombined.textContent = `$${(tB + tS).toLocaleString('es-AR')}`;
+        cajaTotalBookings.textContent = `$${tB.toLocaleString()}`;
+        cajaTotalSales.textContent = `$${tS.toLocaleString()}`;
+        cajaTotalCombined.textContent = `$${(tB + tS).toLocaleString()}`;
         
         renderCajaList(daily);
-        hideMessage();
-    } catch (e) { console.error(e); hideMessage(); }
+    } catch (e) { console.error(e); }
 }
 
 function renderCajaList(daily) {
     if(!cajaDailyList) return;
     cajaDailyList.innerHTML = '';
     const sorted = Object.keys(daily).sort((a,b) => b.localeCompare(a));
-    
     if(sorted.length === 0) {
-        cajaDailyList.innerHTML = '<p class="text-center text-gray-400 font-black p-8 italic uppercase text-[10px]">Sin movimientos registrados</p>';
+        cajaDailyList.innerHTML = '<p class="text-center p-8 opacity-40 uppercase font-black text-[10px]">Sin movimientos registrados</p>';
         return;
     }
 
@@ -982,14 +760,7 @@ function renderCajaList(daily) {
         const data = daily[day], [y, m, d] = day.split('-');
         const item = document.createElement('div');
         item.className = 'data-card p-6 flex justify-between items-center cursor-pointer mb-3 border-l-8 border-emerald-500 hover:scale-[1.01] transition-transform shadow-lg';
-        item.innerHTML = `
-            <div>
-                <strong class="text-gray-900 text-xl font-black italic tracking-tighter">${d}/${m}/${y}</strong>
-                <p class="text-[9px] text-gray-400 font-bold uppercase mt-1 tracking-widest">${data.b.length} Turnos | ${data.s.length} Ventas Kiosco</p>
-            </div>
-            <div class="text-right">
-                <strong class="text-2xl font-black text-emerald-600 tracking-tighter italic">$${data.t.toLocaleString('es-AR')}</strong>
-            </div>`;
+        item.innerHTML = `<div><strong class="text-gray-900 text-xl font-black italic">${d}/${m}/${y}</strong><p class="text-[9px] uppercase font-bold opacity-40">${data.b.length} Turnos | ${data.s.length} Ventas</p></div><strong class="text-2xl text-emerald-600 italic">$${data.t.toLocaleString()}</strong>`;
         item.onclick = () => showCajaDetail(`${d}/${m}/${y}`, data);
         cajaDailyList.appendChild(item);
     });
@@ -998,10 +769,7 @@ function renderCajaList(daily) {
 function showCajaDetail(date, data) {
     if(!cajaDetailModal) return;
     cajaDetailModal.classList.add('is-open'); 
-    document.getElementById('caja-detail-title').textContent = date;
-    
-    let sumB = data.b.reduce((a, b) => a + (b.totalPrice || 0), 0);
-    let sumS = data.s.reduce((a, s) => a + (s.total || 0), 0);
+    getEl('caja-detail-title').textContent = date;
     
     let efSum = data.b.filter(x => x.paymentMethod === 'efectivo').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
                 data.s.filter(x => x.paymentMethod === 'efectivo').reduce((a, s) => a + (s.total || 0), 0);
@@ -1009,32 +777,22 @@ function showCajaDetail(date, data) {
     let mpSum = data.b.filter(x => x.paymentMethod === 'mercadopago').reduce((a, b) => a + (b.totalPrice || 0), 0) + 
                 data.s.filter(x => x.paymentMethod === 'mercadopago').reduce((a, s) => a + (s.total || 0), 0);
 
-    const sumEl = document.getElementById('caja-detail-summary');
-    if(sumEl) sumEl.innerHTML = `
+    getEl('caja-detail-summary').innerHTML = `
         <div class="bg-gray-900 text-white p-8 rounded-[2.5rem] mb-8 shadow-2xl border-t-8 border-emerald-400 relative overflow-hidden text-left">
-            <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter italic">BANK</div>
+            <div class="absolute right-0 top-0 p-4 opacity-10 text-5xl font-black italic tracking-tighter">BANK</div>
             <div class="flex justify-between mb-2"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">En Efectivo:</span> <strong class="text-emerald-400 text-lg">$${efSum.toLocaleString()}</strong></div>
             <div class="flex justify-between mb-6"><span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">MP / Transf:</span> <strong class="text-blue-400 text-lg">$${mpSum.toLocaleString()}</strong></div>
             <div class="flex justify-between text-3xl font-black border-t border-white/20 pt-6 italic tracking-tighter"><span>CIERRE:</span> <span class="text-white">$${data.t.toLocaleString()}</span></div>
         </div>
     `;
     
-    const list = document.getElementById('caja-detail-booking-list');
-    if(list) {
-        list.innerHTML = '';
-        data.b.forEach(b => {
-            const icon = b.paymentMethod === 'mercadopago' ? '📱' : '💵';
-            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-gray-100"><span>${icon} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${(b.totalPrice || 0).toLocaleString()}</strong></div>`;
-        });
-        data.s.forEach(s => {
-            const icon = s.paymentMethod === 'mercadopago' ? '📱' : '💵';
-            list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm border border-blue-100"><span>${icon} 🍭 ${s.name} (x${s.qty})</span><strong class="text-blue-700">$${(s.total || 0).toLocaleString()}</strong></div>`;
-        });
-    }
+    const list = getEl('caja-detail-booking-list'); list.innerHTML = '';
+    data.b.forEach(b => list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between border border-gray-100"><span>${b.paymentMethod==='mercadopago'?'📱':'💵'} 📅 ${b.teamName}</span><strong class="text-emerald-700">$${(b.totalPrice || 0).toLocaleString()}</strong></div>`);
+    data.s.forEach(s => list.innerHTML += `<div class="text-[11px] font-bold p-4 bg-blue-50 rounded-2xl mb-2 flex justify-between border border-blue-100"><span>${s.paymentMethod==='mercadopago'?'📱':'💵'} 🍭 ${s.name}</span><strong class="text-blue-700">$${(s.total || 0).toLocaleString()}</strong></div>`);
 }
 
 // -----------------------------------------------------------------
-// 10. CALENDARIO: RENDERIZADO VISIBLE (ALTO CONTRASTE)
+// 9. CALENDARIO (CONTRASTE MÁXIMO)
 // -----------------------------------------------------------------
 
 function renderCalendar() {
@@ -1042,14 +800,10 @@ function renderCalendar() {
     calendarGrid.innerHTML = '';
     const year = currentMonthDate.getFullYear(), month = currentMonthDate.getMonth();
     currentMonthYearEl.textContent = `${monthNames[month]} ${year}`;
+    const firstDay = new Date(year, month, 1).getDay(), lastDate = new Date(year, month + 1, 0).getDate();
     
-    const firstDay = new Date(year, month, 1).getDay();
-    const lastDate = new Date(year, month + 1, 0).getDate();
-
     for (let i = 0; i < firstDay; i++) {
-        const d = document.createElement('div');
-        d.className = 'other-month-day h-20 md:h-28 bg-gray-50 opacity-20 border border-gray-100 rounded-xl';
-        calendarGrid.appendChild(d);
+        calendarGrid.appendChild(Object.assign(document.createElement('div'), { className: 'h-20 md:h-28 bg-gray-50 opacity-10 rounded-xl' }));
     }
 
     for (let i = 1; i <= lastDate; i++) {
@@ -1057,9 +811,7 @@ function renderCalendar() {
         const bks = allMonthBookings.filter(b => b.day === ds);
         const cell = document.createElement('div');
         cell.className = `day-cell h-20 md:h-28 border-2 border-gray-100 p-3 bg-white cursor-pointer relative rounded-[1.25rem] shadow-sm transition-all hover:scale-[1.03] hover:border-emerald-200`;
-        
         cell.innerHTML = `<span class='text-[16px] font-black text-gray-900 italic tracking-tighter'>${i}</span>`;
-        
         if (bks.length > 0) {
             const hasEv = bks.some(b => b.type === 'event');
             if(hasEv) cell.classList.add('day-cell-locked');
@@ -1068,224 +820,157 @@ function renderCalendar() {
             badge.textContent = bks.length;
             cell.appendChild(badge);
         }
-        
-        cell.onclick = () => {
-            if (bks.length > 0) {
-                showOptionsModal(ds, bks);
-            } else {
-                typeModal.dataset.date = ds;
-                document.getElementById('type-modal').classList.add('is-open');
-            }
-        };
+        cell.onclick = () => { if (bks.length > 0) showOptionsModal(ds, bks); else { typeModal.dataset.date = ds; typeModal.classList.add('is-open'); } };
         calendarGrid.appendChild(cell);
     }
 }
 
 function showOptionsModal(dateStr, bks) {
     optionsModal.dataset.date = dateStr;
-    const list = document.getElementById('daily-bookings-list');
-    if(!list) return;
-    list.innerHTML = '';
+    const list = getEl('daily-bookings-list'); list.innerHTML = '';
     const hasEv = bks.some(b => b.type === 'event');
-    const addBtn = document.getElementById('add-new-booking-btn');
-    if (addBtn) addBtn.style.display = hasEv ? 'none' : 'block';
-
+    getEl('add-new-booking-btn').style.display = hasEv ? 'none' : 'block';
     bks.forEach(b => {
-        const item = document.createElement('div');
-        item.className = 'flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-2xl mb-3 shadow-sm';
-        item.innerHTML = `
-            <div>
-                <p class="font-black text-sm uppercase italic tracking-tighter text-gray-800">${b.type === 'event' ? '★ ' + b.teamName : b.teamName}</p>
-                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${b.courtHours ? b.courtHours.join(', ') : 'S/H'}hs</p>
-            </div>
-            <div class="flex gap-1">
-                <button class="px-2 py-2 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase" onclick="window.viewBookingDetail('${b.id}')">VER</button>
-                <button class="px-2 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-[9px] font-black uppercase" onclick="window.editBooking('${b.id}')">EDT</button>
-                <button class="px-2 py-2 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase" onclick="window.deleteBooking('${b.id}')">X</button>
-            </div>`;
-        list.appendChild(item);
+        list.innerHTML += `<div class='flex justify-between items-center p-4 bg-gray-50 border rounded-2xl mb-3 shadow-sm text-left'><div><p class='font-black text-sm uppercase italic'>${b.type==='event'?'★ '+b.teamName:b.teamName}</p><p class='text-[9px] font-bold opacity-40'>${b.courtHours?.join(', ')}hs</p></div><div class='flex gap-1'><button class='px-2 py-2 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase' onclick="window.viewBookingDetail('${b.id}')">VER</button><button class='px-2 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-[9px] font-black uppercase' onclick="window.editBooking('${b.id}')">EDT</button><button class='px-2 py-2 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase' onclick="window.deleteBooking('${b.id}')">X</button></div></div>`;
     });
     optionsModal.classList.add('is-open');
 }
 
 // -----------------------------------------------------------------
-// 11. GLOBALIZACIÓN WINDOW PARA BOTONES DINÁMICOS
+// 10. KIOSCO PRO Y VENTAS
+// -----------------------------------------------------------------
+
+async function handleConfirmSale() {
+    if(!currentSelectedProduct) return;
+    const qtyInput = getEl('sale-qty-input');
+    const qty = parseInt(qtyInput.value);
+    const method = document.querySelector('input[name="salePaymentMethod"]:checked')?.value || 'efectivo';
+    try {
+        await addDoc(collection(db, salesCollectionPath), { 
+            name: currentSelectedProduct.name, qty, total: qty * currentSelectedProduct.salePrice, 
+            paymentMethod: method, day: new Date().toISOString().split('T')[0], 
+            monthYear: new Date().toISOString().substring(0, 7), timestamp: Timestamp.now(),
+            adminId: userId, adminEmail: userEmail
+        });
+        await updateDoc(doc(db, productsCollectionPath, currentSelectedProduct.id), { stock: currentSelectedProduct.stock - qty });
+        showMessage("¡Venta completada!"); 
+        setTimeout(() => { closeModals(); hideMessage(); }, 2000);
+    } catch (e) { alert(e.message); }
+}
+
+async function handleConfirmRestock(e) {
+    e.preventDefault();
+    const id = getEl('restock-prod-id').value, addQ = parseInt(getEl('restock-qty').value), bCost = parseFloat(getEl('restock-batch-cost').value);
+    const nUnit = bCost / addQ, p = allProducts.find(x => x.id === id);
+    try {
+        await updateDoc(doc(db, productsCollectionPath, id), { stock: p.stock + addQ, unitCost: nUnit, salePrice: Math.ceil(nUnit * 1.40) });
+        showMessage("¡Stock actualizado!"); 
+        setTimeout(() => { closeModals(); hideMessage(); }, 2000);
+    } catch (err) { alert(err.message); }
+}
+
+async function handleSaveProduct(e) {
+    e.preventDefault();
+    const n = getEl('prod-name').value.trim(), s = parseInt(getEl('prod-stock').value), uc = parseFloat(getEl('prod-unit-cost').value), sp = parseFloat(getEl('prod-suggested-price').textContent.replace('$', ''));
+    try {
+        await addDoc(collection(db, productsCollectionPath), { name: n, stock: s, unitCost: uc, salePrice: sp, createdAt: Timestamp.now(), creator: userEmail });
+        e.target.reset(); getEl('product-form-container')?.classList.add('is-hidden');
+        showMessage("Ficha guardada."); setTimeout(hideMessage, 1500);
+    } catch (err) { alert(err.message); }
+}
+
+function syncProducts() {
+    onSnapshot(collection(db, productsCollectionPath), (snap) => {
+        allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderProducts();
+    });
+}
+
+function renderProducts() {
+    if (!productList) return; productList.innerHTML = '';
+    allProducts.forEach(p => {
+        const d = document.createElement('div'); d.className = 'product-card bg-white p-6 rounded-[2.5rem] border shadow-md flex flex-col gap-4 transition-all hover:border-emerald-300';
+        d.innerHTML = `<div class="flex justify-between items-start text-left"><div><h4 class="font-black italic uppercase text-gray-800 text-xl tracking-tighter leading-tight">${p.name}</h4><span class="stock-badge ${p.stock < 5 ? 'stock-low' : 'stock-ok'} text-[9px] font-black uppercase mt-1">Disp: ${p.stock} un.</span></div><div class="text-right"><p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Precio</p><p class="text-3xl font-black text-emerald-600 italic leading-none tracking-tighter italic">$${p.salePrice}</p></div></div>
+                       <div class="grid grid-cols-2 gap-2 mt-2">
+                           <button class="p-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openRestock('${p.id}')">📦 REPONER</button>
+                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openHistory('${p.id}')">📜 LOGS</button>
+                           <button class="p-3 bg-gray-50 text-gray-600 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.openEditProduct('${p.id}')">✏️ FICHA</button>
+                           <button class="p-3 bg-red-50 text-red-500 rounded-xl font-bold text-[10px] uppercase shadow-sm" onclick="window.deleteProduct('${p.id}')">🗑️ BORRAR</button>
+                       </div>`;
+        productList.appendChild(d);
+    });
+}
+
+// -----------------------------------------------------------------
+// 11. GLOBALIZACIÓN WINDOW
 // -----------------------------------------------------------------
 
 window.viewBookingDetail = async (id) => {
     const b = allMonthBookings.find(x => x.id === id);
-    const det = document.getElementById('view-booking-details');
-    if(det) {
-        det.innerHTML = `
-        <h3 class="text-4xl font-black italic uppercase text-emerald-900 tracking-tighter mb-8 tracking-tighter italic uppercase text-left">${b.teamName}</h3>
-        <div class="space-y-4 font-bold text-sm text-gray-500 text-left">
-            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Tipo</span> <span class="text-gray-900">${b.type}</span></div>
-            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Día</span> <span class="text-gray-900">${b.day}</span></div>
-            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Horario</span> <span class="text-gray-900">${b.courtHours ? b.courtHours.join(', ') : 'S/H'}hs</span></div>
-            <div class="flex justify-between border-b pb-2 uppercase tracking-widest text-[10px]"><span>Pago</span> <span class="text-gray-900 uppercase italic tracking-tighter italic tracking-tighter italic">${b.paymentMethod || 'Efectivo'}</span></div>
-            <div class="flex justify-between pt-8 items-center"><span class="text-emerald-900 uppercase font-black text-xs tracking-widest uppercase">Total</span> <span class="text-4xl font-black text-emerald-600 italic tracking-tighter italic tracking-tighter italic tracking-tighter italic tracking-tighter tracking-tighter tracking-tighter tracking-tighter italic italic italic">$${(b.totalPrice || 0).toLocaleString()}</span></div>
-        </div>`;
-    }
-    if(viewModal) viewModal.classList.add('is-open');
+    getEl('view-booking-details').innerHTML = `<h3 class='text-4xl font-black italic uppercase text-emerald-900 mb-8 text-left'>${b.teamName}</h3><div class='space-y-4 font-bold text-sm text-gray-500 text-left'><div class='flex justify-between border-b pb-2'><span>Día</span> <span class='text-gray-900'>${b.day}</span></div><div class='flex justify-between border-b pb-2'><span>Horario</span> <span class='text-gray-900'>${b.courtHours?.join(', ')}hs</span></div><div class='flex justify-between border-b pb-2'><span>Pago</span> <span class='text-gray-900 italic'>${b.paymentMethod || 'Efectivo'}</span></div><div class='flex justify-between pt-8 items-center'><span class='text-emerald-900 uppercase font-black text-xs'>TOTAL</span> <span class='text-4xl font-black text-emerald-600 italic'>$${(b.totalPrice || 0).toLocaleString()}</span></div></div>`;
+    viewModal.classList.add('is-open');
 };
 
-window.editBooking = (id) => { 
-    const b = allMonthBookings.find(x => x.id === id); 
-    closeModals(); 
-    if(b.type === 'court') showBookingModal(b.day, b); else showEventModal(b.day, b); 
-};
-
-window.deleteBooking = (id) => { 
-    if(document.getElementById('delete-booking-id')) document.getElementById('delete-booking-id').value = id; 
-    closeModals(); if(deleteReasonModal) deleteReasonModal.classList.add('is-open'); 
-};
-
-window.openRestock = (id) => {
-    const p = allProducts.find(x => x.id === id);
-    if(document.getElementById('restock-prod-id')) document.getElementById('restock-prod-id').value = id;
-    if(document.getElementById('restock-name')) document.getElementById('restock-name').textContent = p.name;
-    if(document.getElementById('restock-current-stock')) document.getElementById('restock-current-stock').textContent = p.stock;
-    if(document.getElementById('restock-modal')) document.getElementById('restock-modal').classList.add('is-open');
-};
-
-window.showEventModal = showEventModal;
-window.showBookingModal = showBookingModal;
-
-window.deleteProduct = async (id) => { if(confirm("¿Borrar ficha permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
+window.editBooking = (id) => { const b = allMonthBookings.find(x => x.id === id); closeModals(); if(b.type === 'court') showBookingModal(b.day, b); else showEventModal(b.day, b); };
+window.deleteBooking = (id) => { getEl('delete-booking-id').value = id; closeModals(); deleteReasonModal.classList.add('is-open'); };
+window.openRestock = (id) => { const p = allProducts.find(x => x.id === id); getEl('restock-prod-id').value = id; getEl('restock-name').textContent = p.name; getEl('restock-current-stock').textContent = p.stock; getEl('restock-modal').classList.add('is-open'); };
+window.deleteProduct = async (id) => { if(confirm("¿Borrar permanentemente?")) await deleteDoc(doc(db, productsCollectionPath, id)); };
 
 window.openEditProduct = (id) => {
     const p = allProducts.find(x => x.id === id);
-    if(document.getElementById('edit-prod-id')) document.getElementById('edit-prod-id').value = id;
-    if(document.getElementById('edit-prod-name')) document.getElementById('edit-prod-name').value = p.name;
-    if(document.getElementById('edit-prod-cost')) document.getElementById('edit-prod-cost').value = p.unitCost;
-    if(document.getElementById('edit-prod-price')) document.getElementById('edit-prod-price').value = p.salePrice;
-    if(document.getElementById('edit-prod-stock')) document.getElementById('edit-prod-stock').value = p.stock;
-    if(document.getElementById('edit-product-modal')) document.getElementById('edit-product-modal').classList.add('is-open');
+    getEl('edit-prod-id').value = id; getEl('edit-prod-name').value = p.name; getEl('edit-prod-cost').value = p.unitCost; getEl('edit-prod-price').value = p.salePrice; getEl('edit-prod-stock').value = p.stock;
+    getEl('edit-product-modal').classList.add('is-open');
 };
 
 async function handleConfirmEditProduct(e) {
     e.preventDefault();
-    const idVal = document.getElementById('edit-prod-id').value;
-    const d = { name: document.getElementById('edit-prod-name').value, unitCost: parseFloat(document.getElementById('edit-prod-cost').value), salePrice: parseFloat(document.getElementById('edit-prod-price').value), stock: parseInt(document.getElementById('edit-prod-stock').value) };
+    const idVal = getEl('edit-prod-id').value;
+    const d = { name: getEl('edit-prod-name').value, unitCost: parseFloat(getEl('edit-prod-cost').value), salePrice: parseFloat(getEl('edit-prod-price').value), stock: parseInt(getEl('edit-prod-stock').value) };
     await updateDoc(doc(db, productsCollectionPath, idVal), d);
     closeModals();
 }
 
 window.openHistory = async (id) => {
-    const p = allProducts.find(x => x.id === id);
-    const hName = document.getElementById('history-product-name'); if(hName) hName.textContent = p.name;
+    const p = allProducts.find(x => x.id === id); getEl('history-product-name').textContent = p.name;
     const s = await getDocs(query(collection(db, transactionsCollectionPath), where("productId", "==", id), orderBy("timestamp", "desc")));
-    const list = document.getElementById('product-history-list'); if(!list) return; list.innerHTML = '';
+    const list = getEl('product-history-list'); list.innerHTML = '';
     s.forEach(doc => {
         const t = doc.data();
-        list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic tracking-widest">${t.timestamp.toDate().toLocaleString('es-AR')}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic tracking-tighter italic tracking-tighter italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
+        list.innerHTML += `<div class="p-4 bg-gray-50 rounded-2xl mb-2 flex justify-between items-center shadow-sm relative border border-gray-100 text-left"><div class="absolute top-0 left-0 w-1 h-full ${t.type==='in'?'bg-emerald-500':'bg-red-500'}"></div><div><p class="font-black text-sm text-gray-800 uppercase italic tracking-tighter">${t.desc}</p><p class="text-[9px] uppercase font-bold text-gray-400 italic tracking-widest">${t.timestamp.toDate().toLocaleString()}</p></div><strong class="${t.type==='in'?'text-emerald-600':'text-red-500'} text-xl font-black italic italic">${t.type==='in'?'+':'-'}${t.qty}</strong></div>`;
     });
-    if(document.getElementById('product-history-modal')) document.getElementById('product-history-modal').classList.add('is-open');
+    getEl('product-history-modal').classList.add('is-open');
 };
 
-// -----------------------------------------------------------------
-// 12. UTILIDADES FINALES
-// -----------------------------------------------------------------
-
-function showMessage(msg, isError = false) { 
-    const t = document.getElementById('message-text'); 
-    if(t) { t.textContent = msg; t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; }
-    if(messageOverlay) messageOverlay.classList.add('is-open'); 
-}
-
+// --- UTILS ---
+function showMessage(msg, isError = false) { const t = getEl('message-text'); if(t) { t.textContent = msg; t.className = isError ? 'text-2xl font-black text-red-600 tracking-tighter italic uppercase' : 'text-2xl font-black text-emerald-800 tracking-tighter italic uppercase'; } if(messageOverlay) messageOverlay.classList.add('is-open'); }
 function hideMessage() { if(messageOverlay) messageOverlay.classList.remove('is-open'); }
 function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('is-open')); }
 function prevMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() - 1); loadBookingsForMonth(); }
 function nextMonth() { currentMonthDate.setMonth(currentMonthDate.getMonth() + 1); loadBookingsForMonth(); }
-
-function updateTotalPrice() {
-    const h = courtHoursList?.querySelectorAll('.time-slot.selected').length || 0;
-    const p = parseFloat(costPerHourInput?.value) || 0;
-    const g = (rentGrillCheckbox && rentGrillCheckbox.checked) ? (parseFloat(grillCostInput?.value) || 0) : 0;
-    const t = (h * p) + g;
-    if(bookingTotal) bookingTotal.textContent = `$${t.toLocaleString('es-AR')}`;
-    return t;
-}
-
-function updateEventTotalPrice() {
-    const h = eventHoursList?.querySelectorAll('.time-slot.selected').length || 0;
-    const p = parseFloat(eventCostPerHourInput?.value) || 0;
-    const t = h * p;
-    if(eventTotal) eventTotal.textContent = `$${t.toLocaleString('es-AR')}`;
-    return t;
-}
-
-async function loadStatsData() {
-    if(!db) return; try {
-        const snap = await getDocs(collection(db, bookingsCollectionPath));
-        const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "consumidor final"; if(!st[n]) st[n] = {n: b.teamName || "SIN NOMBRE", c:0, t:0}; st[n].c++; st[n].t += (b.totalPrice || 0); });
-        if(statsList) {
-            statsList.innerHTML = ''; Object.values(st).sort((a,b)=>b.c-a.c).forEach(c => {
-                statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 uppercase italic tracking-tighter italic text-left"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic tracking-tighter italic">$${c.t.toLocaleString()}</strong></div>`;
-            });
-        }
-    } catch(e) {}
-}
-
-async function loadHistorialData() {
-    if(!db) return; try {
-        const snap = await getDocs(query(collection(db, logCollectionPath), orderBy("timestamp", "desc")));
-        if(historialList) {
-            historialList.innerHTML = ''; snap.forEach(d => { const e = d.data();
-                historialList.innerHTML += `<div class="data-card p-5 mb-3 flex justify-between items-start border shadow-sm rounded-3xl text-left"><div><strong class="font-black italic uppercase tracking-tighter text-gray-800 tracking-tighter italic">${e.teamName || "EVENTO"}</strong><p class="text-[9px] mt-2 text-gray-400 font-bold uppercase tracking-widest">${e.timestamp.toDate().toLocaleString('es-AR')} | ADMIN: ${e.loggedBy || "SISTEMA"}</p></div><span class="text-[8px] font-black uppercase px-2 py-1 bg-gray-100 rounded-lg italic tracking-tighter italic">${e.action}</span></div>`;
-            });
-        }
-    } catch(e) {}
-}
-
-async function handleTeamNameInput() {
-    if(!teamNameInput || !teamNameSuggestions) return; 
-    const qText = teamNameInput.value.trim().toLowerCase(); 
-    if(qText.length < 2) { teamNameSuggestions.style.display = 'none'; return; }
-    try {
-        const q = query(collection(db, customersCollectionPath), where(documentId(), ">=", qText), where(documentId(), "<=", qText + '\uf8ff'));
-        const snap = await getDocs(q); teamNameSuggestions.innerHTML = '';
-        if(snap.empty) { teamNameSuggestions.style.display = 'none'; return; }
-        snap.forEach(d => { 
-            const n = d.data().name, i = document.createElement('div'); i.className = 'suggestion-item font-black text-sm p-4 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 italic uppercase tracking-tighter italic tracking-tighter italic'; i.textContent = n;
-            i.onmousedown = () => { teamNameInput.value = n; teamNameSuggestions.style.display = 'none'; }; teamNameSuggestions.appendChild(i);
-        }); 
-        teamNameSuggestions.style.display = 'block';
-    } catch (e) {}
-}
-
+function updateTotalPrice() { const h = courtHoursList?.querySelectorAll('.time-slot.selected').length || 0; const p = parseFloat(costPerHourInput?.value) || 0; const g = (rentGrillCheckbox && rentGrillCheckbox.checked) ? (parseFloat(grillCostInput?.value) || 0) : 0; const t = (h * p) + g; if(bookingTotal) bookingTotal.textContent = `$${t.toLocaleString()}`; return t; }
+function updateEventTotalPrice() { const h = eventHoursList?.querySelectorAll('.time-slot.selected').length || 0; const p = parseFloat(eventCostPerHourInput?.value) || 0; const t = h * p; if(eventTotal) eventTotal.textContent = `$${t.toLocaleString()}`; return t; }
+function calculateProductPrices() { const cost = parseFloat(getEl('prod-batch-cost').value) || 0, qty = parseInt(getEl('prod-batch-qty').value) || 1, margin = parseFloat(getEl('prod-profit-pct').value) || 40; const u = cost / qty, s = Math.ceil(u * (1 + (margin / 100))); getEl('prod-suggested-price').textContent = `$${s}`; getEl('prod-unit-cost').value = u; }
+function openSaleModal() { saleSearchInput.value = ''; if(saleSearchResults) saleSearchResults.innerHTML = ''; selectedProductInfo?.classList.add('is-hidden'); confirmSaleBtn.disabled = true; saleModal?.classList.add('is-open'); setTimeout(() => saleSearchInput?.focus(), 100); }
+function handleSaleSearch() { const v = saleSearchInput.value.toLowerCase(); if (v.length < 2) { saleSearchResults.innerHTML = ''; return; } saleSearchResults.innerHTML = ''; allProducts.filter(p => p.name.toLowerCase().includes(v)).forEach(p => { const i = document.createElement('div'); i.className = 'p-5 bg-gray-50 rounded-3xl flex justify-between cursor-pointer mb-2 hover:bg-emerald-50 border shadow-sm'; i.innerHTML = `<div><span class="font-black text-gray-800 uppercase italic">${p.name}</span><p class="text-[10px] text-gray-400 font-bold uppercase">STOCK: ${p.stock}</p></div><strong class="text-emerald-700 text-xl font-black italic italic">$${p.salePrice}</strong>`; i.onclick = () => { currentSelectedProduct = p; getEl('sel-prod-name').textContent = p.name; getEl('sel-prod-stock').textContent = p.stock; getEl('sel-prod-price').textContent = `$${p.salePrice}`; getEl('sale-qty-input').value = 1; selectedProductInfo.classList.remove('is-hidden'); confirmSaleBtn.disabled = (p.stock <= 0); updateSaleTotal(); }; saleSearchResults.appendChild(i); }); }
+function updateSaleQty(d) { let v = parseInt(getEl('sale-qty-input').value) + d; if (v < 1) v = 1; if (v > currentSelectedProduct.stock) v = currentSelectedProduct.stock; getEl('sale-qty-input').value = v; updateSaleTotal(); }
+function updateSaleTotal() { const q = parseInt(getEl('sale-qty-input').value || 1); getEl('sale-total-display').textContent = `$${(q * currentSelectedProduct.salePrice).toLocaleString('es-AR')}`; }
+async function handleStatsData() { if(!db) return; try { const snap = await getDocs(collection(db, bookingsCollectionPath)); const st = {}; snap.forEach(d => { const b = d.data(), n = b.teamName ? b.teamName.toLowerCase() : "sin nombre"; if(!st[n]) st[n] = {n: b.teamName || "S/N", c:0, t:0}; st[n].c++; st[n].t += (b.totalPrice || 0); }); if(statsList) { statsList.innerHTML = ''; Object.values(st).sort((a,b)=>b.c-a.c).forEach(c => { statsList.innerHTML += `<div class="data-card p-6 flex justify-between items-center mb-3 border-l-8 border-emerald-400 text-left"><div><strong class="font-black text-gray-800">${c.n}</strong><p class="text-[9px] font-black text-gray-400 tracking-widest">${c.c} reservas</p></div><strong class="text-emerald-600 text-xl font-black italic">$${c.t.toLocaleString()}</strong></div>`; }); } } catch(e) {} }
+async function loadHistorialData() { if(!db) return; try { const snap = await getDocs(query(collection(db, logCollectionPath), orderBy("timestamp", "desc"))); if(historialList) { historialList.innerHTML = ''; snap.forEach(d => { const e = d.data(); historialList.innerHTML += `<div class="data-card p-5 mb-3 flex justify-between items-start border shadow-sm rounded-3xl text-left"><div><strong class="font-black italic uppercase tracking-tighter text-gray-800">${e.teamName || "EVENTO"}</strong><p class="text-[9px] mt-2 text-gray-400 font-bold uppercase tracking-widest">${e.timestamp.toDate().toLocaleString()} | ADMIN: ${e.loggedBy || "SISTEMA"}</p></div><span class="text-[8px] font-black uppercase px-2 py-1 bg-gray-100 rounded-lg italic">${e.action}</span></div>`; }); } } catch(e) {} }
+async function handleTeamNameInput() { if(!teamNameInput) return; const qText = teamNameInput.value.trim().toLowerCase(); if(qText.length < 2) { teamNameSuggestions.style.display = 'none'; return; } try { const q = query(collection(db, customersCollectionPath), where(documentId(), ">=", qText), where(documentId(), "<=", qText + '\uf8ff')); const snap = await getDocs(q); teamNameSuggestions.innerHTML = ''; if(snap.empty) { teamNameSuggestions.style.display = 'none'; return; } snap.forEach(d => { const n = d.data().name, i = document.createElement('div'); i.className = 'suggestion-item font-black text-sm p-4 hover:bg-emerald-50 cursor-pointer border-b italic uppercase'; i.textContent = n; i.onmousedown = () => { teamNameInput.value = n; teamNameSuggestions.style.display = 'none'; }; teamNameSuggestions.appendChild(i); }); teamNameSuggestions.style.display = 'block'; } catch (e) {} }
 async function saveCustomer(name) { if(!name) return; try { await setDoc(doc(db, customersCollectionPath, name.trim().toLowerCase()), { name: name.trim(), lastBooked: new Date().toISOString() }, { merge: true }); } catch(e) {} }
-
-async function openRecurringModal() { if (recurringToggle && recurringToggle.checked) { renderRecurringModal(); if(recurringModal) recurringModal.classList.add('is-open'); } }
-
-function renderRecurringModal() {
-    if(!recurringMonthList) return; 
-    recurringMonthList.innerHTML = ''; const now = new Date();
-    for (let i = 0; i < 12; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-        const btn = document.createElement('button'); 
-        btn.className = 'month-toggle-btn'; btn.dataset.month = d.getMonth(); btn.dataset.year = d.getFullYear();
-        btn.textContent = d.toLocaleString('es-AR', { month: 'short', year: 'numeric' }); btn.onclick = (e) => e.currentTarget.classList.toggle('selected');
-        recurringMonthList.appendChild(btn);
-    }
-}
-
-function selectRecurringDay(btn) { 
-    const dayGridContainer = document.querySelector('.day-selector-grid');
-    if(!dayGridContainer) return;
-    dayGridContainer.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); 
-    btn.classList.add('selected'); 
-}
-
+async function openRecurringModal() { if (recurringToggle && recurringToggle.checked) { renderRecurringModal(); recurringModal.classList.add('is-open'); } }
+function renderRecurringModal() { if(!recurringMonthList) return; recurringMonthList.innerHTML = ''; const now = new Date(); for (let i = 0; i < 12; i++) { const d = new Date(now.getFullYear(), now.getMonth() + i, 1); const btn = document.createElement('button'); btn.className = 'month-toggle-btn'; btn.dataset.month = d.getMonth(); btn.dataset.year = d.getFullYear(); btn.textContent = d.toLocaleString('es-AR', { month: 'short', year: 'numeric' }); btn.onclick = (e) => e.currentTarget.classList.toggle('selected'); recurringMonthList.appendChild(btn); } }
+function selectRecurringDay(btn) { document.querySelector('.day-selector-grid')?.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); }
 function saveRecurringSettings() {
-    const dBtn = document.querySelector('.day-toggle-btn.selected'); 
-    const mBtns = document.querySelectorAll('.month-toggle-btn.selected');
-    if (!dBtn || !mBtns || mBtns.length === 0) return alert("Selecciona día y meses.");
+    const dBtn = document.querySelector('.day-toggle-btn.selected'), mBtns = document.querySelectorAll('.month-toggle-btn.selected');
+    if (!dBtn || mBtns.length === 0) return alert("Selecciona día y meses.");
     recurringSettings.dayOfWeek = parseInt(dBtn.dataset.day, 10);
     recurringSettings.months = Array.from(mBtns).map(b => ({ month: b.dataset.month, year: b.dataset.year, name: b.textContent }));
     if(recurringSummary) { recurringSummary.textContent = `Serie activa: Todos los ${WEEKDAYS_ES[recurringSettings.dayOfWeek]}.`; recurringSummary.classList.remove('is-hidden'); }
-    if(recurringModal) recurringModal.classList.remove('is-open');
+    recurringModal.classList.remove('is-open');
 }
+async function logKioscoTransaction(productId, desc, qty, cost, type) { await addDoc(collection(db, transactionsCollectionPath), { productId, desc, qty, cost, type, timestamp: Timestamp.now(), adminEmail: userEmail }); }
 
 window.hideMessage = hideMessage; window.closeModals = closeModals;
-console.log("Sistema v2026 Pro - Versión Absoluta Sin Omisiones.");
+window.showEventModal = showEventModal; window.showBookingModal = showBookingModal;
+console.log("Sistema Pro v2026 - Versión Definitiva.");
